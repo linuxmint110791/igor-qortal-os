@@ -14,7 +14,7 @@ permissions:
 jobs:
   build-iso:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 120
 
     steps:
       - name: Checkout
@@ -31,12 +31,14 @@ jobs:
           wget -q https://deb.debian.org/debian/pool/main/l/live-build/live-build_20250505+deb13u1_all.deb
           sudo dpkg -i live-build_20250505+deb13u1_all.deb
           sudo apt-get -f install -y
+          echo "Using live-build:"
           lb --version
 
       - name: Build ISO
         env:
           DEBIAN_FRONTEND: noninteractive
           DISTRO: unstable
+          SKIP_HOST_DEPS: "1"
           BUILD_DIR: igor-qortal-os-build
           OUTPUT_ISO: igor-qortal-os-v2.iso
         run: |
