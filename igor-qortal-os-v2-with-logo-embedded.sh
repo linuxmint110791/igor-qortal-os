@@ -25,7 +25,7 @@ fi
 
 BUILD_DIR="${BUILD_DIR:-igor-qortal-os-build}"
 OUTPUT_ISO="${OUTPUT_ISO:-igor-qortal-os-v2.iso}"
-DISTRO="${DISTRO:-trixie}"
+DISTRO="${DISTRO:-unstable}"
 
 # 0 = ära lisa kunstlikku paddingut
 ISO_PADDING_MB="${ISO_PADDING_MB:-0}"
@@ -248,55 +248,73 @@ chafa
 EOF
 
 # ==============================================================================
-# OFFICIAL DEBIAN APT SOURCES + AUTOMATIC UPDATES
+# DEBIAN ROLLING RELEASE (UNSTABLE / SID)
 # ==============================================================================
-
-# The installed system continues to receive packages directly from Debian's
-# official repositories. The release is kept on the selected Debian suite
-# instead of silently switching to a new major release.
+#
+# Igorcoin Qortal OS follows Debian Unstable, Debian's continuously updated
+# development branch. This is the closest Debian-native model to an Arch-style
+# rolling system: packages arrive continuously and there is no major-release
+# reinstall.
+#
+# IMPORTANT: Debian calls this "Unstable" / "Sid", not an officially supported
+# rolling-release edition. It is newer and less tested than Debian Testing or
+# Stable. The OS therefore uses Debian's own repositories only and performs
+# full-upgrades rather than partial upgrades.
 
 mkdir -p config/includes.chroot/etc/apt/sources.list.d
+mkdir -p config/includes.chroot/etc/apt/apt.conf.d
+mkdir -p config/includes.chroot/etc/systemd/system
+mkdir -p config/includes.chroot/etc/systemd/system/timers.target.wants
 
 cat > config/includes.chroot/etc/apt/sources.list.d/debian.sources <<EOF
 Types: deb
 URIs: https://deb.debian.org/debian
-Suites: $DISTRO $DISTRO-updates
-Components: main contrib non-free non-free-firmware
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
-
-Types: deb
-URIs: https://security.debian.org/debian-security
-Suites: $DISTRO-security
+Suites: unstable
 Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
-
-mkdir -p config/includes.chroot/etc/apt/apt.conf.d
 
 cat > config/includes.chroot/etc/apt/apt.conf.d/20igor-qortal-os-updates <<'EOF'
 
-// Debian security and normal package updates are installed automatically.
-// Major Debian release upgrades are NOT performed automatically.
+// Package lists are refreshed daily. Full upgrades are performed by the
+// igor-qortal-os-rolling-update.timer.
 APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Download-Upgradeable-Packages "1";
 APT::Periodic::AutocleanInterval "7";
-APT::Periodic::Unattended-Upgrade "1";
-
+APT::Periodic::Unattended-Upgrade "0";
 EOF
 
-cat > config/includes.chroot/etc/apt/apt.conf.d/52unattended-upgrades-local <<'EOF'
+cat > config/includes.chroot/etc/systemd/system/igor-qortal-os-rolling-update.service <<'EOF'
+[Unit]
+Description=Igorcoin Qortal OS Debian Rolling Update
+After=network-online.target
+Wants=network-online.target
 
-Unattended-Upgrade::Origins-Pattern {
-    "origin=Debian,codename=__SUITE__,label=Debian";
-    "origin=Debian,codename=__SUITE__-security,label=Debian-Security";
-};
-
-Unattended-Upgrade::Remove-Unused-Dependencies "true";
-Unattended-Upgrade::Automatic-Reboot "false";
-
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/apt-get update
+ExecStart=/usr/bin/apt-get -y full-upgrade
+ExecStart=/usr/bin/apt-get -y autoremove
+ExecStart=/usr/bin/apt-get autoclean
 EOF
 
-sed -i "s/__SUITE__/$DISTRO/g" config/includes.chroot/etc/apt/apt.conf.d/52unattended-upgrades-local
+cat > config/includes.chroot/etc/systemd/system/igor-qortal-os-rolling-update.timer <<'EOF'
+[Unit]
+Description=Daily Igorcoin Qortal OS Debian Rolling Update
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=24h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+ln -sf /etc/systemd/system/igor-qortal-os-rolling-update.timer \
+    config/includes.chroot/etc/systemd/system/timers.target.wants/igor-qortal-os-rolling-update.timer
+
+# Manual rolling update command:
+#   sudo apt update && sudo apt full-upgrade
 
 # ==============================================================================
 # KEYBOARD
