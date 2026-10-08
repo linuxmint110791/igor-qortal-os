@@ -509,7 +509,28 @@ Categories=System;
 StartupWMClass=calamares
 StartupNotify=true
 DESKTOP
+    chmod 0755 "$APP"
 fi
+
+# Place a familiar installer shortcut on the live user's desktop, as Linux Mint does.
+install -d /etc/skel/Desktop
+cat > /etc/skel/Desktop/Install-Igorcoin-Qortal-OS.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Install Igorcoin Qortal OS
+Name[et]=Paigalda Igorcoin Qortal OS
+GenericName=Graphical System Installer
+Comment=Install Igorcoin Qortal OS to this computer
+Comment[et]=Paigalda Igorcoin Qortal OS sellesse arvutisse
+Exec=install-debian
+Icon=install-debian
+Terminal=false
+Categories=System;
+StartupWMClass=calamares
+StartupNotify=true
+DESKTOP
+chmod 0755 /etc/skel/Desktop/Install-Igorcoin-Qortal-OS.desktop
 
 # Keep the live session and installed system on Debian Unstable (Sid).
 install -d /etc/apt/sources.list.d
