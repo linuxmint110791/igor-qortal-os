@@ -1,4 +1,4 @@
-name: Build Igor-Qortal OS multi-architecture images
+name: Build Igor-Qortal OS 64-bit PC ISO
 
 on:
   push:
@@ -15,31 +15,11 @@ permissions:
   contents: write
 
 concurrency:
-  group: igor-qortal-os-iso-build
+  group: igor-qortal-os-amd64-iso-build
   cancel-in-progress: true
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            output: igor-qortal-os-amd64.iso
-            artifact: igor-qortal-os-amd64
-            bootloader: iso-syslinux-grub
-          - arch: arm64
-            output: igor-qortal-os-arm64.iso
-            artifact: igor-qortal-os-arm64
-            bootloader: iso-grub-efi
-          - arch: armhf
-            output: igor-qortal-os-armhf.iso
-            artifact: igor-qortal-os-armhf
-            bootloader: iso-grub-efi
-          - arch: i386
-            output: igor-qortal-os-i386.iso
-            artifact: igor-qortal-os-i386
-            bootloader: iso-syslinux
+  build-amd64:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
 
@@ -61,34 +41,34 @@ jobs:
       - name: Validate and safely repair builder
         run: |
           chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
-          ./\.github/iso-auto-repair.sh
+          ./.github/iso-auto-repair.sh
           bash -n ./igor-qortal-os-v2-with-logo-embedded.sh
           shellcheck -x -S error ./igor-qortal-os-v2-with-logo-embedded.sh || true
 
-      - name: Build image
+      - name: Build AMD64 / x86_64 ISO
         env:
           DEBIAN_FRONTEND: noninteractive
           DISTRO: unstable
-          ARCH: ${{ matrix.arch }}
+          ARCH: amd64
           SKIP_HOST_DEPS: '1'
-          BUILD_DIR: igor-qortal-os-build-${{ matrix.arch }}
-          OUTPUT_ISO: ${{ matrix.output }}
-          BOOTLOADER: ${{ matrix.bootloader }}
+          BUILD_DIR: igor-qortal-os-build-amd64
+          OUTPUT_ISO: igor-qortal-os-amd64.iso
+          BOOTLOADER: iso-syslinux-grub
         run: |
           printf '1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
 
       - name: Verify output
         run: |
-          test -s "${{ matrix.output }}"
-          file "${{ matrix.output }}"
-          sha256sum "${{ matrix.output }}" | tee "${{ matrix.output }}.sha256"
+          test -s igor-qortal-os-amd64.iso
+          file igor-qortal-os-amd64.iso
+          sha256sum igor-qortal-os-amd64.iso | tee igor-qortal-os-amd64.iso.sha256
 
-      - name: Upload image
+      - name: Upload AMD64 ISO
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
+          name: igor-qortal-os-amd64
           path: |
-            ${{ matrix.output }}
-            ${{ matrix.output }}.sha256
+            igor-qortal-os-amd64.iso
+            igor-qortal-os-amd64.iso.sha256
           compression-level: 0
           retention-days: 30
