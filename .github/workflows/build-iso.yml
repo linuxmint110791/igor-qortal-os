@@ -41,7 +41,7 @@ jobs:
       - name: Validate and safely repair builder
         run: |
           chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
-          ./.github/iso-auto-repair.sh
+          bash ./.github/iso-auto-repair.sh
           bash -n ./igor-qortal-os-v2-with-logo-embedded.sh
           shellcheck -x -S error ./igor-qortal-os-v2-with-logo-embedded.sh || true
 
