@@ -514,7 +514,7 @@ fi
 
 # Place a familiar installer shortcut on the live user's desktop, as Linux Mint does.
 install -d /etc/skel/Desktop
-cat > /etc/skel/Desktop/Install-Igorcoin-Qortal-OS.desktop <<'DESKTOP'
+cat > /etc/skel/Desktop/install-debian.desktop <<'DESKTOP'
 [Desktop Entry]
 Type=Application
 Version=1.0
@@ -530,7 +530,7 @@ Categories=System;
 StartupWMClass=calamares
 StartupNotify=true
 DESKTOP
-chmod 0755 /etc/skel/Desktop/Install-Igorcoin-Qortal-OS.desktop
+chmod 0755 /etc/skel/Desktop/install-debian.desktop
 
 # Keep the live session and installed system on Debian Unstable (Sid).
 install -d /etc/apt/sources.list.d
