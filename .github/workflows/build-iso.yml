@@ -36,7 +36,7 @@ jobs:
       - name: Build ISO
         env:
           DEBIAN_FRONTEND: noninteractive
-          DISTRO: trixie
+          DISTRO: unstable
           BUILD_DIR: igor-qortal-os-build
           OUTPUT_ISO: igor-qortal-os-v2.iso
         run: |
