@@ -24,7 +24,7 @@ jobs:
           - arch: amd64
             output: igor-qortal-os-amd64.iso
             artifact: igor-qortal-os-amd64
-            bootloader: iso-syslinux
+            bootloader: iso-syslinux-grub
           - arch: arm64
             output: igor-qortal-os-arm64.iso
             artifact: igor-qortal-os-arm64
