@@ -112,7 +112,7 @@ esac
 # GRUB EFI requires an EFI-capable image. Secure Boot is enabled only for
 # amd64 GRUB EFI builds where Debian signed GRUB/shim packages are present.
 if [[ "$BOOTLOADER" == "iso-syslinux-grub" || "$BOOTLOADER" == "iso-grub-efi" ]]; then
-    if [[ "$ARCH" == "amd64" ]]; then
+    if [[ "$ARCH" == "amd64" || "$ARCH" == "arm64" ]]; then
         SECURE_BOOT_ARGS=(--uefi-secure-boot enable)
     else
         SECURE_BOOT_ARGS=()
@@ -321,6 +321,8 @@ firmware-mediatek
 u-boot-menu
 grub-efi-arm64
 grub-efi-arm64-bin
+grub-efi-arm64-signed
+shim-signed
 u-boot-rpi
 raspi-firmware
 podman
