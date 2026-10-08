@@ -63,6 +63,22 @@ jobs:
           file igor-qortal-os-amd64.iso
           sha256sum igor-qortal-os-amd64.iso | tee igor-qortal-os-amd64.iso.sha256
 
+      - name: Report ISO readiness
+        if: success()
+        run: |
+          ISO="igor-qortal-os-amd64.iso"
+          test -s "$ISO"
+          SIZE=$(du -h "$ISO" | awk '{print $1}')
+          SHA=$(sha256sum "$ISO" | awk '{print $1}')
+          {
+            echo "## ✅ Igor-Qortal OS ISO valmis"
+            echo
+            echo "- **Fail:** `igor-qortal-os-amd64.iso`"
+            echo "- **Suurus:** $SIZE"
+            echo "- **SHA-256:** `$SHA`"
+            echo "- **Allalaadimine:** ava töö artifact `igor-qortal-os-amd64`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload AMD64 ISO
         uses: actions/upload-artifact@v4
         with:
