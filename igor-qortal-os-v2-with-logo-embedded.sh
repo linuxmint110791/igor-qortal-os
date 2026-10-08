@@ -1529,6 +1529,106 @@ X-GNOME-Autostart-enabled=true
 NoDisplay=true
 DESKTOP
 
+# ==============================================================================
+# QORTAL INSTALLER NETWORK CARD — RETICULUM
+# ==============================================================================
+# Reticulum is a first-class connection choice alongside Ethernet/Wi-Fi.
+
+mkdir -p config/includes.chroot/etc/reticulum
+
+cat > config/includes.chroot/etc/reticulum/installer-network.conf <<'EOF'
+[reticulum]
+enable_transport = Yes
+share_instance = Yes
+panic_on_interface_error = No
+
+[interfaces]
+  [[Igor-Qortal Local Mesh]]
+    type = AutoInterface
+    enabled = Yes
+    mode = full
+    group_id = igor-qortal-os
+EOF
+
+cat > config/includes.chroot/usr/local/bin/igor-network-card <<'SCRIPT'
+#!/usr/bin/env bash
+set -euo pipefail
+CONFIG=/etc/reticulum/installer-network.conf
+
+while true; do
+    clear 2>/dev/null || true
+    echo '=================================================='
+    echo '        IGOR-QORTAL OS — VÕRK'
+    echo '=================================================='
+    echo
+    echo 'Vali ühendus:'
+    echo
+    echo '  1) 🌐 Internet — Ethernet / Wi-Fi'
+    echo '  2) 🟢 Reticulum — kohalik mesh'
+    echo '  3) 🔗 Reticulum — TCP/Backbone'
+    echo '  4) 🛰️  Reticulum + Internet'
+    echo '  5) ⏎  Tagasi'
+    echo
+    read -rp 'Valik [2]: ' choice
+    choice="${choice:-2}"
+    case "$choice" in
+      1)
+        echo
+        command -v nmcli >/dev/null 2>&1 && nmcli device status || ip -brief link || true
+        read -rp 'Enter jätkamiseks...' _
+        ;;
+      2)
+        echo
+        echo '[+] Reticulum AutoInterface: ON'
+        echo '    Ethernet/Wi-Fi jääb Linuxi võrguks; Reticulum töötab selle kõrval.'
+        systemctl restart rnsd 2>/dev/null || systemctl start rnsd 2>/dev/null || true
+        read -rp 'Enter jätkamiseks...' _
+        ;;
+      3)
+        echo
+        read -rp 'Reticulum TCP/Backbone host: ' host
+        read -rp 'Port [4242]: ' port
+        port="${port:-4242}"
+        if [[ -n "$host" ]]; then
+          cat >> "$CONFIG" <<EOF
+
+  [[ Igor-Qortal Backbone ]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = $host
+    target_port = $port
+    mode = boundary
+EOF
+          systemctl restart rnsd 2>/dev/null || systemctl start rnsd 2>/dev/null || true
+          echo '[+] Backbone ühendus lisatud.'
+        fi
+        read -rp 'Enter jätkamiseks...' _
+        ;;
+      4)
+        echo
+        echo '[+] Internet + Reticulum töötavad koos.'
+        systemctl restart rnsd 2>/dev/null || systemctl start rnsd 2>/dev/null || true
+        read -rp 'Enter jätkamiseks...' _
+        ;;
+      5) exit 0 ;;
+      *) echo '[!] Tundmatu valik.'; sleep 1 ;;
+    esac
+done
+SCRIPT
+chmod 0755 config/includes.chroot/usr/local/bin/igor-network-card
+
+cat > config/includes.chroot/usr/share/applications/igor-network-card.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Network — Reticulum
+Name[et]=Võrk — Reticulum
+Comment=Choose Internet or Reticulum networking
+Exec=xterm -e /usr/local/bin/igor-network-card
+Terminal=false
+Icon=network-workgroup
+Categories=Network;Settings;
+StartupNotify=true
+DESKTOP
 BUILD ISO
 # ==============================================================================
 
