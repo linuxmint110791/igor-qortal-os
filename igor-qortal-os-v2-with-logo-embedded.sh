@@ -1618,6 +1618,115 @@ SCRIPT
 chmod 0755 config/includes.chroot/usr/local/bin/igor-driver-sync
 
 # ==============================================================================
+# IGOR-QORTAL OS — QORTAL QUICK GUIDE
+# ==============================================================================
+# Offline-readable guide, accessible from the desktop application menu.
+
+mkdir -p config/includes.chroot/usr/share/igor-qortal-os
+
+cat > config/includes.chroot/usr/share/igor-qortal-os/qortal-guide.txt <<'QORTALGUIDE'
+IGOR-QORTAL OS — QORTAL QUICK START
+===================================
+
+Welcome! This system includes a quick guide to getting started with Qortal.
+
+1. START QORTAL HUB
+-------------------
+Open Applications and choose Qortal Hub. If it is not installed on this
+build, use the official release page below and choose the correct Linux build.
+
+Official Qortal Hub releases:
+https://github.com/Qortal/Qortal-Hub/releases/latest
+
+2. SET UP YOUR QORTAL ACCOUNT
+-----------------------------
+Follow the Qortal Hub setup screens. Create or import an account only inside
+the official Qortal software. Double-check the account/name shown before
+publishing anything.
+
+IMPORTANT SECURITY RULES
+- Never share your seed phrase, private keys, or wallet password.
+- Do not paste your seed phrase into a website, chat, terminal, or support ticket.
+- Keep a secure offline backup of recovery information.
+- Verify official release sources before installing updates.
+- Anyone asking for your seed phrase is not providing legitimate support.
+
+3. REGISTER OR USE A QORTAL NAME
+--------------------------------
+A Qortal name is managed on the Qortal network and may require a registration
+fee and confirmation. Check the selected account and the exact name before
+confirming a transaction. Name registration is not the same as creating a
+Linux user account.
+
+4. OPEN QORTAL APPS
+-------------------
+Use the Qortal Hub interface to access available Qortal applications such as
+Q-Tube, Q-Chat, Q-Drive, Q-Mail and other Q-Apps. Availability can depend on
+the current network, application version, and the Qortal name/account in use.
+
+5. RETICULUM NETWORK
+--------------------
+Igor-Qortal OS configures Reticulum as a local mesh option. Reticulum can
+communicate over supported underlying links such as Ethernet or Wi-Fi, but it
+does not create a physical connection where no network/radio path exists.
+For wider connectivity, peers or a reachable backbone interface are needed.
+
+Check network status in a terminal:
+  systemctl status rnsd
+  rnstatus --config /etc/reticulum
+  qortal-rns-status
+
+6. UPDATES
+----------
+This OS uses Debian Unstable (Sid), a rolling development branch. Updates can
+occasionally introduce regressions. Back up important data before major
+updates and read package changes before confirming them.
+
+Manual update:
+  sudo apt update
+  sudo apt full-upgrade
+
+7. OFFICIAL LINKS
+-----------------
+Qortal project:       https://qortal.org/
+Qortal Hub releases:  https://github.com/Qortal/Qortal-Hub/releases
+Qortal Core:          https://github.com/Qortal/qortal
+Qortal documentation: https://qortal.org/
+
+If an official URL has moved, start from the project's main website or
+official GitHub organization rather than downloading software from mirrors.
+
+Have fun building on Qortal!
+QORTALGUIDE
+
+cat > config/includes.chroot/usr/local/bin/igor-qortal-guide <<'GUIDESCRIPT'
+#!/usr/bin/env bash
+set -euo pipefail
+GUIDE=/usr/share/igor-qortal-os/qortal-guide.txt
+if command -v xterm >/dev/null 2>&1; then
+    exec xterm -T "Igor-Qortal OS — Qortal Guide" -e less "$GUIDE"
+elif command -v less >/dev/null 2>&1; then
+    exec less "$GUIDE"
+else
+    cat "$GUIDE"
+fi
+GUIDESCRIPT
+chmod 0755 config/includes.chroot/usr/local/bin/igor-qortal-guide
+
+cat > config/includes.chroot/usr/share/applications/igor-qortal-guide.desktop <<'GUIDEDESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Qortal Quick Guide
+Name[et]=Qortali kiirjuhend
+Comment=Read the Qortal setup and safety guide
+Comment[et]=Loe Qortali seadistus- ja turvajuhendit
+Exec=/usr/local/bin/igor-qortal-guide
+Icon=help-contents
+Terminal=false
+Categories=Network;Utility;Documentation;
+GUIDEDESKTOP
+
+# ==============================================================================
 # QORTAL INSTALLER NETWORK CARD — RETICULUM
 # ==============================================================================
 # Reticulum is a first-class connection choice alongside Ethernet/Wi-Fi.
