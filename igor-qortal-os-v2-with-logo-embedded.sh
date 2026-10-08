@@ -655,6 +655,26 @@ chmod +x config/includes.chroot/usr/local/bin/qortal-rns-status
 
 mkdir -p config/hooks/live
 
+# Privacy: remove optional usage-reporting/telemetry packages and disable
+# Debian popularity-contest reporting inside the finished live system.
+cat > config/hooks/live/0105-disable-telemetry.chroot <<'EOF'
+#!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get purge -y popularity-contest 2>/dev/null || true
+rm -f /etc/cron.d/popularity-contest
+rm -f /etc/cron.weekly/popularity-contest
+rm -f /etc/default/popularity-contest
+rm -f /etc/popularity-contest.conf
+
+# Disable common opt-in package-usage reporting if present.
+if [ -f /etc/popularity-contest.conf ]; then
+    sed -i 's/^PARTICIPATE=.*/PARTICIPATE="no"/' /etc/popularity-contest.conf
+fi
+EOF
+chmod +x config/hooks/live/0105-disable-telemetry.chroot
+
 cat > config/hooks/live/0500-install-qortal-hub.chroot <<'EOF'
 #!/bin/sh
 set -e
