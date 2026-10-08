@@ -158,12 +158,10 @@ muffin
 # Wayland
 # --------------------------------------------------------------------------
 
-wayland
 wayland-protocols
 wayland-utils
 libwayland-client0
 libwayland-server0
-egl-wayland
 
 # --------------------------------------------------------------------------
 # Display manager
@@ -243,7 +241,6 @@ iputils-ping
 # System information
 # --------------------------------------------------------------------------
 
-neofetch
 fastfetch
 chafa
 
@@ -769,7 +766,7 @@ fi
 if command -v fastfetch >/dev/null 2>&1; then
     fastfetch
 else
-    neofetch
+    echo "fastfetch pole paigaldatud."
 fi
 
 echo
