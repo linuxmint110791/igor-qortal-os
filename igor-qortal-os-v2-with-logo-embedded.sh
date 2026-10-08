@@ -305,16 +305,36 @@ intel-microcode
 firmware-iwlwifi
 firmware-realtek
 firmware-misc-nonfree
+grub-pc
+grub-efi-amd64-bin
+grub-efi-amd64-signed
+shim-signed
 podman
 distrobox
 ARCHPKG
-elif [[ "$ARCH" == "arm64" || "$ARCH" == "armhf" ]]; then
+elif [[ "$ARCH" == "arm64" ]]; then
 cat >> config/package-lists/igor-qortal-os.list.chroot <<'ARCHPKG'
 firmware-brcm80211
 firmware-atheros
 firmware-realtek
 firmware-mediatek
 u-boot-menu
+grub-efi-arm64
+grub-efi-arm64-bin
+u-boot-rpi
+raspi-firmware
+podman
+distrobox
+ARCHPKG
+elif [[ "$ARCH" == "armhf" ]]; then
+cat >> config/package-lists/igor-qortal-os.list.chroot <<'ARCHPKG'
+firmware-brcm80211
+firmware-atheros
+firmware-realtek
+firmware-mediatek
+u-boot-menu
+grub-efi-arm
+grub-efi-arm-bin
 u-boot-rpi
 raspi-firmware
 podman
@@ -326,7 +346,7 @@ firmware-iwlwifi
 firmware-realtek
 firmware-misc-nonfree
 ARCHPKG
-fiF
+fi
 
 # ==============================================================================
 # DEBIAN ROLLING RELEASE (UNSTABLE / SID)
