@@ -23,7 +23,7 @@ jobs:
       - name: Install ISO build dependencies
         run: |
           sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y             debootstrap curl wget git xorriso squashfs-tools             grub-efi-amd64-bin grub-efi-amd64-signed shim-signed             dosfstools mtools cpio
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y             debootstrap curl wget git xorriso squashfs-tools             grub-efi-amd64-bin grub-efi-amd64-signed shim-signed             dosfstools mtools cpio debian-archive-keyring
 
           # Ubuntu 24.04 ships an older live-build which lacks the
           # --bootloaders option used by the V2 builder. Use Debian
