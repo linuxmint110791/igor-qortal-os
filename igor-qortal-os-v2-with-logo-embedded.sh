@@ -38,7 +38,7 @@ if [[ "$ARCH" == "amd64" ]]; then
 elif [[ "$ARCH" == "arm64" ]]; then
     BINARY_IMAGE_MODE="hdd"
 fi
-case "$ARCH" in amd64|arm64|i386) ;; *) echo "[!] Unsupported ARCH: $ARCH"; exit 1 ;; esac
+case "$ARCH" in amd64|arm64|armhf|i386) ;; *) echo "[!] Unsupported ARCH: $ARCH"; exit 1 ;; esac
 
 # 0 = ära lisa kunstlikku paddingut
 ISO_PADDING_MB="${ISO_PADDING_MB:-0}"
@@ -221,6 +221,9 @@ EOF
 if [[ "$ARCH" == "arm64" ]]; then
   sed -i '/linux-image-amd64/d' config/package-lists/igor-qortal-os.list.chroot
   echo 'linux-image-arm64' >> config/package-lists/igor-qortal-os.list.chroot
+elif [[ "$ARCH" == "armhf" ]]; then
+  sed -i '/linux-image-amd64/d' config/package-lists/igor-qortal-os.list.chroot
+  echo 'linux-image-armmp' >> config/package-lists/igor-qortal-os.list.chroot
 elif [[ "$ARCH" == "i386" ]]; then
   sed -i '/linux-image-amd64/d' config/package-lists/igor-qortal-os.list.chroot
   echo 'linux-image-686-pae' >> config/package-lists/igor-qortal-os.list.chroot
@@ -239,13 +242,15 @@ firmware-misc-nonfree
 podman
 distrobox
 ARCHPKG
-elif [[ "$ARCH" == "arm64" ]]; then
+elif [[ "$ARCH" == "arm64" || "$ARCH" == "armhf" ]]; then
 cat >> config/package-lists/igor-qortal-os.list.chroot <<'ARCHPKG'
 firmware-brcm80211
 firmware-atheros
 firmware-realtek
 firmware-mediatek
 u-boot-menu
+u-boot-rpi
+raspi-firmware
 podman
 distrobox
 ARCHPKG
