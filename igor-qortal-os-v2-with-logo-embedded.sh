@@ -30,6 +30,8 @@ fi
 BUILD_DIR="${BUILD_DIR:-igor-qortal-os-build}"
 OUTPUT_ISO="${OUTPUT_ISO:-igor-qortal-os-v2.iso}"
 DISTRO="${DISTRO:-unstable}"
+ARCH="${ARCH:-amd64}"
+case "$ARCH" in amd64|arm64|i386) ;; *) echo "[!] Unsupported ARCH: $ARCH"; exit 1 ;; esac
 
 # 0 = ära lisa kunstlikku paddingut
 ISO_PADDING_MB="${ISO_PADDING_MB:-0}"
@@ -119,7 +121,7 @@ cd "$BUILD_DIR"
 echo "[+] Seadistan Debian Live'i..."
 
 lb config \
-    --architectures amd64 \
+    --architectures "$ARCH" \
     --distribution "$DISTRO" \
     --archive-areas "main contrib non-free non-free-firmware" \
     --binary-images iso-hybrid \
@@ -451,6 +453,41 @@ EOF
 
 chmod +x config/hooks/live/0400-qortal-wallpaper.chroot
 
+# ==============================================================================
+# RETICULUM RESILIENCE / MULTI-LINK NETWORKING
+# ==============================================================================
+mkdir -p config/includes.chroot/etc/reticulum
+cat > config/includes.chroot/etc/reticulum/config <<'EOF'
+[reticulum]
+enable_transport = Yes
+share_instance = Yes
+panic_on_interface_error = No
+
+[interfaces]
+  [[AutoInterface]]
+    type = AutoInterface
+    enabled = Yes
+    mode = full
+    group_id = igor-qortal-os
+EOF
+cat > config/includes.chroot/etc/systemd/system/rnsd.service <<'EOF'
+[Unit]
+Description=Reticulum resilient mesh networking
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/rnsd --config /etc/reticulum
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+mkdir -p config/includes.chroot/etc/systemd/system/multi-user.target.wants
+ln -sf /etc/systemd/system/rnsd.service config/includes.chroot/etc/systemd/system/multi-user.target.wants/rnsd.service
 # ==============================================================================
 # RETICULUM CONFIGURATION
 # ==============================================================================
@@ -935,6 +972,31 @@ EOF
 
 chmod +x config/hooks/live/0500-install-qortal-hub.chroot
 
+# ==============================================================================
+# MULTI-ARCH QORTAL HUB INSTALLER
+# ==============================================================================
+cat > config/hooks/live/0500-install-qortal-hub.chroot <<'EOF'
+#!/bin/sh
+set -e
+export DEBIAN_FRONTEND=noninteractive
+arch="$(dpkg --print-architecture)"
+tmp="/tmp/qortal-hub"
+case "$arch" in
+  amd64)
+    curl -fL --retry 5 --retry-delay 3 "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Hub-Setup.deb" -o "$tmp.deb"
+    apt-get update
+    apt-get install -y "$tmp.deb"
+    rm -f "$tmp.deb"
+    ;;
+  arm64)
+    curl -fL --retry 5 --retry-delay 3 "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Hub-arm64.AppImage" -o "$tmp.AppImage"
+    install -Dm755 "$tmp.AppImage" /opt/qortal/Qortal-Hub-arm64.AppImage
+    ;;
+  i386) echo "[!] Qortal Hub i386 build puudub; OS töötab edasi ilma Hubita." ;;
+  *) echo "[!] Unsupported architecture: $arch" ;;
+esac
+EOF
+chmod +x config/hooks/live/0500-install-qortal-hub.chroot
 # ==============================================================================
 # QORTAL REPAIR / REINSTALL TOOL
 # ==============================================================================
