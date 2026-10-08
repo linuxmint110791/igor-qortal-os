@@ -1475,6 +1475,7 @@ chmod +x config/hooks/live/0600-firmware-tools.chroot
 
 cat > config/includes.chroot/etc/igor-qortal-os/driver-network.conf <<'EOF'
 TRANSPORT=reticulum
+DEFAULT_NETWORK=reticulum
 SOURCE=qdn
 REQUIRE_SHA256=yes
 REQUIRE_SIGNATURE=yes
@@ -1602,6 +1603,7 @@ echo "Igor-Qortal OS — Debian Driver Center"
 echo
 echo "Source: Debian official repositories"
 echo "Firmware: non-free-firmware"
+echo "Default network: Reticulum / mesh"
 echo "Transport fallback: Reticulum / QDN"
 echo
 echo "Detected hardware:"
