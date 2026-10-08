@@ -841,25 +841,40 @@ X-GNOME-Autostart-enabled=true
 EOF
 
 # Qortal applications appear directly in the Linux application menu.
+# Qortal Hub registers qortal:// links, so these launch the requested Q-App
+# directly inside the already running Hub session.
+cat > config/includes.chroot/usr/local/bin/igor-qortal-app <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+app="${1:?Qortal app name required}"
+systemctl --user start igor-qortal-session.service 2>/dev/null || true
+sleep 1
+exec xdg-open "qortal://APP/${app}"
+EOF
+chmod +x config/includes.chroot/usr/local/bin/igor-qortal-app
+
 create_qortal_app() {
     local name="$1"
-    local slug="$2"
+    local app="$2"
+    local slug="$3"
     cat > "config/includes.chroot/usr/share/applications/$slug.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=$name
-Comment=$name — Qortal decentralized application
-Exec=/usr/local/bin/igor-qortal-session
+Comment=$name — Qortal application
+Exec=/usr/local/bin/igor-qortal-app "$app"
 Terminal=false
 Categories=Network;Qortal;
+StartupNotify=true
 EOF
 }
-create_qortal_app "Q-Tube" "q-tube"
-create_qortal_app "Q-Chat" "q-chat"
-create_qortal_app "Q-Wallet" "q-wallet"
-create_qortal_app "Q-Drive" "q-drive"
-create_qortal_app "Q-Manager" "q-manager"
-create_qortal_app "Q-Mail" "q-mail"
+
+create_qortal_app "Q-Tube" "Q-Tube" "q-tube"
+create_qortal_app "Q-Mail" "Q-Mail" "q-mail"
+create_qortal_app "Q-Blog" "Q-Blog" "q-blog"
+create_qortal_app "Q-Chat" "Q-Chat" "q-chat"
+create_qortal_app "Q-Manager" "Q-Manager" "q-manager"
+
 
 # ==============================================================================
 # QORTAL HUB - INSTALL DURING ISO BUILD
