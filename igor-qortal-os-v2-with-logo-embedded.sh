@@ -76,23 +76,27 @@ echo
 # HOST BUILD DEPENDENCIES
 # ==============================================================================
 
-echo "[+] Paigaldan ISO buildimise tööriistad..."
+if [[ "${SKIP_HOST_DEPS:-0}" != "1" ]]; then
+    echo "[+] Paigaldan ISO buildimise tööriistad..."
 
-apt-get update
+    apt-get update
 
-apt-get install -y \
-    live-build \
-    debootstrap \
-    curl \
-    wget \
-    git \
-    xorriso \
-    squashfs-tools \
-    grub-efi-amd64-bin \
-    grub-efi-amd64-signed \
-    shim-signed \
-    dosfstools \
-    mtools
+    apt-get install -y \
+        live-build \
+        debootstrap \
+        curl \
+        wget \
+        git \
+        xorriso \
+        squashfs-tools \
+        grub-efi-amd64-bin \
+        grub-efi-amd64-signed \
+        shim-signed \
+        dosfstools \
+        mtools
+else
+    echo "[+] GitHub Actions: hosti build-sõltuvused on workflow poolt juba paigaldatud."
+fi
 
 # ==============================================================================
 # CLEAN BUILD TREE
@@ -656,10 +660,10 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "[+] Paigaldan ametliku Qortal Hubi..."
 
-tmp_deb="/tmp/Qortal-Setup-amd64.deb"
+tmp_deb="/tmp/Qortal-Hub-Setup.deb"
 
 curl -fL --retry 5 --retry-delay 3 \
-    "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Setup-amd64.deb" \
+    "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Hub-Setup.deb" \
     -o "$tmp_deb"
 
 apt-get update
