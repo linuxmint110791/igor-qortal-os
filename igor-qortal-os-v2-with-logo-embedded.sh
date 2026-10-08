@@ -1085,7 +1085,6 @@ arm64)
 i386) echo "[!] Qortal Hub i386 native build puudub; Reticulum ja OS komponendid jäävad alles." ;;
 esac
 EOF
-chmod +x config/hooks/live/0500-install-qortal-hub.chrootF
 chmod +x config/hooks/live/0500-install-qortal-hub.chroot
 # ==============================================================================
 # QORTAL REPAIR / REINSTALL TOOL
