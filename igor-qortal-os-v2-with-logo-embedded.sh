@@ -138,6 +138,7 @@ mkdir -p \
     config/includes.chroot/usr/local/bin \
     config/includes.chroot/etc/systemd/system \
     config/includes.chroot/etc/systemd/system/multi-user.target.wants \
+    config/includes.chroot/etc/systemd/user/default.target.wants \
     config/includes.chroot/etc/reticulum \
     config/includes.chroot/etc/default \
     config/includes.chroot/etc/environment.d \
