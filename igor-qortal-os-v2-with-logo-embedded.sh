@@ -6,6 +6,9 @@
 # ==============================================================================
 
 set -euo pipefail
+
+# Resolve the repository/script location before changing into the build tree.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # Privacy / telemetry policy: no Debian popularity-contest or other optional
 # usage-reporting package is included, and any accidental installation is
 # disabled/removed while building the image.
@@ -203,7 +206,6 @@ lb config \
     --parent-mirror-chroot "http://deb.debian.org/debian/" \
     --parent-mirror-binary "http://deb.debian.org/debian/" \
     --bootappend-live "boot=live components quiet splash" \
-    --debian-installer live \
     --apt-recommends false \
     --chroot-squashfs-compression-type xz \
     --chroot-squashfs-compression-level 9
@@ -238,6 +240,12 @@ mkdir -p \
 cat > config/package-lists/igor-qortal-os.list.chroot <<'EOF'
 cinnamon
 cinnamon-session
+calamares
+calamares-settings-debian
+rsync
+parted
+cryptsetup
+btrfs-progs
 cinnamon-desktop-data
 cinnamon-settings-daemon
 cinnamon-control-center
@@ -471,6 +479,49 @@ update-locale LANG="${SELECTED_LOCALE}"
 EOF
 
 chmod +x config/hooks/live/0100-locale.chroot
+
+# ==============================================================================
+# CALAMARES LIVE INSTALLER — familiar graphical install flow
+# ==============================================================================
+# Like Linux Mint: boot to the live desktop, test the system, then click
+# "Install Igorcoin Qortal OS". We deliberately do not bundle Debian Installer
+# text/graphical boot entries; Calamares is launched from the live desktop.
+
+cat > config/hooks/live/0900-igor-installer-branding.chroot <<'INSTALLERHOOK'
+#!/bin/sh
+set -eu
+
+APP=/usr/share/applications/install-debian.desktop
+if [ -f "$APP" ]; then
+    cat > "$APP" <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Install Igorcoin Qortal OS
+Name[et]=Paigalda Igorcoin Qortal OS
+GenericName=Graphical System Installer
+Comment=Install Igorcoin Qortal OS to this computer
+Comment[et]=Paigalda Igorcoin Qortal OS sellesse arvutisse
+Exec=install-debian
+Icon=install-debian
+Terminal=false
+Categories=System;
+StartupWMClass=calamares
+StartupNotify=true
+DESKTOP
+fi
+
+# Keep the live session and installed system on Debian Unstable (Sid).
+install -d /etc/apt/sources.list.d
+cat > /etc/apt/sources.list.d/debian.sources <<'SOURCES'
+Types: deb
+URIs: https://deb.debian.org/debian
+Suites: unstable
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+SOURCES
+INSTALLERHOOK
+chmod 0755 config/hooks/live/0900-igor-installer-branding.chroot
 
 # ==============================================================================
 # IGOR-QORTAL OS OFFICIAL Q-CUBE LOGO
