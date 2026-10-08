@@ -143,6 +143,9 @@ mkdir -p \
     config/includes.chroot/etc/environment.d \
     config/includes.chroot/etc/xdg/autostart \
     config/includes.chroot/usr/share/applications \
+    config/includes.chroot/etc/igor-qortal-os \
+    config/includes.chroot/etc/igor-qortal-os/linq \
+    config/includes.chroot/opt/linq \
     config/includes.chroot/etc/skel/.config/neofetch \
     config/hooks/live
 
@@ -240,6 +243,9 @@ git
 ca-certificates
 unzip
 zip
+yt-dlp
+ffmpeg
+python3-requests
 iproute2
 net-tools
 iputils-ping
@@ -642,6 +648,137 @@ echo
 EOF
 
 chmod +x config/includes.chroot/usr/local/bin/qortal-rns-status
+
+# ==============================================================================
+# LINQ -> QORTAL VIDEO SYNC
+# ==============================================================================
+# LinQ is integrated as a first-class Qortal OS service.
+#
+# Behaviour:
+#   - starts automatically with the graphical user session
+#   - waits for Qortal Hub to be running
+#   - launches the installed LinQ engine only after the Qortal desktop is up
+#   - keeps the existing LinQ configuration in /etc/igor-qortal-os/linq
+#   - publisher defaults to igorcoin
+#
+# The wallet seed/private key is NOT stored in the ISO. Qortal Core deliberately
+# does not store private keys; Qortal Hub keeps the encrypted wallet and signs
+# transactions. This keeps the OS image from containing wallet secrets.
+
+cat > config/includes.chroot/etc/igor-qortal-os/linq/linq.conf <<'EOF'
+# Igor-Qortal OS LinQ configuration
+PUBLISHER_NAME="igorcoin"
+QUBE_CATEGORY="26"
+MAX_VIDEO_SIZE_MB="2048"
+POLL_INTERVAL_MINUTES="30"
+
+# Optional: one YouTube channel URL per line.
+# Example:
+# https://www.youtube.com/@example
+CHANNELS_FILE="/etc/igor-qortal-os/linq/channels.txt"
+
+# LinQ engine entry point. The wrapper checks these locations in order:
+# 1) LINQ_COMMAND environment variable
+# 2) /opt/linq/linq
+# 3) /opt/linq/linq-yt-subs
+# 4) /usr/local/bin/linq
+LINQ_COMMAND=""
+EOF
+
+cat > config/includes.chroot/etc/igor-qortal-os/linq/channels.txt <<'EOF'
+# Add YouTube channel URLs here, one per line.
+# LinQ will monitor these channels and publish new videos to Q-Tube.
+EOF
+
+cat > config/includes.chroot/usr/local/bin/igor-linq-qortal-sync <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG="/etc/igor-qortal-os/linq/linq.conf"
+
+if [[ -r "$CONFIG" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONFIG"
+else
+    echo "[LinQ] Configuration missing: $CONFIG" >&2
+    exit 1
+fi
+
+find_linq() {
+    if [[ -n "${LINQ_COMMAND:-}" && -x "${LINQ_COMMAND}" ]]; then
+        printf '%s\n' "$LINQ_COMMAND"
+        return 0
+    fi
+
+    for candidate in         /opt/linq/linq         /opt/linq/linq-yt-subs         /usr/local/bin/linq
+    do
+        if [[ -x "$candidate" ]]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+echo "[LinQ] Igor-Qortal OS video synchronisation starting."
+echo "[LinQ] Publisher: ${PUBLISHER_NAME:-igorcoin}"
+echo "[LinQ] Category:  ${QUBE_CATEGORY:-26}"
+echo "[LinQ] Max video: ${MAX_VIDEO_SIZE_MB:-2048} MB"
+
+# Qortal Hub is the wallet/UI layer. Do not attempt to copy wallet secrets into
+# the service. Start the sync only once the Hub desktop process is present.
+while ! pgrep -f 'Qortal-Hub|qortal-hub|Qortal Hub' >/dev/null 2>&1; do
+    sleep 5
+done
+
+echo "[LinQ] Qortal Hub detected."
+
+if ! LINQ_BIN="$(find_linq)"; then
+    echo "[LinQ] LinQ engine is not installed yet."
+    echo "[LinQ] Expected: /opt/linq/linq"
+    echo "[LinQ] The service will keep waiting for the LinQ engine."
+    while ! LINQ_BIN="$(find_linq)"; do
+        sleep 30
+    done
+fi
+
+echo "[LinQ] Engine: $LINQ_BIN"
+
+exec "$LINQ_BIN"
+EOF
+chmod +x config/includes.chroot/usr/local/bin/igor-linq-qortal-sync
+
+cat > config/includes.chroot/etc/systemd/user/igor-linq-qortal-sync.service <<'EOF'
+[Unit]
+Description=Igor-Qortal OS LinQ -> Q-Tube video synchronisation
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/igor-linq-qortal-sync
+Restart=always
+RestartSec=10
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+[Install]
+WantedBy=default.target
+EOF
+
+mkdir -p config/includes.chroot/etc/systemd/user/default.target.wants
+ln -sf /etc/systemd/user/igor-linq-qortal-sync.service     config/includes.chroot/etc/systemd/user/default.target.wants/igor-linq-qortal-sync.service
+
+cat > config/includes.chroot/usr/share/applications/linq-qortal-sync.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=LinQ → Qortal Video Sync
+Comment=Synchronise new videos to Q-Tube after Qortal Hub starts
+Exec=systemctl --user start igor-linq-qortal-sync.service
+Icon=video-x-generic
+Terminal=false
+Categories=Network;AudioVideo;
+EOF
 
 # ==============================================================================
 # QORTAL HUB - INSTALL DURING ISO BUILD
