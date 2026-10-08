@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Igor-Qortal OS v2
-# Debian Trixie + Cinnamon + Wayland + EFI/Secure Boot support
+# Debian Sid/Unstable + Cinnamon + Wayland + EFI/Secure Boot support
 # Qortal + Arch Distrobox + Reticulum Mesh
 # ==============================================================================
 
@@ -373,6 +373,68 @@ mkdir -p config/includes.chroot/usr/share/pixmaps
 printf '%s' "$LOGO_B64" | base64 -d >     config/includes.chroot/usr/share/pixmaps/igor-qortal-os.png
 
 chmod 0644     config/includes.chroot/usr/share/pixmaps/igor-qortal-os.png
+
+# ==============================================================================
+# QORTAL WALLPAPERS
+# ==============================================================================
+# Official Qortal wallpapers from the Qortal Project press kit.
+# The dark Qortal background is the default Cinnamon desktop wallpaper.
+
+QORTAL_WALLPAPER_DIR="config/includes.chroot/usr/share/backgrounds/igor-qortal-os"
+mkdir -p "$QORTAL_WALLPAPER_DIR"
+
+QORTAL_MEDIA_BASE="https://wiki.qortal.org/lib/exe/fetch.php?media="
+
+download_qortal_wallpaper() {
+    local filename="$1"
+    local media_name="$2"
+
+    echo "[+] Laen Qortali taustapildi: $filename"
+
+    curl -fL --retry 3 --retry-delay 2 \
+        "${QORTAL_MEDIA_BASE}${media_name}" \
+        -o "${QORTAL_WALLPAPER_DIR}/${filename}"
+}
+
+download_qortal_wallpaper "qortal-background-dark.jpg" "qortal_background_dark_.jpg"
+download_qortal_wallpaper "qortal-background-light.jpg" "qortal_background_light_.jpg"
+download_qortal_wallpaper "qortal-background-extra-dark.jpg" "qortal_background_extra_dark_.jpg"
+download_qortal_wallpaper "qortal-background-dark-blue.jpg" "49d3e4f0-955d-4bd6-9a14-71c1cbffbb86.jpeg"
+download_qortal_wallpaper "qortal-welcome-to-the-future.png" "qortal-thefuture-wallpaper.png"
+
+chmod 0644 "$QORTAL_WALLPAPER_DIR"/*
+
+# ==============================================================================
+# CINNAMON DEFAULT WALLPAPER
+# ==============================================================================
+# Make the official dark Qortal background the desktop default for new users.
+
+mkdir -p \
+    config/includes.chroot/etc/dconf/profile \
+    config/includes.chroot/etc/dconf/db/local.d
+
+cat > config/includes.chroot/etc/dconf/profile/user <<'EOF'
+user-db:user
+system-db:local
+EOF
+
+cat > config/includes.chroot/etc/dconf/db/local.d/00-igor-qortal-wallpaper <<'EOF'
+[org/cinnamon/desktop/background]
+picture-uri='file:///usr/share/backgrounds/igor-qortal-os/qortal-background-dark.jpg'
+picture-uri-dark='file:///usr/share/backgrounds/igor-qortal-os/qortal-background-dark.jpg'
+picture-options='zoom'
+EOF
+
+cat > config/hooks/live/0400-qortal-wallpaper.chroot <<'EOF'
+#!/bin/sh
+set -e
+
+if command -v dconf >/dev/null 2>&1; then
+    dconf update || true
+fi
+EOF
+
+chmod +x config/hooks/live/0400-qortal-wallpaper.chroot
 
 # ==============================================================================
 # RETICULUM CONFIGURATION
