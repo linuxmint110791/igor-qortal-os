@@ -127,7 +127,10 @@ lb config \
     --parent-mirror-bootstrap "http://deb.debian.org/debian/" \
     --parent-mirror-chroot "http://deb.debian.org/debian/" \
     --parent-mirror-binary "http://deb.debian.org/debian/" \
-    --bootappend-live "boot=live components quiet splash"
+    --bootappend-live "boot=live components quiet splash" \
+    --apt-recommends false \
+    --chroot-squashfs-compression-type xz \
+    --chroot-squashfs-compression-level 9
 
 # ==============================================================================
 # DIRECTORY STRUCTURE
@@ -1248,6 +1251,37 @@ if [[ "$ISO_PADDING_MB" -gt 0 ]]; then
         status=progress
 
 fi
+
+# ==============================================================================
+# LEGACY INTEL COMPATIBILITY CHECK
+# ==============================================================================
+# The main image is amd64 and therefore supports old 64-bit Intel CPUs that
+# implement Intel 64/EM64T (for example many Core 2 and later systems).
+# Debian no longer provides a normal i386 installer/kernel in Trixie/Sid;
+# i386 is now only a co-architecture on amd64. Therefore we deliberately do
+# not pretend that a 32-bit-only Intel Pentium can boot this Qortal ISO.
+# The generic amd64 kernel is used rather than a CPU-specific build.
+
+cat > config/includes.chroot/usr/local/bin/igor-hardware-info <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Igor-Qortal OS CPU compatibility"
+echo
+if grep -qw lm /proc/cpuinfo; then
+    echo "Architecture: 64-bit Intel/AMD capable (amd64)"
+    echo "Status:       supported"
+else
+    echo "Architecture: 32-bit-only CPU"
+    echo "Status:       not supported by the main Qortal ISO"
+    echo "Reason:       Qortal Hub and Debian Sid target amd64."
+    exit 1
+fi
+
+echo
+lscpu | grep -E '^(Model name|CPU\\(s\\)|Architecture|Flags):' || true
+EOF
+chmod +x config/includes.chroot/usr/local/bin/igor-hardware-info
 
 # ==============================================================================
 # BUILD ISO
