@@ -35,7 +35,7 @@ SECURE_BOOT_ARGS=()
 BINARY_IMAGE_MODE="iso-hybrid"
 if [[ "$ARCH" == "amd64" ]]; then
     SECURE_BOOT_ARGS=(--uefi-secure-boot enable)
-elif [[ "$ARCH" == "arm64" ]]; then
+elif [[ "$ARCH" == "arm64" || "$ARCH" == "armhf" ]]; then
     BINARY_IMAGE_MODE="hdd"
 fi
 case "$ARCH" in amd64|arm64|armhf|i386) ;; *) echo "[!] Unsupported ARCH: $ARCH"; exit 1 ;; esac
@@ -53,6 +53,67 @@ ISO_PADDING_MB="${ISO_PADDING_MB:-0}"
 #
 RNS_TCP_HOST="${RNS_TCP_HOST:-}"
 RNS_TCP_PORT="${RNS_TCP_PORT:-}"
+
+# Bootloader profile. Debian live-build supports GRUB BIOS (grub-pc),
+# GRUB EFI (grub-efi) and Syslinux. A normal ISO uses Syslinux/ISOLINUX;
+# GRUB selection is available for HDD images.
+BOOTLOADER="${BOOTLOADER:-auto}"
+if [[ "$BOOTLOADER" == "auto" ]]; then
+    if [[ -t 0 && -t 1 ]]; then
+        echo "=================================================="
+        echo "       Igor-Qortal OS alglaaduri valik"
+        echo "=================================================="
+        echo "1) ISO / Syslinux (UEFI + BIOS, vaikimisi)"
+        echo "2) GRUB BIOS + EFI / HDD image"
+        echo "3) Syslinux / HDD image"
+        echo "4) GRUB EFI / HDD image"
+        echo
+        read -rp "Valik [1]: " BOOT_CHOICE
+        case "${BOOT_CHOICE:-1}" in
+            2) BOOTLOADER="grub-bios-efi" ;;
+            3) BOOTLOADER="syslinux-hdd" ;;
+            4) BOOTLOADER="grub-efi" ;;
+            *) BOOTLOADER="iso-syslinux" ;;
+        esac
+    else
+        BOOTLOADER="iso-syslinux"
+    fi
+fi
+
+BOOTLOADER_ARGS=()
+case "$BOOTLOADER" in
+    iso-syslinux)
+        BINARY_IMAGE_MODE="iso-hybrid"
+        BOOTLOADER_ARGS=(--bootloaders syslinux)
+        ;;
+    grub-bios-efi)
+        BINARY_IMAGE_MODE="hdd"
+        BOOTLOADER_ARGS=(--bootloaders "grub-pc grub-efi")
+        ;;
+    syslinux-hdd)
+        BINARY_IMAGE_MODE="hdd"
+        BOOTLOADER_ARGS=(--bootloaders syslinux)
+        ;;
+    grub-efi)
+        BINARY_IMAGE_MODE="hdd"
+        BOOTLOADER_ARGS=(--bootloaders grub-efi)
+        ;;
+    *)
+        echo "[!] Tundmatu BOOTLOADER: $BOOTLOADER"
+        echo "    Lubatud: iso-syslinux, grub-bios-efi, syslinux-hdd, grub-efi"
+        exit 1
+        ;;
+esac
+
+# GRUB EFI requires an EFI-capable image. Secure Boot is enabled only for
+# amd64 GRUB EFI builds where Debian signed GRUB/shim packages are present.
+if [[ "$BOOTLOADER" == "grub-bios-efi" || "$BOOTLOADER" == "grub-efi" ]]; then
+    if [[ "$ARCH" == "amd64" ]]; then
+        SECURE_BOOT_ARGS=(--uefi-secure-boot enable)
+    else
+        SECURE_BOOT_ARGS=()
+    fi
+fi
 
 # ==============================================================================
 # LOCALE
@@ -132,6 +193,7 @@ lb config \
     --distribution "$DISTRO" \
     --archive-areas "main contrib non-free non-free-firmware" \
     --binary-images "$BINARY_IMAGE_MODE" \
+    "${BOOTLOADER_ARGS[@]}" \
     "${SECURE_BOOT_ARGS[@]}" \
     --parent-mirror-bootstrap "http://deb.debian.org/debian/" \
     --parent-mirror-chroot "http://deb.debian.org/debian/" \
@@ -1396,7 +1458,13 @@ echo "        IGOR-QORTAL OS VALMIS 🚀"
 echo "=================================================="
 echo
 
-echo "ISO:"
+echo "Alglaadur:"
+echo "    $BOOTLOADER"
+echo
+echo "Pildirežiim:"
+echo "    $BINARY_IMAGE_MODE"
+echo
+echo "Väljund:"
 echo "    $OUTPUT_ISO"
 
 echo
