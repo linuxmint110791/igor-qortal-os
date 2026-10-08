@@ -27,6 +27,9 @@ jobs:
           - arch: arm64
             output: igor-qortal-os-arm64.img
             artifact: igor-qortal-os-arm64
+          - arch: armhf
+            output: igor-qortal-os-armhf.img
+            artifact: igor-qortal-os-armhf
           - arch: i386
             output: igor-qortal-os-i386.iso
             artifact: igor-qortal-os-i386
