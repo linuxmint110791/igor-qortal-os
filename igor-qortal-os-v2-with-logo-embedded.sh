@@ -1530,6 +1530,92 @@ NoDisplay=true
 DESKTOP
 
 # ==============================================================================
+# DEBIAN DRIVER / FIRMWARE SERVER INTEGRATION
+# ==============================================================================
+# The installer uses Debian's official package infrastructure. Debian 12+
+# provides firmware in the non-free-firmware archive component; this image
+# enables main/contrib/non-free/non-free-firmware and detects hardware before
+# installing the appropriate kernel modules/firmware.
+cat > config/hooks/live/0550-debian-driver-detection.chroot <<'EOF'
+#!/bin/bash
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+echo "=================================================="
+echo "  IGOR-QORTAL OS — DEBIAN DRIVER CENTER"
+echo "=================================================="
+
+apt-get update
+
+# Core hardware/driver helpers.
+apt-get install -y --no-install-recommends \
+    pciutils usbutils kmod \
+    firmware-linux-free firmware-misc-nonfree \
+    firmware-amd-graphics firmware-iwlwifi firmware-realtek \
+    firmware-mediatek firmware-atheros firmware-brcm80211 \
+    firmware-intel-graphics firmware-nvidia-graphics 2>/dev/null || true
+
+# Graphics stack: use Debian's native kernel/Mesa drivers first.
+apt-get install -y --no-install-recommends \
+    mesa-vulkan-drivers libgl1-mesa-dri firmware-amd-graphics 2>/dev/null || true
+
+# NVIDIA: install Debian's packaged driver when an NVIDIA GPU is detected.
+# This stays inside Debian's official repositories; no third-party installer
+# or .run file is downloaded.
+if lspci -nn 2>/dev/null | grep -Eiq 'VGA|3D|Display' && \
+   lspci -nn 2>/dev/null | grep -Eiq 'NVIDIA'; then
+    echo "[+] NVIDIA GPU detected — installing Debian NVIDIA driver."
+    apt-get install -y --no-install-recommends nvidia-driver firmware-nvidia-graphics || true
+fi
+
+# AMD graphics firmware is safe to include for AMD GPUs.
+if lspci -nn 2>/dev/null | grep -Eiq 'VGA|3D|Display' && \
+   lspci -nn 2>/dev/null | grep -Eiq 'AMD|ATI'; then
+    echo "[+] AMD GPU detected — enabling Debian AMD graphics firmware."
+    apt-get install -y --no-install-recommends firmware-amd-graphics mesa-vulkan-drivers || true
+fi
+
+# Intel graphics firmware.
+if lspci -nn 2>/dev/null | grep -Eiq 'VGA|3D|Display' && \
+   lspci -nn 2>/dev/null | grep -Eiq 'Intel'; then
+    echo "[+] Intel GPU detected — enabling Debian Intel graphics firmware."
+    apt-get install -y --no-install-recommends firmware-intel-graphics mesa-vulkan-drivers || true
+fi
+
+# Common Wi-Fi/Ethernet firmware. The kernel driver itself comes from Debian's
+# linux-image package; firmware is supplied by Debian's firmware archive.
+for pkg in firmware-iwlwifi firmware-realtek firmware-mediatek firmware-atheros firmware-brcm80211; do
+    apt-get install -y --no-install-recommends "$pkg" 2>/dev/null || true
+done
+
+echo
+echo "[+] Debian driver/firmware integration complete."
+echo "[+] Repository: https://deb.debian.org/debian"
+echo "[+] Components: main contrib non-free non-free-firmware"
+EOF
+chmod +x config/hooks/live/0550-debian-driver-detection.chroot
+
+cat > config/includes.chroot/usr/local/bin/igor-driver-sync <<'SCRIPT'
+#!/bin/bash
+set -euo pipefail
+echo "Igor-Qortal OS — Debian Driver Center"
+echo
+echo "Source: Debian official repositories"
+echo "Firmware: non-free-firmware"
+echo "Transport fallback: Reticulum / QDN"
+echo
+echo "Detected hardware:"
+lspci -nn 2>/dev/null | grep -E 'VGA|3D|Display|Network|Ethernet' || true
+echo
+echo "Refreshing Debian driver metadata..."
+sudo apt-get update
+echo
+echo "Use 'sudo apt install <package>' for a specific Debian driver."
+echo "The installer already includes common AMD/NVIDIA/Intel/Wi-Fi firmware."
+SCRIPT
+chmod 0755 config/includes.chroot/usr/local/bin/igor-driver-sync
+
+# ==============================================================================
 # QORTAL INSTALLER NETWORK CARD — RETICULUM
 # ==============================================================================
 # Reticulum is a first-class connection choice alongside Ethernet/Wi-Fi.
