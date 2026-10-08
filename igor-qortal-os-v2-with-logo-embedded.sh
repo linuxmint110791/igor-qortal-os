@@ -1618,6 +1618,70 @@ SCRIPT
 chmod 0755 config/includes.chroot/usr/local/bin/igor-driver-sync
 
 # ==============================================================================
+# IGOR-QORTAL OS — ISO STATUS CHECKER
+# ==============================================================================
+# Finds likely ISO outputs without scanning the whole disk.
+
+cat > config/includes.chroot/usr/local/bin/igor-iso-status <<'ISOSCRIPT'
+#!/usr/bin/env bash
+set -uo pipefail
+echo "Igor-Qortal OS — ISO oleku kontroll"
+echo "==================================="
+echo "Otsin ISO-faile tavapärastest asukohtadest..."
+echo
+declare -A seen=()
+found=0
+for root in "$PWD" "$HOME" /home /media /mnt /opt /var/tmp; do
+  [[ -d "$root" ]] || continue
+  while IFS= read -r -d ' ' candidate; do
+    [[ -n "${seen[$candidate]+x}" ]] && continue
+    seen["$candidate"]=1
+    size=$(stat -c '%s' "$candidate" 2>/dev/null || echo 0)
+    pretty=$(du -h "$candidate" 2>/dev/null | awk '{print $1}')
+    kind=$(file -b "$candidate" 2>/dev/null || echo unknown)
+    printf 'Leitud: %s\nSuurus: %s\nTüüp: %s\n' "$candidate" "${pretty:-unknown}" "$kind"
+    if [[ "$candidate" == *.iso && "$size" -gt 104857600 ]] && grep -Eiq 'ISO 9660|bootable' <<< "$kind"; then
+      echo "STAATUS: ISO näib valmis."
+      if [[ -f "$candidate.sha256" ]]; then
+        if (cd "$(dirname "$candidate")" && sha256sum -c "$(basename "$candidate").sha256"); then
+          echo "SHA-256: korras."
+        else
+          echo "HOIATUS: SHA-256 kontroll ebaõnnestus; ära kasuta faili enne kontrolli."
+          echo
+          continue
+        fi
+      fi
+      found=1
+    else
+      echo "STAATUS: fail leiti, kuid valmis ISO-na ei kinnitatud."
+    fi
+    echo
+  done < <(find "$root" -maxdepth 5 -type f \( -iname '*.iso' -o -iname '*.img' \) -print0 2>/dev/null)
+done
+if [[ "$found" -eq 1 ]]; then
+  echo "TULEMUS: ISO VALMIS — vähemalt üks ISO leiti ja kontrolliti."
+  exit 0
+fi
+echo "TULEMUS: ISO-T EI LEITUD."
+echo "Ava GitHub Actions ja laadi edukast build-ist artifact alla."
+exit 1
+ISOSCRIPT
+chmod 0755 config/includes.chroot/usr/local/bin/igor-iso-status
+
+cat > config/includes.chroot/usr/share/applications/igor-iso-status.desktop <<'ISODESKTOP'
+[Desktop Entry]
+Type=Application
+Name=ISO Status Check
+Name[et]=ISO oleku kontroll
+Comment=Find an ISO image and check if it looks ready
+Comment[et]=Otsi ISO-faili ja kontrolli, kas see näib valmis
+Exec=xterm -hold -e /usr/local/bin/igor-iso-status
+Icon=drive-harddisk
+Terminal=false
+Categories=System;Utility;
+ISODESKTOP
+
+# ==============================================================================
 # IGOR-QORTAL OS — QORTAL QUICK GUIDE
 # ==============================================================================
 # Offline-readable guide, accessible from the desktop application menu.
