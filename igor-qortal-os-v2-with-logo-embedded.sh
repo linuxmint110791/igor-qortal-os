@@ -119,7 +119,6 @@ lb config \
     --distribution "$DISTRO" \
     --archive-areas "main contrib non-free non-free-firmware" \
     --binary-images iso-hybrid \
-    --bootloaders grub-efi \
     --uefi-secure-boot enable \
     --parent-mirror-bootstrap "http://deb.debian.org/debian/" \
     --parent-mirror-chroot "http://deb.debian.org/debian/" \
