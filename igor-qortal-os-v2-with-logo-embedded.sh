@@ -160,87 +160,37 @@ mkdir -p \
 # ==============================================================================
 
 cat > config/package-lists/igor-qortal-os.list.chroot <<'EOF'
-
-# --------------------------------------------------------------------------
-# Cinnamon
-# --------------------------------------------------------------------------
-
 cinnamon
-cinnamon-desktop-environment
 cinnamon-session
+cinnamon-desktop-data
+cinnamon-settings-daemon
+cinnamon-control-center
+cinnamon-screensaver
+cinnamon-l10n
+nemo
+nemo-fileroller
 muffin
-
-# --------------------------------------------------------------------------
-# Wayland
-# --------------------------------------------------------------------------
-
 wayland-protocols
 wayland-utils
 libwayland-client0
 libwayland-server0
-
-# --------------------------------------------------------------------------
-# Display manager
-# --------------------------------------------------------------------------
-
 gdm3
 dconf-cli
-
-# --------------------------------------------------------------------------
-# Audio
-# --------------------------------------------------------------------------
-
 pipewire
 pipewire-audio
 wireplumber
 pavucontrol
-
-# --------------------------------------------------------------------------
-# Locale / keyboard
-# --------------------------------------------------------------------------
-
 locales
 console-setup
 keyboard-configuration
 x11-xkb-utils
-
-# --------------------------------------------------------------------------
-# Secure Boot / EFI
-# --------------------------------------------------------------------------
-
-shim-signed
-grub-efi-amd64-signed
-mokutil
-efibootmgr
-
-# --------------------------------------------------------------------------
-# Arch Distrobox
-# --------------------------------------------------------------------------
-
-podman
-distrobox
-
-# --------------------------------------------------------------------------
-# Reticulum
-# --------------------------------------------------------------------------
-
 python3
 python3-pip
 python3-cryptography
 python3-netifaces
-
-# --------------------------------------------------------------------------
-# Debian automatic updates
-# --------------------------------------------------------------------------
-
+python3-pyserial
 unattended-upgrades
 apt-listchanges
-
-# --------------------------------------------------------------------------
-# Terminal / networking
-# --------------------------------------------------------------------------
-
-gnome-terminal
 bash
 sudo
 curl
@@ -255,15 +205,47 @@ python3-requests
 iproute2
 net-tools
 iputils-ping
-
-# --------------------------------------------------------------------------
-# System information
-# --------------------------------------------------------------------------
-
 fastfetch
 chafa
-
+xterm
+linux-image-amd64
 EOF
+
+if [[ "$ARCH" == "arm64" ]]; then
+  sed -i '/linux-image-amd64/d' config/package-lists/igor-qortal-os.list.chroot
+  echo 'linux-image-arm64' >> config/package-lists/igor-qortal-os.list.chroot
+fi
+
+if [[ "$ARCH" == "amd64" ]]; then
+cat >> config/package-lists/igor-qortal-os.list.chroot <<'ARCHPKG'
+shim-signed
+grub-efi-amd64-signed
+mokutil
+efibootmgr
+intel-microcode
+firmware-iwlwifi
+firmware-realtek
+firmware-misc-nonfree
+podman
+distrobox
+ARCHPKG
+elif [[ "$ARCH" == "arm64" ]]; then
+cat >> config/package-lists/igor-qortal-os.list.chroot <<'ARCHPKG'
+firmware-brcm80211
+firmware-atheros
+firmware-realtek
+firmware-mediatek
+u-boot-menu
+podman
+distrobox
+ARCHPKG
+else
+cat >> config/package-lists/igor-qortal-os.list.chroot <<'ARCHPKG'
+firmware-iwlwifi
+firmware-realtek
+firmware-misc-nonfree
+ARCHPKG
+fiF
 
 # ==============================================================================
 # DEBIAN ROLLING RELEASE (UNSTABLE / SID)
@@ -495,36 +477,31 @@ ln -sf /etc/systemd/system/rnsd.service config/includes.chroot/etc/systemd/syste
 echo "[+] Koostan Reticulum konfiguratsiooni..."
 
 cat > config/includes.chroot/etc/reticulum/config <<'EOF'
-
-# ==============================================================================
-# Igor-Qortal OS - Reticulum Network Stack
-# ==============================================================================
-
 [reticulum]
-
-# Tavaline töölaud ei ruudi teiste sõlmede liiklust.
-#
-# Püsiva Reticulum transport-node'i jaoks:
-#
-# enable_transport = Yes
-#
-enable_transport = No
-
-# Kohalikud RNS rakendused kasutavad sama rnsd instantsi.
+enable_transport = Yes
 share_instance = Yes
+panic_on_interface_error = No
 
 [interfaces]
-
-  # --------------------------------------------------------------------------
-  # Local WiFi / Ethernet Mesh
-  # --------------------------------------------------------------------------
-
   [[Igor-Qortal Local Mesh]]
-
     type = AutoInterface
     enabled = Yes
-
+    mode = full
+    group_id = igor-qortal-os
 EOF
+
+# Optional Internet backbone/TCP entry point supplied with RNS_TCP_HOST/RNS_TCP_PORT.
+if [[ -n "$RNS_TCP_HOST" && -n "$RNS_TCP_PORT" ]]; then
+cat >> config/includes.chroot/etc/reticulum/config <<EOF
+
+  [[Igor-Qortal RNS TCP Backbone]]
+    type = TCPClientInterface
+    enabled = Yes
+    target_host = $RNS_TCP_HOST
+    target_port = $RNS_TCP_PORT
+    mode = boundary
+EOF
+fiF
 
 # ==============================================================================
 # OPTIONAL TCP/BACKBONE INTERFACE
@@ -982,20 +959,21 @@ export DEBIAN_FRONTEND=noninteractive
 arch="$(dpkg --print-architecture)"
 tmp="/tmp/qortal-hub"
 case "$arch" in
-  amd64)
-    curl -fL --retry 5 --retry-delay 3 "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Hub-Setup.deb" -o "$tmp.deb"
-    apt-get update
-    apt-get install -y "$tmp.deb"
-    rm -f "$tmp.deb"
-    ;;
-  arm64)
-    curl -fL --retry 5 --retry-delay 3 "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Hub-arm64.AppImage" -o "$tmp.AppImage"
-    install -Dm755 "$tmp.AppImage" /opt/qortal/Qortal-Hub-arm64.AppImage
-    ;;
-  i386) echo "[!] Qortal Hub i386 build puudub; OS töötab edasi ilma Hubita." ;;
-  *) echo "[!] Unsupported architecture: $arch" ;;
+amd64)
+  curl -fL --retry 5 --retry-delay 3 "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Hub-Setup.deb" -o "$tmp.deb"
+  apt-get update
+  apt-get install -y "$tmp.deb"
+  rm -f "$tmp.deb"
+  ;;
+arm64)
+  curl -fL --retry 5 --retry-delay 3 "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Hub-arm64.AppImage" -o "$tmp.AppImage"
+  install -Dm755 "$tmp.AppImage" /opt/qortal/Qortal-Hub-arm64.AppImage
+  ln -sf /opt/qortal/Qortal-Hub-arm64.AppImage /usr/local/bin/qortal-hub
+  ;;
+i386) echo "[!] Qortal Hub i386 native build puudub; Reticulum ja OS komponendid jäävad alles." ;;
 esac
 EOF
+chmod +x config/hooks/live/0500-install-qortal-hub.chrootF
 chmod +x config/hooks/live/0500-install-qortal-hub.chroot
 # ==============================================================================
 # QORTAL REPAIR / REINSTALL TOOL
