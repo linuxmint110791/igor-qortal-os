@@ -6,10 +6,13 @@ on:
     paths:
       - 'igor-qortal-os-v2-with-logo-embedded.sh'
       - '.github/workflows/build-iso.yml'
+      - '.github/iso-auto-repair.sh'
+  schedule:
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: igor-qortal-os-iso-build
@@ -50,11 +53,17 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
             debootstrap curl wget git xorriso squashfs-tools \
             dosfstools mtools cpio debian-archive-keyring \
-            qemu-user-static binfmt-support
+            qemu-user-static binfmt-support shellcheck
           wget -q https://deb.debian.org/debian/pool/main/l/live-build/live-build_20250814_all.deb
-          sudo dpkg -i live-build_20250814_all.deb
-          sudo apt-get -f install -y
+          sudo dpkg -i live-build_20250814_all.deb || sudo apt-get -f install -y
           lb --version
+
+      - name: Validate and safely repair builder
+        run: |
+          chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
+          ./\.github/iso-auto-repair.sh
+          bash -n ./igor-qortal-os-v2-with-logo-embedded.sh
+          shellcheck -x -S error ./igor-qortal-os-v2-with-logo-embedded.sh || true
 
       - name: Build image
         env:
@@ -66,7 +75,6 @@ jobs:
           OUTPUT_ISO: ${{ matrix.output }}
           BOOTLOADER: ${{ matrix.bootloader }}
         run: |
-          chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
           printf '1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
 
       - name: Verify output
