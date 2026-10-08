@@ -24,15 +24,19 @@ jobs:
           - arch: amd64
             output: igor-qortal-os-amd64.iso
             artifact: igor-qortal-os-amd64
+            bootloader: iso-syslinux
           - arch: arm64
             output: igor-qortal-os-arm64.img
             artifact: igor-qortal-os-arm64
+            bootloader: syslinux-hdd
           - arch: armhf
             output: igor-qortal-os-armhf.img
             artifact: igor-qortal-os-armhf
+            bootloader: syslinux-hdd
           - arch: i386
             output: igor-qortal-os-i386.iso
             artifact: igor-qortal-os-i386
+            bootloader: iso-syslinux
     runs-on: ubuntu-24.04
     timeout-minutes: 180
 
@@ -60,6 +64,7 @@ jobs:
           SKIP_HOST_DEPS: '1'
           BUILD_DIR: igor-qortal-os-build-${{ matrix.arch }}
           OUTPUT_ISO: ${{ matrix.output }}
+          BOOTLOADER: ${{ matrix.bootloader }}
         run: |
           chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
           printf '1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
