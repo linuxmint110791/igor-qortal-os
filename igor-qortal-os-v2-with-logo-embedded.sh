@@ -63,51 +63,55 @@ if [[ "$BOOTLOADER" == "auto" ]]; then
         echo "=================================================="
         echo "       Igor-Qortal OS alglaaduri valik"
         echo "=================================================="
-        echo "1) ISO / Syslinux (UEFI + BIOS, vaikimisi)"
-        echo "2) GRUB BIOS + EFI / HDD image"
-        echo "3) Syslinux / HDD image"
-        echo "4) GRUB EFI / HDD image"
+        echo "1) ISO / Syslinux + GRUB EFI (soovituslik)"
+        echo "2) ISO / Syslinux ainult"
+        echo "3) ISO / GRUB EFI ainult"
+        echo "4) Syslinux / HDD image (x86)"
         echo
         read -rp "Valik [1]: " BOOT_CHOICE
         case "${BOOT_CHOICE:-1}" in
-            2) BOOTLOADER="grub-bios-efi" ;;
-            3) BOOTLOADER="syslinux-hdd" ;;
-            4) BOOTLOADER="grub-efi" ;;
-            *) BOOTLOADER="iso-syslinux" ;;
+            2) BOOTLOADER="iso-syslinux" ;;
+            3) BOOTLOADER="iso-grub-efi" ;;
+            4) BOOTLOADER="syslinux-hdd" ;;
+            *) BOOTLOADER="iso-syslinux-grub" ;;
         esac
     else
-        BOOTLOADER="iso-syslinux"
+        BOOTLOADER="iso-syslinux-grub"
     fi
 fi
 
 BOOTLOADER_ARGS=()
 case "$BOOTLOADER" in
+    iso-syslinux-grub)
+        BINARY_IMAGE_MODE="iso-hybrid"
+        BOOTLOADER_ARGS=(--bootloaders "syslinux grub-efi")
+        ;;
     iso-syslinux)
         BINARY_IMAGE_MODE="iso-hybrid"
         BOOTLOADER_ARGS=(--bootloaders syslinux)
         ;;
-    grub-bios-efi)
-        BINARY_IMAGE_MODE="hdd"
-        BOOTLOADER_ARGS=(--bootloaders "grub-pc grub-efi")
+    iso-grub-efi)
+        BINARY_IMAGE_MODE="iso"
+        BOOTLOADER_ARGS=(--bootloaders grub-efi)
         ;;
     syslinux-hdd)
         BINARY_IMAGE_MODE="hdd"
         BOOTLOADER_ARGS=(--bootloaders syslinux)
-        ;;
-    grub-efi)
-        BINARY_IMAGE_MODE="hdd"
-        BOOTLOADER_ARGS=(--bootloaders grub-efi)
+        if [[ "$ARCH" != "amd64" && "$ARCH" != "i386" ]]; then
+            echo "[!] Syslinux HDD režiim on siin ainult x86 jaoks."
+            exit 1
+        fi
         ;;
     *)
         echo "[!] Tundmatu BOOTLOADER: $BOOTLOADER"
-        echo "    Lubatud: iso-syslinux, grub-bios-efi, syslinux-hdd, grub-efi"
+        echo "    Lubatud: iso-syslinux-grub, iso-syslinux, iso-grub-efi, syslinux-hdd"
         exit 1
         ;;
 esac
 
 # GRUB EFI requires an EFI-capable image. Secure Boot is enabled only for
 # amd64 GRUB EFI builds where Debian signed GRUB/shim packages are present.
-if [[ "$BOOTLOADER" == "grub-bios-efi" || "$BOOTLOADER" == "grub-efi" ]]; then
+if [[ "$BOOTLOADER" == "iso-syslinux-grub" || "$BOOTLOADER" == "iso-grub-efi" ]]; then
     if [[ "$ARCH" == "amd64" ]]; then
         SECURE_BOOT_ARGS=(--uefi-secure-boot enable)
     else
