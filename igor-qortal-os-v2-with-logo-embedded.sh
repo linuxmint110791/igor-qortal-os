@@ -1435,7 +1435,101 @@ EOF
 chmod +x config/includes.chroot/usr/local/bin/igor-hardware-info
 
 # ==============================================================================
-# BUILD ISO
+# # ==============================================================================
+# OPEN FIRMWARE + DECENTRALIZED DRIVER DELIVERY
+# ==============================================================================
+
+cat > config/hooks/live/0600-firmware-tools.chroot <<'EOF'
+#!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
+install -d -m 0755 /var/lib/igor-qortal-os/firmware-backups
+cat > /usr/local/bin/igor-firmware-center <<'SCRIPT'
+#!/bin/bash
+set -e
+echo "Igor-Qortal OS — Firmware / BIOS Center"
+echo
+command -v fwupdmgr >/dev/null && echo "fwupd: available" || true
+command -v cbfstool >/dev/null && echo "coreboot tools: available" || true
+command -v flashrom >/dev/null && echo "flashrom: available" || true
+echo
+echo "No BIOS/ROM is flashed automatically."
+echo "Hardware support and a ROM backup must be verified first."
+fwupdmgr get-devices 2>/dev/null || true
+echo
+fwupdmgr get-updates 2>/dev/null || true
+SCRIPT
+chmod 0755 /usr/local/bin/igor-firmware-center
+cat > /usr/share/applications/igor-firmware-center.desktop <<'DESKTOP'
+[Desktop Entry]
+Name=Firmware / BIOS Center
+Name[et]=Püsivara / BIOS keskus
+Exec=xterm -e /usr/local/bin/igor-firmware-center
+Icon=computer
+Terminal=false
+Type=Application
+Categories=System;Settings;
+DESKTOP
+EOF
+chmod +x config/hooks/live/0600-firmware-tools.chroot
+
+cat > config/includes.chroot/etc/igor-qortal-os/driver-network.conf <<'EOF'
+TRANSPORT=reticulum
+SOURCE=qdn
+REQUIRE_SHA256=yes
+REQUIRE_SIGNATURE=yes
+ALLOW_UNSIGNED=no
+EOF
+
+cat > config/includes.chroot/usr/local/bin/igor-driver-sync <<'SCRIPT'
+#!/bin/bash
+set -e
+echo "Igor-Qortal OS — decentralized driver channel"
+echo "Transport: Reticulum"
+echo "Source: QDN / approved Reticulum peers"
+echo "Trust: SHA-256 + cryptographic signature required"
+echo
+systemctl is-active --quiet rnsd && echo "Reticulum: ONLINE" || echo "Reticulum: waiting for connectivity"
+SCRIPT
+chmod 0755 config/includes.chroot/usr/local/bin/igor-driver-sync
+
+cat > config/includes.chroot/usr/share/applications/igor-driver-sync.desktop <<'DESKTOP'
+[Desktop Entry]
+Name=Decentralized Driver Sync
+Name[et]=Detsentraliseeritud draiverite sünkroonimine
+Exec=xterm -e /usr/local/bin/igor-driver-sync
+Icon=network-wired
+Terminal=false
+Type=Application
+Categories=System;Network;
+DESKTOP
+
+mkdir -p config/includes.chroot/usr/share/sounds/igor-qortal-os
+if [[ -f "$SCRIPT_DIR/assets/qortal-hub-startup.wav" ]]; then
+    cp "$SCRIPT_DIR/assets/qortal-hub-startup.wav" config/includes.chroot/usr/share/sounds/igor-qortal-os/qortal-hub-startup.wav
+fi
+
+cat > config/includes.chroot/usr/local/bin/igor-qortal-startup-sound <<'SCRIPT'
+#!/bin/bash
+set -e
+SOUND=/usr/share/sounds/igor-qortal-os/qortal-hub-startup.wav
+if [[ -f "$SOUND" ]] && command -v paplay >/dev/null 2>&1; then
+    paplay "$SOUND" >/dev/null 2>&1 || true
+fi
+SCRIPT
+chmod 0755 config/includes.chroot/usr/local/bin/igor-qortal-startup-sound
+
+cat > config/includes.chroot/etc/xdg/autostart/igor-qortal-startup-sound.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Igor-Qortal OS startup sound
+Exec=/usr/local/bin/igor-qortal-startup-sound
+OnlyShowIn=X-Cinnamon;
+X-GNOME-Autostart-enabled=true
+NoDisplay=true
+DESKTOP
+
+BUILD ISO
 # ==============================================================================
 
 echo
