@@ -23,7 +23,15 @@ jobs:
       - name: Install ISO build dependencies
         run: |
           sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y             live-build             debootstrap             curl             wget             git             xorriso             squashfs-tools             grub-efi-amd64-bin             grub-efi-amd64-signed             shim-signed             dosfstools             mtools
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y             debootstrap curl wget git xorriso squashfs-tools             grub-efi-amd64-bin grub-efi-amd64-signed shim-signed             dosfstools mtools cpio
+
+          # Ubuntu 24.04 ships an older live-build which lacks the
+          # --bootloaders option used by the V2 builder. Use Debian
+          # Trixie's live-build instead.
+          wget -q https://deb.debian.org/debian/pool/main/l/live-build/live-build_20250505+deb13u1_all.deb
+          sudo dpkg -i live-build_20250505+deb13u1_all.deb
+          sudo apt-get -f install -y
+          lb --version
 
       - name: Build ISO
         env:
@@ -35,8 +43,11 @@ jobs:
           chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
           printf '1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
 
-      - name: Generate SHA256
+      - name: Verify ISO
         run: |
+          test -s igor-qortal-os-v2.iso
+          file igor-qortal-os-v2.iso
+          xorriso -indev igor-qortal-os-v2.iso -toc 2>/dev/null | head -80
           sha256sum igor-qortal-os-v2.iso | tee SHA256SUMS
 
       - name: Upload ISO artifact
@@ -47,4 +58,4 @@ jobs:
             igor-qortal-os-v2.iso
             SHA256SUMS
           compression-level: 0
-          retention-days: 14
+          retention-days: 30
