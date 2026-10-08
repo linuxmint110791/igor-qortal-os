@@ -299,11 +299,11 @@ EOF
 
 cat > config/includes.chroot/etc/systemd/system/igor-qortal-os-rolling-update.timer <<'EOF'
 [Unit]
-Description=Daily Igorcoin Qortal OS Debian Rolling Update
+Description=30-Minute Igorcoin Qortal OS Debian Rolling Update
 
 [Timer]
 OnBootSec=15min
-OnUnitActiveSec=24h
+OnUnitActiveSec=30min
 Persistent=true
 
 [Install]
