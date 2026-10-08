@@ -1563,28 +1563,35 @@ while true; do
     echo
     echo 'Vali ühendus:'
     echo
-    echo '  1) 🌐 Internet — Ethernet / Wi-Fi'
-    echo '  2) 🟢 Reticulum — kohalik mesh'
+    echo '  1) 🟢 Reticulum — vaikimisi / mesh'
+    echo '  2) 🌐 Internet — Ethernet / Wi-Fi'
     echo '  3) 🔗 Reticulum — TCP/Backbone'
     echo '  4) 🛰️  Reticulum + Internet'
     echo '  5) ⏎  Tagasi'
     echo
-    read -rp 'Valik [2]: ' choice
-    choice="${choice:-2}"
+    read -rp 'Valik [1]: ' choice
+    choice="${choice:-1}"
     case "$choice" in
       1)
+        echo
+        echo '[+] Reticulum on vaikimisi ühendus.'
+        echo '    Käivitan kohaliku mesh-võrgu.'
+        systemctl restart rnsd 2>/dev/null || systemctl start rnsd 2>/dev/null || true
+        read -rp 'Enter jätkamiseks...' _
+        ;;
+      2)
         echo
         command -v nmcli >/dev/null 2>&1 && nmcli device status || ip -brief link || true
         read -rp 'Enter jätkamiseks...' _
         ;;
-      2)
+      3)
         echo
         echo '[+] Reticulum AutoInterface: ON'
         echo '    Ethernet/Wi-Fi jääb Linuxi võrguks; Reticulum töötab selle kõrval.'
         systemctl restart rnsd 2>/dev/null || systemctl start rnsd 2>/dev/null || true
         read -rp 'Enter jätkamiseks...' _
         ;;
-      3)
+      4)
         echo
         read -rp 'Reticulum TCP/Backbone host: ' host
         read -rp 'Port [4242]: ' port
@@ -1604,13 +1611,13 @@ EOF
         fi
         read -rp 'Enter jätkamiseks...' _
         ;;
-      4)
+      5)
         echo
         echo '[+] Internet + Reticulum töötavad koos.'
         systemctl restart rnsd 2>/dev/null || systemctl start rnsd 2>/dev/null || true
         read -rp 'Enter jätkamiseks...' _
         ;;
-      5) exit 0 ;;
+      6) exit 0 ;;
       *) echo '[!] Tundmatu valik.'; sleep 1 ;;
     esac
 done
