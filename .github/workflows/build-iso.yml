@@ -18,7 +18,7 @@ concurrency:
 jobs:
   build-iso:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 180
 
     steps:
       - name: Checkout
@@ -27,17 +27,19 @@ jobs:
       - name: Install ISO build dependencies
         run: |
           sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y             debootstrap curl wget git xorriso squashfs-tools             grub-efi-amd64-bin grub-efi-amd64-signed shim-signed             dosfstools mtools cpio debian-archive-keyring
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            debootstrap curl wget git xorriso squashfs-tools \
+            grub-efi-amd64-bin grub-efi-amd64-signed shim-signed \
+            dosfstools mtools cpio debian-archive-keyring
 
-          # Use the current Debian Sid live-build package.
-          # Debian Sid currently ships live-build 1:20250814.
           wget -q https://deb.debian.org/debian/pool/main/l/live-build/live-build_20250814_all.deb
           sudo dpkg -i live-build_20250814_all.deb
           sudo apt-get -f install -y
+
           echo "Using live-build:"
           lb --version
 
-      - name: Build ISO
+      - name: Build exactly one ISO
         env:
           DEBIAN_FRONTEND: noninteractive
           DISTRO: unstable
@@ -48,19 +50,31 @@ jobs:
           chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
           printf '1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
 
-      - name: Verify ISO
+      - name: Verify exactly one final ISO
         run: |
+          set -euo pipefail
+
+          test -f igor-qortal-os-v2.iso
           test -s igor-qortal-os-v2.iso
+
+          count="$(find . -maxdepth 1 -type f -name '*.iso' | wc -l)"
+          echo "ISO files in repository root: $count"
+
+          if [ "$count" -ne 1 ]; then
+            echo "ERROR: expected exactly one ISO in the repository root."
+            find . -maxdepth 2 -type f -name '*.iso' -print
+            exit 1
+          fi
+
           file igor-qortal-os-v2.iso
           xorriso -indev igor-qortal-os-v2.iso -toc 2>/dev/null | head -80
           sha256sum igor-qortal-os-v2.iso | tee SHA256SUMS
 
-      - name: Upload ISO artifact
+      - name: Upload ONE ISO file
         uses: actions/upload-artifact@v4
         with:
           name: igor-qortal-os-v2-iso
-          path: |
-            igor-qortal-os-v2.iso
-            SHA256SUMS
+          path: igor-qortal-os-v2.iso
+          if-no-files-found: error
           compression-level: 0
           retention-days: 30
