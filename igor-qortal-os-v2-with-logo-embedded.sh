@@ -1418,7 +1418,7 @@ lb build
 
 ISO_FILE=""
 
-for file in *.iso; do
+for file in *.iso *.img; do
 
     if [[ -f "$file" ]]; then
         ISO_FILE="$file"
