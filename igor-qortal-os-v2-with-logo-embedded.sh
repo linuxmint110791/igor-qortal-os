@@ -211,6 +211,8 @@ lb config \
 # DIRECTORY STRUCTURE
 # ==============================================================================
 
+mkdir -p config/includes.chroot/usr/share/sounds/igor-qortal-os
+
 mkdir -p \
     config/package-lists \
     config/includes.chroot/usr/local/bin \
@@ -275,6 +277,12 @@ zip
 yt-dlp
 ffmpeg
 python3-requests
+fwupd
+fwupd-signed
+coreboot-utils
+flashrom
+pciutils
+usbutils
 iproute2
 net-tools
 iputils-ping
