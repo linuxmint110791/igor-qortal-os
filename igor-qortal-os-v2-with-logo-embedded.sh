@@ -612,7 +612,7 @@ cat >> config/includes.chroot/etc/reticulum/config <<EOF
     target_port = $RNS_TCP_PORT
     mode = boundary
 EOF
-fiF
+fi
 
 # ==============================================================================
 # OPTIONAL TCP/BACKBONE INTERFACE
@@ -1611,13 +1611,9 @@ EOF
         fi
         read -rp 'Enter jätkamiseks...' _
         ;;
-      5)
-        echo
-        echo '[+] Internet + Reticulum töötavad koos.'
-        systemctl restart rnsd 2>/dev/null || systemctl start rnsd 2>/dev/null || true
-        read -rp 'Enter jätkamiseks...' _
-        ;;
-      6) exit 0 ;;
+      5) exit 0 ;;
+      *) echo '[!] Tundmatu valik.'; sleep 1 ;;
+
       *) echo '[!] Tundmatu valik.'; sleep 1 ;;
     esac
 done
