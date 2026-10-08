@@ -1,0 +1,50 @@
+name: Build Igor-Qortal OS ISO
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'igor-qortal-os-v2-with-logo-embedded.sh'
+      - '.github/workflows/build-iso.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install ISO build dependencies
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y             live-build             debootstrap             curl             wget             git             xorriso             squashfs-tools             grub-efi-amd64-bin             grub-efi-amd64-signed             shim-signed             dosfstools             mtools
+
+      - name: Build ISO
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          DISTRO: trixie
+          BUILD_DIR: igor-qortal-os-build
+          OUTPUT_ISO: igor-qortal-os-v2.iso
+        run: |
+          chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
+          printf '1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
+
+      - name: Generate SHA256
+        run: |
+          sha256sum igor-qortal-os-v2.iso | tee SHA256SUMS
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: igor-qortal-os-v2-iso
+          path: |
+            igor-qortal-os-v2.iso
+            SHA256SUMS
+          compression-level: 0
+          retention-days: 14
