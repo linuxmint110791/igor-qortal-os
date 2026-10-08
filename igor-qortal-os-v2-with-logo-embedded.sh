@@ -61,7 +61,7 @@ case "${LANG_CHOICE:-1}" in
         SELECTED_LOCALE="en_US.UTF-8"
         SELECTED_KEYBOARD="us"
         ;;
-    *)
+    *=
         SELECTED_LOCALE="et_EE.UTF-8"
         SELECTED_KEYBOARD="ee"
         ;;
