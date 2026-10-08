@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: igor-qortal-os-iso-build
+  cancel-in-progress: true
+
 jobs:
   build-iso:
     runs-on: ubuntu-24.04
