@@ -214,6 +214,13 @@ python3-cryptography
 python3-netifaces
 
 # --------------------------------------------------------------------------
+# Debian automatic updates
+# --------------------------------------------------------------------------
+
+unattended-upgrades
+apt-listchanges
+
+# --------------------------------------------------------------------------
 # Terminal / networking
 # --------------------------------------------------------------------------
 
@@ -239,6 +246,57 @@ fastfetch
 chafa
 
 EOF
+
+# ==============================================================================
+# OFFICIAL DEBIAN APT SOURCES + AUTOMATIC UPDATES
+# ==============================================================================
+
+# The installed system continues to receive packages directly from Debian's
+# official repositories. The release is kept on the selected Debian suite
+# instead of silently switching to a new major release.
+
+mkdir -p config/includes.chroot/etc/apt/sources.list.d
+
+cat > config/includes.chroot/etc/apt/sources.list.d/debian.sources <<EOF
+Types: deb
+URIs: https://deb.debian.org/debian
+Suites: $DISTRO $DISTRO-updates
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+URIs: https://security.debian.org/debian-security
+Suites: $DISTRO-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+
+mkdir -p config/includes.chroot/etc/apt/apt.conf.d
+
+cat > config/includes.chroot/etc/apt/apt.conf.d/20igor-qortal-os-updates <<'EOF'
+
+// Debian security and normal package updates are installed automatically.
+// Major Debian release upgrades are NOT performed automatically.
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "7";
+APT::Periodic::Unattended-Upgrade "1";
+
+EOF
+
+cat > config/includes.chroot/etc/apt/apt.conf.d/52unattended-upgrades-local <<'EOF'
+
+Unattended-Upgrade::Origins-Pattern {
+    "origin=Debian,codename=__SUITE__,label=Debian";
+    "origin=Debian,codename=__SUITE__-security,label=Debian-Security";
+};
+
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "false";
+
+EOF
+
+sed -i "s/__SUITE__/$DISTRO/g" config/includes.chroot/etc/apt/apt.conf.d/52unattended-upgrades-local
 
 # ==============================================================================
 # KEYBOARD
