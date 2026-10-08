@@ -203,6 +203,7 @@ lb config \
     --parent-mirror-chroot "http://deb.debian.org/debian/" \
     --parent-mirror-binary "http://deb.debian.org/debian/" \
     --bootappend-live "boot=live components quiet splash" \
+    --debian-installer live \
     --apt-recommends false \
     --chroot-squashfs-compression-type xz \
     --chroot-squashfs-compression-level 9
@@ -1893,7 +1894,6 @@ Icon=network-workgroup
 Categories=Network;Settings;
 StartupNotify=true
 DESKTOP
-BUILD ISO
 # ==============================================================================
 
 echo
