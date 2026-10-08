@@ -31,6 +31,13 @@ BUILD_DIR="${BUILD_DIR:-igor-qortal-os-build}"
 OUTPUT_ISO="${OUTPUT_ISO:-igor-qortal-os-v2.iso}"
 DISTRO="${DISTRO:-unstable}"
 ARCH="${ARCH:-amd64}"
+SECURE_BOOT_ARGS=()
+BINARY_IMAGE_MODE="iso-hybrid"
+if [[ "$ARCH" == "amd64" ]]; then
+    SECURE_BOOT_ARGS=(--uefi-secure-boot enable)
+elif [[ "$ARCH" == "arm64" ]]; then
+    BINARY_IMAGE_MODE="hdd"
+fi
 case "$ARCH" in amd64|arm64|i386) ;; *) echo "[!] Unsupported ARCH: $ARCH"; exit 1 ;; esac
 
 # 0 = ära lisa kunstlikku paddingut
@@ -124,8 +131,8 @@ lb config \
     --architectures "$ARCH" \
     --distribution "$DISTRO" \
     --archive-areas "main contrib non-free non-free-firmware" \
-    --binary-images iso-hybrid \
-    --uefi-secure-boot enable \
+    --binary-images "$BINARY_IMAGE_MODE" \
+    "${SECURE_BOOT_ARGS[@]}" \
     --parent-mirror-bootstrap "http://deb.debian.org/debian/" \
     --parent-mirror-chroot "http://deb.debian.org/debian/" \
     --parent-mirror-binary "http://deb.debian.org/debian/" \
@@ -214,6 +221,9 @@ EOF
 if [[ "$ARCH" == "arm64" ]]; then
   sed -i '/linux-image-amd64/d' config/package-lists/igor-qortal-os.list.chroot
   echo 'linux-image-arm64' >> config/package-lists/igor-qortal-os.list.chroot
+elif [[ "$ARCH" == "i386" ]]; then
+  sed -i '/linux-image-amd64/d' config/package-lists/igor-qortal-os.list.chroot
+  echo 'linux-image-686-pae' >> config/package-lists/igor-qortal-os.list.chroot
 fi
 
 if [[ "$ARCH" == "amd64" ]]; then
