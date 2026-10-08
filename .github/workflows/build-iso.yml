@@ -1,4 +1,4 @@
-name: Build Igor-Qortal OS ISO
+name: Build Igor-Qortal OS multi-architecture images
 
 on:
   push:
@@ -16,7 +16,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-iso:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            output: igor-qortal-os-amd64.iso
+            artifact: igor-qortal-os-amd64
+          - arch: arm64
+            output: igor-qortal-os-arm64.img
+            artifact: igor-qortal-os-arm64
+          - arch: i386
+            output: igor-qortal-os-i386.iso
+            artifact: igor-qortal-os-i386
     runs-on: ubuntu-24.04
     timeout-minutes: 180
 
@@ -24,44 +37,42 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install ISO build dependencies
+      - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
             debootstrap curl wget git xorriso squashfs-tools \
-            grub-efi-amd64-bin grub-efi-amd64-signed shim-signed \
-            dosfstools mtools cpio debian-archive-keyring
-
+            dosfstools mtools cpio debian-archive-keyring \
+            qemu-user-static binfmt-support
           wget -q https://deb.debian.org/debian/pool/main/l/live-build/live-build_20250814_all.deb
           sudo dpkg -i live-build_20250814_all.deb
           sudo apt-get -f install -y
-
-          echo "Using live-build:"
           lb --version
 
-      - name: Build ISO
+      - name: Build image
         env:
           DEBIAN_FRONTEND: noninteractive
           DISTRO: unstable
-          SKIP_HOST_DEPS: "1"
-          BUILD_DIR: igor-qortal-os-build
-          OUTPUT_ISO: igor-qortal-os-v2.iso
+          ARCH: ${{ matrix.arch }}
+          SKIP_HOST_DEPS: '1'
+          BUILD_DIR: igor-qortal-os-build-${{ matrix.arch }}
+          OUTPUT_ISO: ${{ matrix.output }}
         run: |
           chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
           printf '1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
 
-      - name: Verify ISO
+      - name: Verify output
         run: |
-          test -s igor-qortal-os-v2.iso
-          file igor-qortal-os-v2.iso
-          xorriso -indev igor-qortal-os-v2.iso -toc 2>/dev/null | head -80
-          sha256sum igor-qortal-os-v2.iso | tee SHA256SUMS
+          test -s "${{ matrix.output }}"
+          file "${{ matrix.output }}"
+          sha256sum "${{ matrix.output }}" | tee "${{ matrix.output }}.sha256"
 
-      - name: Upload ISO artifact
+      - name: Upload image
         uses: actions/upload-artifact@v4
         with:
-          name: igor-qortal-os-v2-iso
-          path: igor-qortal-os-v2.iso
-          if-no-files-found: error
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.output }}
+            ${{ matrix.output }}.sha256
           compression-level: 0
           retention-days: 30
