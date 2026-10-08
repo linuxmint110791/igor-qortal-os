@@ -6,6 +6,10 @@
 # ==============================================================================
 
 set -euo pipefail
+# Privacy / telemetry policy: no Debian popularity-contest or other optional
+# usage-reporting package is included, and any accidental installation is
+# disabled/removed while building the image.
+
 
 # ==============================================================================
 # ROOT CHECK
