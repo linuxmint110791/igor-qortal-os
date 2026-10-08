@@ -782,6 +782,86 @@ Categories=Network;AudioVideo;
 EOF
 
 # ==============================================================================
+# QORTAL OS INTEGRATED SESSION
+# ==============================================================================
+# Qortal is the identity/application layer of Igor-Qortal OS.
+# Linux starts the local Qortal Core and Qortal Hub automatically.
+# Wallet credentials remain inside Qortal Hub and are never copied into Linux
+# authentication files.
+
+mkdir -p config/includes.chroot/etc/systemd/system
+mkdir -p config/includes.chroot/usr/share/applications
+mkdir -p config/includes.chroot/etc/xdg/autostart
+
+cat > config/includes.chroot/etc/systemd/system/igor-qortal-stack.service <<'EOF'
+[Unit]
+Description=Igor-Qortal OS integrated Qortal stack
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl start qortal.service
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+ln -sf /etc/systemd/system/igor-qortal-stack.service config/includes.chroot/etc/systemd/system/multi-user.target.wants/igor-qortal-stack.service
+
+cat > config/includes.chroot/usr/local/bin/igor-qortal-session <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+systemctl start qortal.service 2>/dev/null || true
+for _ in {1..60}; do
+    if curl -fsS http://127.0.0.1:12391/ >/dev/null 2>&1; then break; fi
+    sleep 2
+done
+if command -v qortal-hub >/dev/null 2>&1; then
+    exec qortal-hub
+elif command -v Qortal-Hub >/dev/null 2>&1; then
+    exec Qortal-Hub
+elif command -v qortal >/dev/null 2>&1; then
+    exec qortal
+else
+    gtk-launch qortal-hub 2>/dev/null || true
+fi
+EOF
+chmod +x config/includes.chroot/usr/local/bin/igor-qortal-session
+
+cat > config/includes.chroot/etc/xdg/autostart/igor-qortal-session.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Qortal OS Session
+Comment=Start Qortal Core and Qortal Hub automatically with the Linux desktop
+Exec=/usr/local/bin/igor-qortal-session
+Terminal=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Qortal applications appear directly in the Linux application menu.
+create_qortal_app() {
+    local name="$1"
+    local slug="$2"
+    cat > "config/includes.chroot/usr/share/applications/$slug.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$name
+Comment=$name — Qortal decentralized application
+Exec=/usr/local/bin/igor-qortal-session
+Terminal=false
+Categories=Network;Qortal;
+EOF
+}
+create_qortal_app "Q-Tube" "q-tube"
+create_qortal_app "Q-Chat" "q-chat"
+create_qortal_app "Q-Wallet" "q-wallet"
+create_qortal_app "Q-Drive" "q-drive"
+create_qortal_app "Q-Manager" "q-manager"
+create_qortal_app "Q-Mail" "q-mail"
+
+# ==============================================================================
 # QORTAL HUB - INSTALL DURING ISO BUILD
 # ==============================================================================
 # Qortal Hub is the current official desktop interface for Qortal.
