@@ -637,7 +637,43 @@ EOF
 chmod +x config/includes.chroot/usr/local/bin/qortal-rns-status
 
 # ==============================================================================
-# QORTAL INSTALLER
+# QORTAL HUB - INSTALL DURING ISO BUILD
+# ==============================================================================
+# Qortal Hub is the current official desktop interface for Qortal.
+# Install the official Debian package directly into the image so the
+# installed OS starts with Qortal already available.
+#
+# Official release source:
+# https://github.com/Qortal/Qortal-Hub/releases/latest
+
+mkdir -p config/hooks/live
+
+cat > config/hooks/live/0500-install-qortal-hub.chroot <<'EOF'
+#!/bin/sh
+set -e
+
+export DEBIAN_FRONTEND=noninteractive
+
+echo "[+] Paigaldan ametliku Qortal Hubi..."
+
+tmp_deb="/tmp/Qortal-Setup-amd64.deb"
+
+curl -fL --retry 5 --retry-delay 3 \
+    "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Setup-amd64.deb" \
+    -o "$tmp_deb"
+
+apt-get update
+apt-get install -y "$tmp_deb"
+
+rm -f "$tmp_deb"
+
+echo "[+] Qortal Hub on ISO-sse paigaldatud."
+EOF
+
+chmod +x config/hooks/live/0500-install-qortal-hub.chroot
+
+# ==============================================================================
+# QORTAL REPAIR / REINSTALL TOOL
 # ==============================================================================
 
 cat > config/includes.chroot/usr/local/bin/igor-qortal-install.sh <<'EOF'
@@ -673,8 +709,8 @@ cat > config/includes.chroot/usr/share/applications/qortal-installer.desktop <<'
 
 [Desktop Entry]
 Type=Application
-Name=Qortal Installer
-Comment=Install Qortal on Igor-Qortal OS
+Name=Qortal Repair / Reinstall
+Comment=Repair or reinstall Qortal on Igor-Qortal OS
 Exec=gnome-terminal -- /usr/local/bin/igor-qortal-install.sh
 Icon=utilities-terminal
 Terminal=false
