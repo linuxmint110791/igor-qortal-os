@@ -272,7 +272,7 @@ python3
 python3-pip
 python3-cryptography
 python3-netifaces
-python3-pyserial
+python3-serial
 unattended-upgrades
 apt-listchanges
 bash
