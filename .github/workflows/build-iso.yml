@@ -6,7 +6,7 @@ on:
     paths:
       - 'igor-qortal-os-v2-with-logo-embedded.sh'
       - '.github/workflows/build-iso.yml'
-      - '.github/iso-auto-repair.sh'
+      - '.github/iso-auto-repair.sh'\n      - 'scripts/igor-ai-repair.sh'
   schedule:
     - cron: '17 * * * *'
   workflow_dispatch:
