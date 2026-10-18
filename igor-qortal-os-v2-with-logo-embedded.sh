@@ -233,6 +233,15 @@ mkdir -p \
     config/includes.chroot/etc/skel/.config/neofetch \
     config/hooks/live
 
+# Include the guarded installer diagnostics in the live/installed OS.
+if [[ -f "$SCRIPT_DIR/scripts/igor-ai-repair.sh" ]]; then
+    install -m 0755 "$SCRIPT_DIR/scripts/igor-ai-repair.sh" \
+        config/includes.chroot/usr/local/bin/igor-ai-repair
+else
+    echo "[!] Puudub scripts/igor-ai-repair.sh; diagnostikat ei lisata ISO-sse." >&2
+    exit 1
+fi
+
 # ==============================================================================
 # PACKAGE LIST
 # ==============================================================================
