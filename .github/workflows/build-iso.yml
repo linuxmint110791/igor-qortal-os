@@ -1,6 +1,12 @@
 name: Build Igor-Qortal OS 64-bit PC ISO
 
 on:
+  pull_request:
+    paths:
+      - 'igor-qortal-os-v2-with-logo-embedded.sh'
+      - '.github/workflows/build-iso.yml'
+      - '.github/iso-auto-repair.sh'
+      - 'scripts/igor-ai-repair.sh'
   push:
     branches: [main]
     paths:
