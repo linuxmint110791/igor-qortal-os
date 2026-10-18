@@ -123,6 +123,26 @@ sudo apt upgrade
 
 For Qortal, use the current release supplied through the official Qortal project rather than downloading random copies from third-party sites. Qortal Core releases are published in the official Qortal repository. citeturn0search1
 
+## 🤖 Installer diagnostics and AI advisor
+
+The repository includes `scripts/igor-ai-repair.sh`, a safe-first diagnostic helper for Debian-based systems.
+
+Run the local checks:
+
+```bash
+bash scripts/igor-ai-repair.sh
+```
+
+It records a restricted-permission report under `~/.local/state/igor-qortal-os/` and checks basic OS identity, disk space, APT sources, pending dpkg work and DNS. It does not silently rewrite APT sources or execute arbitrary repair commands.
+
+Optional AI advice uses an OpenAI-compatible Chat Completions endpoint. It is **off by default** because the diagnostic report is sent to the configured service only when explicitly enabled:
+
+```bash
+IGOR_AI_DIAGNOSE=1 OPENAI_API_KEY='your-api-key' bash scripts/igor-ai-repair.sh
+```
+
+Optional settings: `OPENAI_BASE_URL` (defaults to `https://api.openai.com/v1`) and `OPENAI_MODEL` (defaults to `gpt-4.1-mini`). Keep API keys private; do not commit them to Git. AI output is advice only and is never executed as shell commands. This feature requires a compatible API endpoint and may incur usage charges.
+
 ## 🆘 Troubleshooting
 
 ### Qortal Hub does not start
