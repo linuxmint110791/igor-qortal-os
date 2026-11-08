@@ -2,7 +2,7 @@
 
 **Qortal on kaasas.** 🚀
 
-Igorcoin Qortal OS is a Debian-based Linux operating-system project built around the Qortal ecosystem. The goal is a ready-to-install desktop system where Qortal is easy to install, configure and use.
+Igorcoin Qortal OS is a Debian-based Linux operating-system project built around the Qortal ecosystem. The goal is a ready-to-install Debian-based desktop system with KDE Plasma, a current Linux kernel and Qortal integrated into the desktop.
 
 > **Status:** Development / ISO testing
 
@@ -10,8 +10,9 @@ Igorcoin Qortal OS is a Debian-based Linux operating-system project built around
 
 The project is intended to provide:
 
-- Linux desktop environment
-- Wayland-first desktop setup
+- KDE Plasma 6.8 desktop (the ISO build waits until this version is available in Debian Sid)
+- Plasma Wayland session and SDDM login manager
+- Linux 7.3.3 kernel, packaged as a Debian `.deb` during the automated build
 - Qortal Core
 - Qortal Hub
 - Qortal-oriented configuration and tools
@@ -157,7 +158,9 @@ The GitHub Actions workflow builds and verifies the ISO automatically.
 
 ## 🧪 Development status
 
-This is an open-source development project.
+This is an open-source development project. GitHub Actions checks Debian Sid hourly and only proceeds when `plasma-desktop` is at least version 6.8.0; it will not silently publish an ISO with Plasma 6.7.x. The workflow builds the upstream Linux 7.3.3 kernel as a Debian package, adds it to the live image, and verifies both versions before creating the ISO.
+
+**Secure Boot:** the custom upstream kernel is not signed by a key trusted by typical UEFI firmware. Disable Secure Boot in firmware settings before booting this development ISO.
 
 The ISO should be considered **testing software** until a stable release has been explicitly announced.
 
