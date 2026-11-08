@@ -37,7 +37,7 @@ ARCH="${ARCH:-amd64}"
 SECURE_BOOT_ARGS=()
 BINARY_IMAGE_MODE="iso-hybrid"
 if [[ "$ARCH" == "amd64" ]]; then
-    SECURE_BOOT_ARGS=(--uefi-secure-boot enable)
+    SECURE_BOOT_ARGS=() # Custom upstream kernel is unsigned; Secure Boot must be disabled.
 elif [[ "$ARCH" == "arm64" || "$ARCH" == "armhf" ]]; then
     BINARY_IMAGE_MODE="hdd"
 fi
@@ -116,7 +116,7 @@ esac
 # amd64 GRUB EFI builds where Debian signed GRUB/shim packages are present.
 if [[ "$BOOTLOADER" == "iso-syslinux-grub" || "$BOOTLOADER" == "iso-grub-efi" ]]; then
     if [[ "$ARCH" == "amd64" || "$ARCH" == "arm64" ]]; then
-        SECURE_BOOT_ARGS=(--uefi-secure-boot enable)
+        SECURE_BOOT_ARGS=() # Custom upstream kernel is unsigned; Secure Boot must be disabled.
     else
         SECURE_BOOT_ARGS=()
     fi
@@ -316,7 +316,7 @@ iputils-ping
 fastfetch
 chafa
 xterm
-EOFEOF
+EOF
 
 if [[ "$ARCH" == "arm64" ]]; then
   sed -i '/linux-image-amd64/d' config/package-lists/igor-qortal-os.list.chroot
@@ -1428,12 +1428,9 @@ EOF
 
 mkdir -p config/includes.chroot/etc/sddm.conf.d
 
-cat > config/includes.chroot/etc/gdm3/daemon.conf <<'EOF'
-
-[daemon]
-
-WaylandEnable=true
-
+cat > config/includes.chroot/etc/sddm.conf.d/10-igor-qortal.conf <<'EOF'
+[General]
+DisplayServer=x11
 EOF
 
 # Keep Xwayland available for legacy applications; Plasma sessions can use Wayland.
