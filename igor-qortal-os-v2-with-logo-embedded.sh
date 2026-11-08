@@ -253,7 +253,6 @@ mkdir -p \
 cat > config/package-lists/igor-qortal-os.list.chroot <<'EOF'
 # KDE Plasma desktop and Wayland session
 kde-plasma-desktop
-plasma-workspace-wayland
 kwin-wayland
 sddm
 dolphin
