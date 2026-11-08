@@ -41,6 +41,13 @@ jobs:
           sudo dpkg -i live-build_20250814_all.deb || sudo apt-get -f install -y
           lb --version
 
+      - name: Validate builder
+        run: |
+          chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
+          bash ./.github/iso-auto-repair.sh
+          bash -n ./igor-qortal-os-v2-with-logo-embedded.sh
+          shellcheck -x -S error ./igor-qortal-os-v2-with-logo-embedded.sh || true
+
       - name: Check Debian Sid Plasma 6.8 availability
         id: plasma
         run: |
@@ -61,14 +68,6 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             echo "Plasma 6.8 has not reached Debian Sid yet. Skipping ISO build instead of producing the wrong desktop version."
           fi
-
-      - name: Validate builder
-        if: steps.plasma.outputs.available == 'true'
-        run: |
-          chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
-          bash ./.github/iso-auto-repair.sh
-          bash -n ./igor-qortal-os-v2-with-logo-embedded.sh
-          shellcheck -x -S error ./igor-qortal-os-v2-with-logo-embedded.sh || true
 
       - name: Build Linux 7.3.3 Debian kernel package
         if: steps.plasma.outputs.available == 'true'
