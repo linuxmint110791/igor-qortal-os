@@ -497,6 +497,26 @@ EOF
 
 chmod +x config/hooks/live/0100-locale.chroot
 
+# Do not publish an ISO with an older desktop or missing requested kernel.
+cat > config/hooks/live/0700-verify-desktop-and-kernel.chroot <<'VERIFYHOOK'
+#!/bin/sh
+set -eu
+
+PLASMA_VERSION="$(dpkg-query -W -f='${Version}' plasma-workspace)"
+if ! dpkg --compare-versions "$PLASMA_VERSION" ge "4:6.8.0"; then
+    echo "[!] Plasma 6.8 required; installed version is $PLASMA_VERSION"
+    exit 1
+fi
+
+if ! find /lib/modules -mindepth 1 -maxdepth 1 -type d -name '7.3.3-igor-qortal*' | grep -q .; then
+    echo "[!] Requested Linux 7.3.3 kernel modules are missing."
+    exit 1
+fi
+
+echo "[+] Verified KDE Plasma $PLASMA_VERSION and Linux 7.3.3."
+VERIFYHOOK
+chmod +x config/hooks/live/0700-verify-desktop-and-kernel.chroot
+
 # ==============================================================================
 # CALAMARES LIVE INSTALLER — familiar graphical install flow
 # ==============================================================================
@@ -1423,7 +1443,7 @@ SDL_VIDEODRIVER=wayland
 EOF
 
 # ==============================================================================
-# GDM WAYLAND
+# SDDM LOGIN MANAGER
 # ==============================================================================
 
 mkdir -p config/includes.chroot/etc/sddm.conf.d
