@@ -1,4 +1,4 @@
-name: Build Igor-Qortal OS 64-bit PC ISO
+name: Build Igorcoin Qortal OS — Debian KDE Plasma 6.8 / Linux 7.3.3
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: igor-qortal-os-amd64-iso-build
@@ -21,7 +21,7 @@ concurrency:
 jobs:
   build-amd64:
     runs-on: ubuntu-24.04
-    timeout-minutes: 180
+    timeout-minutes: 360
 
     steps:
       - name: Checkout
@@ -33,19 +33,72 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
             debootstrap curl wget git xorriso squashfs-tools \
             dosfstools mtools cpio debian-archive-keyring \
-            qemu-user-static binfmt-support shellcheck
+            qemu-user-static binfmt-support shellcheck \
+            build-essential bc bison flex libssl-dev libelf-dev \
+            dwarves libncurses-dev rsync kmod
+
           wget -q https://deb.debian.org/debian/pool/main/l/live-build/live-build_20250814_all.deb
           sudo dpkg -i live-build_20250814_all.deb || sudo apt-get -f install -y
           lb --version
 
-      - name: Validate and safely repair builder
+      - name: Check Debian Sid Plasma 6.8 availability
+        id: plasma
+        run: |
+          echo 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian unstable main contrib non-free non-free-firmware' | sudo tee /etc/apt/sources.list.d/debian-sid-check.list
+          sudo apt-get update
+          candidate="$(apt-cache policy plasma-desktop | awk '/Candidate:/ {print $2}')"
+          echo "Debian Sid plasma-desktop candidate: ${candidate:-missing}"
+          if [ -n "${candidate:-}" ] && [ "$candidate" != "(none)" ] && dpkg --compare-versions "$candidate" ge "4:6.8.0"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Plasma 6.8 is available in Debian Sid. Continuing."
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Waiting for KDE Plasma 6.8 in Debian Sid"
+              echo
+              echo "The Debian Sid candidate is ${candidate:-missing}; the image will not silently ship Plasma 6.7.x."
+              echo "This workflow checks again on its hourly schedule."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Plasma 6.8 has not reached Debian Sid yet. Skipping ISO build instead of producing the wrong desktop version."
+          fi
+
+      - name: Validate builder
+        if: steps.plasma.outputs.available == 'true'
         run: |
           chmod +x ./igor-qortal-os-v2-with-logo-embedded.sh
           bash ./.github/iso-auto-repair.sh
           bash -n ./igor-qortal-os-v2-with-logo-embedded.sh
           shellcheck -x -S error ./igor-qortal-os-v2-with-logo-embedded.sh || true
 
-      - name: Build AMD64 / x86_64 ISO
+      - name: Build Linux 7.3.3 Debian kernel package
+        if: steps.plasma.outputs.available == 'true'
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 5 --retry-delay 3 \
+            https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.3.3.tar.xz \
+            -o /tmp/linux-7.3.3.tar.xz
+          tar -C /tmp -xf /tmp/linux-7.3.3.tar.xz
+          cd /tmp/linux-7.3.3
+
+          cp "/boot/config-$(uname -r)" .config
+          scripts/config --set-str SYSTEM_TRUSTED_KEYS ""
+          scripts/config --set-str SYSTEM_REVOCATION_KEYS ""
+          scripts/config --disable MODULE_SIG
+          scripts/config --disable DEBUG_INFO_BTF
+          scripts/config --disable DEBUG_INFO
+          make olddefconfig
+
+          make -j2 bindeb-pkg \
+            KDEB_PKGVERSION=7.3.3-igor1 \
+            LOCALVERSION=-igor-qortal
+
+          mkdir -p "$GITHUB_WORKSPACE/kernel-debs"
+          find /tmp -maxdepth 1 -type f -name 'linux-image-7.3.3*.deb' -print -exec cp {} "$GITHUB_WORKSPACE/kernel-debs/" \;
+          test -n "$(find "$GITHUB_WORKSPACE/kernel-debs" -maxdepth 1 -name 'linux-image-7.3.3*.deb' -print -quit)"
+          dpkg-deb -f "$GITHUB_WORKSPACE"/kernel-debs/linux-image-7.3.3*.deb Package Version
+
+      - name: Build AMD64 live ISO
+        if: steps.plasma.outputs.available == 'true'
         env:
           DEBIAN_FRONTEND: noninteractive
           DISTRO: unstable
@@ -58,31 +111,33 @@ jobs:
           printf '1\n1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
 
       - name: Verify output
+        if: steps.plasma.outputs.available == 'true'
         run: |
           test -s igor-qortal-os-amd64.iso
           file igor-qortal-os-amd64.iso
           sha256sum igor-qortal-os-amd64.iso | tee igor-qortal-os-amd64.iso.sha256
 
       - name: Report ISO readiness
-        if: success()
+        if: steps.plasma.outputs.available == 'true' && success()
         run: |
           ISO="igor-qortal-os-amd64.iso"
-          test -s "$ISO"
           SIZE=$(du -h "$ISO" | awk '{print $1}')
           SHA=$(sha256sum "$ISO" | awk '{print $1}')
           {
-            echo "## ✅ Igor-Qortal OS ISO valmis"
+            echo "## Igorcoin Qortal OS ISO valmis"
             echo
-            echo "- **Fail:** `igor-qortal-os-amd64.iso`"
-            echo "- **Suurus:** $SIZE"
-            echo "- **SHA-256:** `$SHA`"
-            echo "- **Allalaadimine:** ava töö artifact `igor-qortal-os-amd64`."
+            echo "- Desktop: KDE Plasma 6.8 (Debian Sid packages)"
+            echo "- Kernel: Linux 7.3.3 (upstream stable, locally packaged)"
+            echo "- Qortal Hub: included by the image build"
+            echo "- Size: $SIZE"
+            echo "- SHA-256: `$SHA`"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload AMD64 ISO
+        if: steps.plasma.outputs.available == 'true' && success()
         uses: actions/upload-artifact@v4
         with:
-          name: igor-qortal-os-amd64
+          name: igor-qortal-os-debian-kde-plasma-6.8-kernel-7.3.3-amd64
           path: |
             igor-qortal-os-amd64.iso
             igor-qortal-os-amd64.iso.sha256
