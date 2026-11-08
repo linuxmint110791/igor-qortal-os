@@ -55,7 +55,7 @@ jobs:
           OUTPUT_ISO: igor-qortal-os-amd64.iso
           BOOTLOADER: iso-syslinux-grub
         run: |
-          printf '1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
+          printf '1\n1\n' | sudo -E bash ./igor-qortal-os-v2-with-logo-embedded.sh
 
       - name: Verify output
         run: |
