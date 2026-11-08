@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Igor-Qortal OS v2
-# Debian Sid/Unstable + Cinnamon + Wayland + EFI/Secure Boot support
+# Debian Sid/Unstable + KDE Plasma 6.8 + Linux 7.3.3
 # Qortal + Arch Distrobox + Reticulum Mesh
 # ==============================================================================
 
@@ -189,6 +189,19 @@ mkdir -p "$BUILD_DIR"
 
 cd "$BUILD_DIR"
 
+# Install the pinned upstream Linux 7.3.3 Debian package into the live image.
+mkdir -p config/packages.chroot
+if [[ "$ARCH" == "amd64" && -d "$SCRIPT_DIR/kernel-debs" ]]; then
+    shopt -s nullglob
+    KERNEL_DEBS=("$SCRIPT_DIR"/kernel-debs/linux-image-7.3.3*.deb)
+    shopt -u nullglob
+    if [[ "${#KERNEL_DEBS[@]}" -eq 0 ]]; then
+        echo "[!] Linux 7.3.3 kernel package is missing from kernel-debs/."
+        exit 1
+    fi
+    cp "${KERNEL_DEBS[@]}" config/packages.chroot/
+fi
+
 # ==============================================================================
 # DEBIAN LIVE CONFIG
 # ==============================================================================
@@ -238,27 +251,32 @@ mkdir -p \
 # ==============================================================================
 
 cat > config/package-lists/igor-qortal-os.list.chroot <<'EOF'
-cinnamon
-cinnamon-session
+# KDE Plasma desktop and Wayland session
+kde-plasma-desktop
+plasma-workspace-wayland
+kwin-wayland
+sddm
+dolphin
+konsole
+ark
+kate
+systemsettings
+plasma-nm
+plasma-pa
+powerdevil
+breeze
+breeze-gtk-theme
+xwayland
 calamares
 calamares-settings-debian
 rsync
 parted
 cryptsetup
 btrfs-progs
-cinnamon-desktop-data
-cinnamon-settings-daemon
-cinnamon-control-center
-cinnamon-screensaver
-cinnamon-l10n
-nemo
-nemo-fileroller
-muffin
 wayland-protocols
 wayland-utils
 libwayland-client0
 libwayland-server0
-gdm3
 dconf-cli
 pipewire
 pipewire-audio
@@ -298,8 +316,7 @@ iputils-ping
 fastfetch
 chafa
 xterm
-linux-image-amd64
-EOF
+EOFEOF
 
 if [[ "$ARCH" == "arm64" ]]; then
   sed -i '/linux-image-amd64/d' config/package-lists/igor-qortal-os.list.chroot
@@ -561,7 +578,7 @@ chmod 0644     config/includes.chroot/usr/share/pixmaps/igor-qortal-os.png
 # QORTAL WALLPAPERS
 # ==============================================================================
 # Official Qortal wallpapers from the Qortal Project press kit.
-# The dark Qortal background is the default Cinnamon desktop wallpaper.
+# The dark Qortal background is the default KDE desktop wallpaper.
 
 QORTAL_WALLPAPER_DIR="config/includes.chroot/usr/share/backgrounds/igor-qortal-os"
 mkdir -p "$QORTAL_WALLPAPER_DIR"
@@ -588,7 +605,7 @@ download_qortal_wallpaper "qortal-welcome-to-the-future.png" "qortal-thefuture-w
 chmod 0644 "$QORTAL_WALLPAPER_DIR"/*
 
 # ==============================================================================
-# CINNAMON DEFAULT WALLPAPER
+# KDE PLASMA DEFAULT WALLPAPER
 # ==============================================================================
 # Make the official dark Qortal background the desktop default for new users.
 
@@ -601,11 +618,12 @@ user-db:user
 system-db:local
 EOF
 
-cat > config/includes.chroot/etc/dconf/db/local.d/00-igor-qortal-wallpaper <<'EOF'
-[org/cinnamon/desktop/background]
-picture-uri='file:///usr/share/backgrounds/igor-qortal-os/qortal-background-dark.jpg'
-picture-uri-dark='file:///usr/share/backgrounds/igor-qortal-os/qortal-background-dark.jpg'
-picture-options='zoom'
+cat > config/includes.chroot/etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc <<'EOF'
+[Containments][1]
+wallpaperplugin=org.kde.image
+
+[Containments][1][Wallpaper][org.kde.image][General]
+Image=file:///usr/share/backgrounds/igor-qortal-os/qortal-background-dark.jpg
 EOF
 
 cat > config/hooks/live/0400-qortal-wallpaper.chroot <<'EOF'
@@ -1197,7 +1215,7 @@ cat > config/includes.chroot/usr/share/applications/qortal-installer.desktop <<'
 Type=Application
 Name=Qortal Repair / Reinstall
 Comment=Repair or reinstall Qortal on Igor-Qortal OS
-Exec=gnome-terminal -- /usr/local/bin/igor-qortal-install.sh
+Exec=konsole -e /usr/local/bin/igor-qortal-install.sh
 Icon=utilities-terminal
 Terminal=false
 Categories=System;Network;
@@ -1408,7 +1426,7 @@ EOF
 # GDM WAYLAND
 # ==============================================================================
 
-mkdir -p config/includes.chroot/etc/gdm3
+mkdir -p config/includes.chroot/etc/sddm.conf.d
 
 cat > config/includes.chroot/etc/gdm3/daemon.conf <<'EOF'
 
@@ -1418,34 +1436,7 @@ WaylandEnable=true
 
 EOF
 
-# ==============================================================================
-# REMOVE XORG SERVER IF SOMETHING PULLED IT IN
-# ==============================================================================
-
-cat > config/hooks/live/9000-no-xorg-server.chroot <<'EOF'
-
-#!/bin/sh
-
-set -e
-
-echo "=================================================="
-echo " Checking Xorg server state"
-echo "=================================================="
-
-apt-get purge -y \
-    xserver-xorg \
-    xserver-xorg-core \
-    xserver-xorg-input-all \
-    xserver-xorg-video-all \
-    xinit \
-    x11-xserver-utils \
-    || true
-
-apt-get autoremove -y || true
-
-EOF
-
-chmod +x config/hooks/live/9000-no-xorg-server.chroot
+# Keep Xwayland available for legacy applications; Plasma sessions can use Wayland.
 
 # ==============================================================================
 # NO QORTAL AUTOSTART
@@ -1597,7 +1588,7 @@ cat > config/includes.chroot/etc/xdg/autostart/igor-qortal-startup-sound.desktop
 Type=Application
 Name=Igor-Qortal OS startup sound
 Exec=/usr/local/bin/igor-qortal-startup-sound
-OnlyShowIn=X-Cinnamon;
+OnlyShowIn=KDE;
 X-GNOME-Autostart-enabled=true
 NoDisplay=true
 DESKTOP
