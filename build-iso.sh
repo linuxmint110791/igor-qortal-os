@@ -30,10 +30,8 @@ lb config \
   --archive-areas "main contrib non-free non-free-firmware" \
   --binary-images iso-hybrid \
   --bootloaders "syslinux grub-efi" \
-  --debian-installer live \
   --apt-recommends true \
   --apt-indices true \
-  --memtest none \
   --bootappend-live "boot=live components quiet splash"
 
 mkdir -p config/package-lists config/includes.chroot/usr/local/bin \
