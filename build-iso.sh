@@ -181,6 +181,9 @@ Presentation {
         centeredText: "<h1>Publish and discover</h1><br/>QDN lets users publish and access websites, files, videos and other data through Qortal names. Qortal apps such as Q-Chat and Q-Tube connect users directly to services in the network."
     }
     Slide {
+        centeredText: "<h1>Linux kernel 7.3.4</h1><br/>This edition of Igorcoin Qortal OS includes Debian's signed Linux 7.3.4 kernel for 64-bit PCs.<br/><br/>The kernel is the core of the operating system. It manages hardware, memory, processes and device drivers. The installer will place this kernel on your computer."
+    }
+    Slide {
         centeredText: "<h1>Get started</h1><br/>Qortal website: https://qortal.org<br/>Developer portal: https://qortal.dev<br/>Qortal Hub: https://hub.qortal.link<br/>Qortal Go: https://go.qortal.link<br/><br/>Use the official project pages to find current downloads and guides."
     }
     function onActivate() { presentation.currentSlide = 0 }
