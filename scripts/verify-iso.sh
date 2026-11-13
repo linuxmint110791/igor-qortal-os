@@ -60,6 +60,11 @@ check_file usr/share/plasma/plasmoids/org.kde.plasma.systemmonitor/metadata.json
 check_file usr/share/applications/igorcoin-system-monitor.desktop
 check_file usr/share/applications/qortal-website.desktop
 check_file usr/share/applications/qortal-hub.desktop
+check_file usr/bin/neowofetch
+check_file usr/local/bin/neofetch
+check_file usr/share/konsole/Igorcoin-Green.colorscheme
+check_file etc/skel/.local/share/konsole/Igorcoin-Qortal.profile
+check_file etc/skel/.config/konsolerc
 check_file usr/share/backgrounds/igorcoin-qortal/qortal-dark.jpg
 check_file usr/share/backgrounds/igorcoin-qortal/qortal-extra-dark.jpg
 check_file usr/share/backgrounds/igorcoin-qortal/qortal-light.jpg
