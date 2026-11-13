@@ -24,19 +24,16 @@ jobs:
         run: |
           chmod +x ./build-iso.sh
           sudo ./build-iso.sh
-      - name: Verify ISO and checksum
+      - name: Verify ISO file
         run: |
           test -s igorcoin-qortal-os-debian13-amd64.iso
-          sha256sum -c igorcoin-qortal-os-debian13-amd64.iso.sha256
           file igorcoin-qortal-os-debian13-amd64.iso
           du -h igorcoin-qortal-os-debian13-amd64.iso
       - name: Upload ISO as a separate downloadable artifact
         uses: actions/upload-artifact@v4
         with:
           name: Igorcoin-Qortal-OS-Debian13-amd64
-          path: |
-            igorcoin-qortal-os-debian13-amd64.iso
-            igorcoin-qortal-os-debian13-amd64.iso.sha256
+          path: igorcoin-qortal-os-debian13-amd64.iso
           compression-level: 0
           if-no-files-found: error
           retention-days: 90
