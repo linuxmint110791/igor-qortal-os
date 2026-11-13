@@ -75,7 +75,7 @@ mkdir -p \
   config/includes.chroot/usr/share/applications \
   config/includes.chroot/usr/share/icons/hicolor/scalable/apps \
   config/includes.chroot/usr/share/backgrounds/igorcoin-qortal \
-  config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/contents/images/1920x1080 \
+  config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/contents/images \
   config/includes.chroot/usr/share/pixmaps \
   config/includes.chroot/etc/xdg \
   config/includes.chroot/etc/systemd/system \
@@ -109,7 +109,7 @@ test -s config/includes.chroot/usr/share/pixmaps/qortal-logo.png
 
 # Expose a curated default Qortal wallpaper in KDE's wallpaper chooser.
 install -m 0644 "$QORTAL_ASSET_DIR/qortal-dark.jpg" \
-  config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/contents/images/1920x1080/default.jpg
+  config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/contents/images/1920x1080.jpg
 cat > config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/metadata.json <<'WALLPAPER'
 {
   "KPlugin": {
@@ -119,15 +119,6 @@ cat > config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/metadata.json 
   }
 }
 WALLPAPER
-cat > config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/contents/metadata.json <<'WALLPAPER'
-{
-  "KPlugin": {
-    "Id": "Igorcoin-Qortal/contents",
-    "Name": "Igorcoin Qortal wallpaper"
-  }
-}
-WALLPAPER
-
 # Enable the standard freedesktop notification sound theme in KDE.
 cat > config/includes.chroot/etc/xdg/kdeglobals <<'KDEGLOBALS'
 [Sounds]
@@ -784,7 +775,7 @@ Name=Igorcoin Qortal OS information
 Name[et]=Igorcoin Qortal OS teave
 Comment=Debian 13 Trixie with the official Qortal Linux installer included
 Exec=konsole -e bash -lc 'cat /etc/os-release; echo; echo "Official Qortal installer: /usr/local/bin/igor-install-qortal"; read -rp "Press Enter to close..."'
-Icon=help-about
+Icon=/usr/share/pixmaps/qortal-logo.png
 Terminal=false
 Categories=System;
 DESKTOP
