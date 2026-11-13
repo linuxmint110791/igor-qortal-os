@@ -65,6 +65,8 @@ check_file usr/local/bin/neofetch
 check_file usr/local/bin/igorcoin-terminal-ticker
 check_file etc/skel/.config/tmux/tmux.conf
 check_file usr/bin/tmux
+check_file boot/vmlinuz-7.3.4+deb14-amd64
+check_file lib/modules/7.3.4+deb14-amd64/modules.dep
 check_file usr/share/konsole/Igorcoin-Green.colorscheme
 check_file etc/skel/.local/share/konsole/Igorcoin-Qortal.profile
 check_file etc/skel/.config/konsolerc
