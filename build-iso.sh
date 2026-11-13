@@ -395,6 +395,21 @@ Terminal=false
 Categories=Network;System;
 DESKTOP
 
+cat > config/includes.chroot/usr/share/icons/hicolor/scalable/apps/igorcoin-reticulum.svg <<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <g fill="none" stroke="#21b7d5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 12 L13 46 L51 46 Z"/>
+    <path d="M32 12 L32 31 M13 46 L32 31 L51 46"/>
+  </g>
+  <g fill="#21b7d5" stroke="#0b1720" stroke-width="2">
+    <circle cx="32" cy="12" r="7"/>
+    <circle cx="13" cy="46" r="7"/>
+    <circle cx="51" cy="46" r="7"/>
+    <circle cx="32" cy="31" r="5"/>
+  </g>
+</svg>
+SVG
+
 cat > config/includes.chroot/usr/local/bin/igorcoin-network-tray <<'PY'
 #!/usr/bin/python3
 import os
@@ -461,7 +476,7 @@ def open_network_settings():
 def open_hub_settings():
     open_hub()
 
-tray = QSystemTrayIcon(QIcon.fromTheme("network-workgroup"))
+tray = QSystemTrayIcon(QIcon("/usr/share/icons/hicolor/scalable/apps/igorcoin-reticulum.svg"))
 tray.setToolTip("Igorcoin Qortal Network")
 menu = QMenu()
 
