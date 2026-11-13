@@ -309,14 +309,39 @@ lastScreen=0
 location=4
 plugin=org.kde.panel
 wallpaperplugin=org.kde.image
+floating=1
+panelVisibility=0
+length=100
+thickness=48
 
 [Containments][20][Applets][30]
 immutability=1
 plugin=org.kde.plasma.kicker
 
+[Containments][20][Applets][30][Configuration]
+PreloadWeight=100
+
+[Containments][20][Applets][30][Configuration][General]
+icon=file:///usr/share/pixmaps/qortal-logo.png
+customButtonImage=file:///usr/share/pixmaps/qortal-logo.png
+useCustomButtonImage=true
+menuLabel=Qortal
+showRecentApps=false
+showRecentDocs=false
+showIconsRootLevel=true
+favoriteApps=applications:org.kde.dolphin.desktop,applications:org.kde.konsole.desktop,applications:qortal-website.desktop,applications:qortal-hub.desktop,applications:igorcoin-system-monitor.desktop
+favoriteSystemActions=logout,reboot,shutdown
+
 [Containments][20][Applets][31]
 immutability=1
 plugin=org.kde.plasma.taskmanager
+
+[Containments][20][Applets][31][Configuration][General]
+launchers=applications:org.kde.dolphin.desktop,applications:org.kde.konsole.desktop,applications:qortal-website.desktop,applications:qortal-hub.desktop,applications:igorcoin-system-monitor.desktop
+showOnlyCurrentDesktop=false
+showOnlyCurrentScreen=true
+groupingStrategy=0
+sortingStrategy=1
 
 [Containments][20][Applets][32]
 immutability=1
