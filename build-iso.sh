@@ -92,6 +92,7 @@ yt-dlp
 fastfetch
 age
 kdialog
+python3-pyqt6
 kwalletmanager
 libpam-kwallet5
 libsecret-tools
@@ -365,8 +366,7 @@ Exec=/usr/local/bin/igorcoin-restore-wallet
 Icon=wallet-open
 Terminal=false
 Categories=Network;System;
-
-
+DESKTOP
 
 cat > config/includes.chroot/etc/xdg/autostart/igor-qortal-first-login.desktop <<'DESKTOP'
 [Desktop Entry]
@@ -393,6 +393,134 @@ Exec=konsole --hold -e /usr/local/bin/igor-install-qortal
 Icon=applications-internet
 Terminal=false
 Categories=Network;System;
+DESKTOP
+
+cat > config/includes.chroot/usr/local/bin/igorcoin-network-tray <<'PY'
+#!/usr/bin/python3
+import os
+import shutil
+import subprocess
+import sys
+
+from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
+
+APP = QApplication(sys.argv)
+APP.setQuitOnLastWindowClosed(False)
+
+def command_exists(name):
+    return shutil.which(name) is not None
+
+def run_detached(*args):
+    try:
+        subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+    except Exception:
+        pass
+
+def core_status():
+    try:
+        result = subprocess.run(
+            ["bash", "-lc", "ss -lnt"],
+            capture_output=True, text=True, timeout=2, check=False
+        )
+        return "RUNNING" if ":12391 " in result.stdout else "NOT DETECTED"
+    except Exception:
+        return "UNKNOWN"
+
+def reticulum_status():
+    try:
+        result = subprocess.run(
+            ["pgrep", "-af", "rnsd|reticulum"],
+            capture_output=True, text=True, timeout=2, check=False
+        )
+        return "PROCESS DETECTED" if result.returncode == 0 else "NOT DETECTED"
+    except Exception:
+        return "UNKNOWN"
+
+def open_hub():
+    # Prefer the desktop launcher installed by the official Qortal Hub setup.
+    for desktop in (
+        os.path.expanduser("~/.local/share/applications/qortal-hub.desktop"),
+        "/usr/share/applications/qortal-hub.desktop",
+        "/usr/share/applications/Qortal-Hub.desktop",
+    ):
+        if os.path.isfile(desktop):
+            run_detached("gtk-launch", os.path.basename(desktop)[:-8])
+            return
+    for binary in ("qortal-hub", "Qortal-Hub", "qortalhub"):
+        if command_exists(binary):
+            run_detached(binary)
+            return
+    run_detached("xdg-open", "applications:")
+
+def open_network_settings():
+    run_detached("kcmshell6", "kcm_networkmanagement")
+
+def open_hub_settings():
+    open_hub()
+
+tray = QSystemTrayIcon(QIcon.fromTheme("network-workgroup"))
+tray.setToolTip("Igorcoin Qortal Network")
+menu = QMenu()
+
+core_action = QAction("Qortal Core: checking…", menu)
+core_action.setEnabled(False)
+menu.addAction(core_action)
+
+reticulum_action = QAction("Reticulum: checking…", menu)
+reticulum_action.setEnabled(False)
+menu.addAction(reticulum_action)
+
+menu.addSeparator()
+hub_action = QAction("Open Qortal Hub", menu)
+hub_action.triggered.connect(open_hub)
+menu.addAction(hub_action)
+
+hub_settings_action = QAction("Qortal node settings (inside Hub)", menu)
+hub_settings_action.triggered.connect(open_hub_settings)
+menu.addAction(hub_settings_action)
+
+wifi_action = QAction("Wi-Fi and network settings", menu)
+wifi_action.triggered.connect(open_network_settings)
+menu.addAction(wifi_action)
+
+menu.addSeparator()
+quit_action = QAction("Close Qortal Network indicator", menu)
+quit_action.triggered.connect(APP.quit)
+menu.addAction(quit_action)
+
+tray.setContextMenu(menu)
+tray.show()
+
+def refresh_status():
+    core_action.setText("Qortal Core: " + core_status())
+    reticulum_action.setText("Reticulum: " + reticulum_status())
+    tray.setToolTip("Igorcoin Qortal Network | Core " + core_status() +
+                    " | Reticulum " + reticulum_status())
+
+timer = QTimer()
+timer.timeout.connect(refresh_status)
+timer.start(5000)
+refresh_status()
+
+sys.exit(APP.exec())
+PY
+chmod 0755 config/includes.chroot/usr/local/bin/igorcoin-network-tray
+
+cat > config/includes.chroot/etc/xdg/autostart/igorcoin-network-tray.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Igorcoin Qortal Network
+Name[et]=Igorcoin Qortali võrk
+Comment=Qortal Core and Reticulum status beside the network tray
+Comment[et]=Qortal Core'i ja Reticulumi olek süsteemisalves
+Exec=/usr/local/bin/igorcoin-network-tray
+Icon=network-workgroup
+Terminal=false
+OnlyShowIn=KDE;
+X-GNOME-Autostart-enabled=true
 DESKTOP
 
 cat > config/includes.chroot/usr/share/applications/igor-qortal-os-info.desktop <<'DESKTOP'
