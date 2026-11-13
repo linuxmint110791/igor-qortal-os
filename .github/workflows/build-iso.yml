@@ -62,15 +62,15 @@ jobs:
           # Split into 1800 MiB pieces so even large ISO images fit safely.
           split --bytes=1800M --numeric-suffixes=1 --suffix-length=3 \
             --additional-suffix=.part "$ISO" "$ISO."
-          cat > DOWNLOAD-INSTRUCTIONS.txt <<'EOF'
+          cat > DOWNLOAD-INSTRUCTIONS.txt <<EOF
           Igorcoin Qortal OS — ISO reconstruction
 
-          Download every file named igorcoin-qortal-os-<suite>-amd64.iso.NNN.part
-          into the same directory, together with the .sha256 file.
+          Download every numbered part named $ISO.NNN.part into the same directory,
+          together with $ISO.sha256.
 
           Linux reconstruction:
-            cat igorcoin-qortal-os-*.iso.*.part > igorcoin-qortal-os-debian13-amd64.iso
-            sha256sum -c igorcoin-qortal-os-<suite>-amd64.iso.sha256
+            cat $ISO.*.part > $ISO
+            sha256sum -c $ISO.sha256
 
           Do not omit or reorder any part. The checksum must report OK.
           EOF
@@ -82,8 +82,8 @@ jobs:
         run: |
           set -euo pipefail
           TAG="igorcoin-os-build-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" release-files/igorcoin-qortal-os-debian13-amd64.iso.*.part \
-            release-files/igorcoin-qortal-os-debian13-amd64.iso.sha256 \
+          gh release create "$TAG" release-files/"$ISO".*.part \
+            "release-files/$ISO.sha256" \
             release-files/DOWNLOAD-INSTRUCTIONS.txt \
             --title "Igorcoin Qortal OS ${GITHUB_RUN_NUMBER}" \
             --notes "Debian AMD64 build (Trixie preferred; Forky fallback). ISO is split into numbered parts under GitHub's per-asset size limit. Download all parts and reconstruct using DOWNLOAD-INSTRUCTIONS.txt. Verify with SHA256 before writing to USB." \
