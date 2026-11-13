@@ -50,6 +50,7 @@ cd "$BUILD_DIR"
 
 lb config \
   --mode debian \
+  --initsystem systemd \
   --distribution "$DEBIAN_SUITE" \
   --mirror-bootstrap "$DEBIAN_PACKAGE_ARCHIVE" \
   --mirror-chroot "$DEBIAN_PACKAGE_ARCHIVE" \
