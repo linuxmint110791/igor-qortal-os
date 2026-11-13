@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'build-iso.sh'
+      - 'wallet/Igorcoin-Wallet.json.age'
       - '.github/workflows/build-iso.yml'
   workflow_dispatch:
 permissions:
