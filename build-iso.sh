@@ -182,8 +182,8 @@ chmod 0644 "$QORTAL_INSTALLER"
 WALLET_SOURCE="$SCRIPT_DIR/wallet/Igorcoin-Wallet.json.age"
 WALLET_TARGET="config/includes.chroot/usr/local/share/igorcoin-qortal-os/Igorcoin-Wallet.json.age"
 if [[ -f "$WALLET_SOURCE" ]]; then
-  if ! file --brief "$WALLET_SOURCE" >/dev/null 2>&1; then
-    echo "Cannot inspect optional encrypted wallet file." >&2
+  if ! head -n 1 "$WALLET_SOURCE" | grep -Fxq 'age-encryption.org/v1'; then
+    echo "Wallet backup is not an age-encrypted file; refusing to add it to the ISO." >&2
     exit 1
   fi
   install -m 0600 "$WALLET_SOURCE" "$WALLET_TARGET"
@@ -220,6 +220,9 @@ mkdir -p "$(dirname "$MARKER")"
 if command -v konsole >/dev/null 2>&1; then
   if konsole --hold -e /bin/bash -lc '/usr/local/bin/igor-install-qortal'; then
     touch "$MARKER"
+    if [[ -s /usr/local/share/igorcoin-qortal-os/Igorcoin-Wallet.json.age ]]; then
+      konsole --hold -e /usr/local/bin/igorcoin-restore-wallet
+    fi
   else
     echo "Qortal setup did not complete. You can retry from Applications > Install Qortal."
   fi
