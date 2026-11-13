@@ -223,6 +223,8 @@ RightButton;NoModifier=org.kde.contextmenu
 RightButton;NoModifier=org.kde.contextmenu
 
 [Containments][1]
+ItemGeometriesHorizontal=Applet-2:1480,70,360,170,0;Applet-3:1480,255,360,170,0;Applet-4:1480,440,360,170,0;
+ItemGeometries-1920x1080=Applet-2:1480,70,360,170,0;Applet-3:1480,255,360,170,0;Applet-4:1480,440,360,170,0;
 activityId=
 formfactor=0
 immutability=1
