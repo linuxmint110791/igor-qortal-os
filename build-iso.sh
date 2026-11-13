@@ -118,9 +118,9 @@ strings:
   supportUrl: https://qortal.org/community
   knownIssuesUrl: https://qortal.dev/
 images:
-  productIcon: /usr/share/pixmaps/qortal-logo.png
-  productLogo: /usr/share/pixmaps/qortal-logo.png
-  productWelcome: /usr/share/pixmaps/qortal-logo.png
+  productIcon: "qortal-logo.png"
+  productLogo: "qortal-logo.png"
+  productWelcome: "qortal-logo.png"
 style:
   sidebarBackground: "#0d1622"
   sidebarText: "#e8f1f8"
@@ -139,6 +139,13 @@ Presentation {
     titleColor: "#00c8f0"
     textColor: "#e8f1f8"
     fontFamily: "Noto Sans"
+
+    Timer {
+        interval: 9000
+        running: presentation.activatedInCalamares
+        repeat: true
+        onTriggered: presentation.goToNextSlide()
+    }
 
     Slide {
         centeredText: "<h1>Welcome to Igorcoin Qortal OS</h1><br/>A Debian-based desktop built around open technology, local control and the Qortal network.<br/><br/><b>One computer. Your own keys. A community network.</b>"
