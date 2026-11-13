@@ -25,6 +25,12 @@ The following preview images are from the Qortal Project's community-use press k
 |---|---|
 | ![Qortal light background](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal_background_light_.jpg) | ![Qortal future wallpaper](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal-thefuture-wallpaper.png) |
 
+### Terminal and system information
+
+Konsole opens with the **Igorcoin Qortal Green Glass** profile: a dark, subtly translucent background and bright green terminal text. New user accounts receive this profile as their default Konsole profile. Transparency depends on the active Wayland compositor's effects support.
+
+Debian 13 no longer includes the original, unmaintained `neofetch` package. The ISO therefore includes Debian's `neowofetch` fork and a `neofetch` compatibility command, as well as `fastfetch`. Both `neofetch` and `neowofetch` can be run from Konsole.
+
 ### Desktop and login-screen branding
 The bottom KDE panel is also Qortal-branded: the Start/Application Menu button uses the official Qortal logo and is labelled **Qortal**. The menu hides noisy recent-item sections and includes quick favorites. The taskbar is configured with pinned shortcuts for Dolphin, Konsole, Qortal Website, Qortal Hub and the system monitor, using the dark navy/cyan color scheme.
 
