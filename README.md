@@ -36,6 +36,24 @@ KDE starts an **Igorcoin Qortal Network** system-tray indicator beside the Wi-Fi
 
 Choose **Local**, **Public**, or **Custom** node inside Qortal Hub's own connection-mode screen. The tray indicator is a quick status/launch panel; it does not replace NetworkManager's Wi-Fi controls or silently change Hub connection settings. Reticulum reachability is more than a process check, so the indicator currently reports process detection rather than claiming that a remote Reticulum route is working.
 
+## Reticulum background service and brief network outages
+
+The ISO build installs the Python Reticulum Network Stack into an isolated virtual environment at `/opt/reticulum-venv` and enables `igorcoin-reticulum.service`. It starts in the background at boot, runs as the unprivileged `reticulum` system user, and restarts if the daemon itself exits. It is not tied to `network-online.target`, so a missing Internet connection does not stop the service from running.
+
+The initial Reticulum config is stored at `/var/lib/reticulum/.reticulum/config` and enables:
+- TCP client uplink to `node.reticulumnet.nl:4242`.
+- Reticulum AutoInterface for compatible peers on the local LAN.
+- Transport forwarding disabled by default; this desktop is a client node unless the owner later chooses to configure transport.
+
+Reticulum's TCP client interface is designed to tolerate intermittent IP connectivity and restore the connection when the remote endpoint is reachable again. The local LAN AutoInterface may continue to work during an Internet outage if the local link and peer devices remain available. Internet-based TCP uplinks cannot work while the Internet path is down. Off-grid operation requires an independent physical link such as a configured LoRa/RNode interface; no LoRa hardware is assumed or enabled by this ISO.
+
+Service controls:
+- `igorcoin-reticulum status`
+- `sudo igorcoin-reticulum start|stop|restart`
+- `igorcoin-reticulum logs`
+
+Qortal Core is not configured to restart merely because the network disappears. A brief outage should leave the Core process running; P2P peers will disconnect and reconnect when connectivity returns. During a complete network isolation, no software can deliver minted blocks to the wider Qortal network, so successful network-wide minting cannot be guaranteed until peers are reachable again. The ISO does not install a blind Core restart loop, because restarting a healthy Core during a transient outage would make recovery worse.
+
 ## Qortal node and Reticulum networking
 
 The official Qortal Hub installer is used so the ISO receives the current Hub release. The Hub's connection selector already supports:
