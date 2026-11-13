@@ -13,6 +13,18 @@ Igorcoin Qortal OS is a Debian-based desktop ISO project. It provides a Debian 1
 - [Automated ISO build status](https://github.com/linuxmint110791/igor-qortal-os/actions/workflows/build-iso.yml)
 - [Published releases and ISO downloads](https://github.com/linuxmint110791/igor-qortal-os/releases)
 
+## Visual preview — official Qortal backgrounds
+
+The following preview images are from the Qortal Project's community-use press kit. Actual screenshots of the running Igorcoin Qortal OS will be added after a successful ISO build and desktop test.
+
+| Qortal dark | Qortal extra dark |
+|---|---|
+| ![Qortal dark background](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal_background_dark_.jpg) | ![Qortal extra dark background](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal_background_extra_dark_.jpg) |
+
+| Qortal light | Welcome to the Future |
+|---|---|
+| ![Qortal light background](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal_background_light_.jpg) | ![Qortal future wallpaper](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal-thefuture-wallpaper.png) |
+
 ## Igorcoin Qortal visual theme and sounds
 
 The image includes official Qortal Project press-kit backgrounds (dark, extra-dark, light, and “Welcome to the Future”), a KDE wallpaper entry, and the official transparent Qortal logo for desktop branding. The standard freedesktop sound theme is installed and selected for KDE notification sounds. These are community-use Qortal press-kit assets; see the [official Qortal Images/Press Kit](https://wiki.qortal.org/doku.php?id=official_images_press_kit).
