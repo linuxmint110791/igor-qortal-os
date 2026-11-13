@@ -24,6 +24,12 @@ The installed system starts with a deny-incoming UFW firewall and allows normal 
 
 If you later deliberately need remote SSH access, you must install and explicitly unmask/enable the SSH service and socket yourself. The included SSH hardening drop-in disables password and root login and permits public-key authentication only. Keep the firewall enabled and add a narrowly scoped allow rule only for the trusted source network before enabling SSH. No configuration can guarantee that a machine is impossible to compromise; keep the OS and applications updated and protect your private keys.
 
+## Single-login foundation (Linux + KDE Wallet)
+
+The ISO installs KDE Wallet, the Secret Service command-line client and Debian's `libpam-kwallet5` integration. SDDM is configured to unlock the KDE Wallet during a successful Linux login, provided the KDE Wallet password is the same as the Linux account password. The PAM entries are optional, so a KWallet issue should not prevent Linux login.
+
+This prepares the operating-system side for a single-login Qortal experience. It does **not yet automatically unlock Qortal Hub**: the current upstream Hub lock screen still asks for the Qortal wallet password and does not expose a Linux Secret Service/KWallet auto-unlock integration. Hub-side support must be added and built into a compatible Hub release before the full one-login flow can be claimed. The Qortal wallet password must never be copied into a shell script, environment variable, plaintext file, or made equal to the Linux password just to simulate single sign-on.
+
 ## Qortal installation
 The ISO contains the official installer script itself. After the operating system is installed and the user logs into KDE for the first time, the installer opens in a terminal automatically. It can also be started later from **Applications → Install Qortal**.
 
