@@ -263,12 +263,13 @@ if ! head -n 1 "$SOURCE" | grep -Fxq 'age-encryption.org/v1'; then
 fi
 
 mkdir -p "$TARGET_DIR"
-kdialog --yesno "Valitud walleti varukoopia taastatakse kausta $TARGET_DIR. Järgmises aknas sisesta krüpteerimisparool. Jätkame?"
-|| exit 0
+if ! kdialog --yesno "Valitud walleti varukoopia taastatakse kausta $TARGET_DIR. Järgmises aknas sisesta krüpteerimisparool. Jätkame?"; then
+  exit 0
+fi
 
 # age reads the passphrase securely from the interactive terminal, not from
 # command-line arguments, environment variables, or an ISO-stored secret.
-if konsole --hold -e age --decrypt --passphrase --output "$RESTORED_TARGET" "$SOURCE"; then
+if konsole --hold -e age --decrypt --output "$RESTORED_TARGET" "$SOURCE"; then
   chmod 0600 "$RESTORED_TARGET"
   if [[ "$SOURCE" != "$BUNDLED" ]]; then
     install -m 0600 "$SOURCE" "$ENCRYPTED_TARGET"
