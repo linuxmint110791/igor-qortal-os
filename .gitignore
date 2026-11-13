@@ -1,0 +1,6 @@
+# Never commit plaintext Qortal wallet exports or private key material
+wallet/*.json
+wallet/*.json.*
+!wallet/*.json.age
+wallet/*.key
+wallet/*.pem
