@@ -35,6 +35,7 @@ cd "$BUILD_DIR"
 lb config \
   --mode debian \
   --distribution trixie \
+  --security false \
   --architectures amd64 \
   --archive-areas "main contrib non-free non-free-firmware" \
   --binary-images iso-hybrid \
@@ -56,7 +57,19 @@ mkdir -p \
   config/includes.chroot/etc/apt/apt.conf.d \
   config/includes.chroot/etc/default \
   config/includes.chroot/etc/ufw \
-  config/hooks/normal
+  config/hooks/normal \
+  config/archives
+
+# Debian 13 renamed the security suite to trixie-security. The Ubuntu runner's
+# packaged live-build still generates the obsolete trixie/updates entry, so
+# disable that legacy entry and add Debian's current official security archive
+# explicitly for both image construction and the installed system.
+cat > config/archives/debian-security.list.chroot <<'SECURITY_REPO'
+deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
+SECURITY_REPO
+cat > config/archives/debian-security.list.binary <<'SECURITY_REPO'
+deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware
+SECURITY_REPO
 
 cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
 kde-plasma-desktop
