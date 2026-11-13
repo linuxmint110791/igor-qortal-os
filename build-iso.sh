@@ -94,6 +94,7 @@ cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
 # Desktop: KDE Plasma session running on Wayland (Xwayland is intentionally omitted).
 # Install kernel explicitly; skip live-build's obsolete Contents index autodetection.
 linux-image-amd64
+isolinux
 kde-plasma-desktop
 kwin-wayland
 sddm
