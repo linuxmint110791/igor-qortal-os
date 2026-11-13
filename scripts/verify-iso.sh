@@ -54,7 +54,36 @@ check_file etc/calamares/branding/igorcoin/branding.desc
 check_file etc/calamares/branding/igorcoin/show.qml
 check_file etc/calamares/branding/igorcoin/qortal-logo.png
 check_file etc/calamares/settings.conf
-check_file etc/calamares/hooks/0990-igorcoin-calamares-branding.hook.chroot
+grep -Eq '^branding:[[:space:]]*igorcoincheck_file usr/share/backgrounds/igorcoin-qortal/igorcoin-qortal-desktop.jpg
+check_file usr/share/color-schemes/Igorcoin-Qortal.colors
+check_file usr/share/sddm/themes/breeze/theme.conf.user
+check_file etc/sddm.conf.d/10-igorcoin-qortal.conf
+check_file etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc
+check_file usr/bin/plasma-systemmonitor
+check_file usr/share/plasma/plasmoids/org.kde.plasma.systemmonitor/metadata.json
+check_file usr/share/applications/igorcoin-system-monitor.desktop
+check_file usr/share/applications/qortal-website.desktop
+check_file usr/share/applications/qortal-hub.desktop
+check_file usr/bin/neowofetch
+check_file usr/local/bin/neofetch
+check_file usr/local/bin/igorcoin-terminal-ticker
+check_file etc/skel/.config/tmux/tmux.conf
+check_file usr/bin/tmux
+check_file boot/vmlinuz-7.3.4+deb14-amd64
+check_file lib/modules/7.3.4+deb14-amd64/modules.dep
+check_file usr/share/konsole/Igorcoin-Green.colorscheme
+check_file etc/skel/.local/share/konsole/Igorcoin-Qortal.profile
+check_file etc/skel/.config/konsolerc
+check_file usr/share/backgrounds/igorcoin-qortal/qortal-dark.jpg
+check_file usr/share/backgrounds/igorcoin-qortal/qortal-extra-dark.jpg
+check_file usr/share/backgrounds/igorcoin-qortal/qortal-light.jpg
+check_file usr/share/backgrounds/igorcoin-qortal/qortal-future.png
+check_file usr/share/wallpapers/Igorcoin-Qortal/metadata.json
+check_file etc/xdg/kdeglobals
+check_file usr/share/sounds/freedesktop/stereo/dialog-information.oga
+
+echo "ISO structural verification passed."
+ "$ROOTFS/etc/calamares/settings.conf" || fail "Calamares is not configured to use Igorcoin branding"
 check_file usr/share/backgrounds/igorcoin-qortal/igorcoin-qortal-desktop.jpg
 check_file usr/share/color-schemes/Igorcoin-Qortal.colors
 check_file usr/share/sddm/themes/breeze/theme.conf.user
