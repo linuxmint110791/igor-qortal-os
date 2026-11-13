@@ -38,8 +38,11 @@ lb config \
   --architectures amd64 \
   --archive-areas "main contrib non-free non-free-firmware" \
   --binary-images iso-hybrid \
-  --apt-recommends true \
-  --apt-indices true \
+  --apt-recommends false \
+  --apt-indices false \
+  --apt-source-archives false \
+  --chroot-squashfs-compression-type xz \
+  --chroot-squashfs-compression-level 9 \
   --bootappend-live "boot=live components quiet splash"
 
 mkdir -p \
@@ -84,7 +87,6 @@ zip
 jq
 imagemagick
 rsync
-zlib1g-dev
 openjdk-21-jre-headless
 libfuse2t64
 desktop-file-utils
@@ -96,7 +98,6 @@ age
 kdialog
 python3-pyqt6
 python3-venv
-python3-pip
 kwalletmanager
 libpam-kwallet5
 libsecret-tools
@@ -654,4 +655,12 @@ fi
 mkdir -p "$(dirname -- "$OUTPUT_ISO")"
 cp -- "$ISO_FILE" "$OUTPUT_ISO"
 echo "Igorcoin Qortal OS ISO ready: $OUTPUT_ISO"
-du -h "$OUTPUT_ISO"
+ISO_BYTES="$(stat -c '%s' "$OUTPUT_ISO")"
+ISO_GIB="$(awk -v bytes="$ISO_BYTES" 'BEGIN { printf "%.2f", bytes / 1024 / 1024 / 1024 }')"
+ISO_GB="$(awk -v bytes="$ISO_BYTES" 'BEGIN { printf "%.2f", bytes / 1000000000 }')"
+echo "ISO size: $ISO_GB GB decimal ($ISO_GIB GiB; $ISO_BYTES bytes)"
+if (( ISO_BYTES > 2300000000 )); then
+  echo "WARNING: ISO exceeds the 2.3 GB target. Review the package list before release." >&2
+else
+  echo "ISO is within the 2.3 GB target."
+fi
