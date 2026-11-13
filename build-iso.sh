@@ -148,7 +148,7 @@ cat > config/hooks/normal/0900-igorcoin-security.hook.chroot <<'SECURITY'
 set -eu
 
 # Never ship an SSH daemon in the default desktop installation.
-if dpkg-query -W -f='\${Status}' openssh-server 2>/dev/null | grep -q 'install ok installed'; then
+if dpkg-query -W -f='${Status}' openssh-server 2>/dev/null | grep -q 'install ok installed'; then
   apt-get purge -y openssh-server openssh-sftp-server
 fi
 
