@@ -62,6 +62,9 @@ check_file usr/share/applications/qortal-website.desktop
 check_file usr/share/applications/qortal-hub.desktop
 check_file usr/bin/neowofetch
 check_file usr/local/bin/neofetch
+check_file usr/local/bin/igorcoin-terminal-ticker
+check_file etc/skel/.config/tmux/tmux.conf
+check_file usr/bin/tmux
 check_file usr/share/konsole/Igorcoin-Green.colorscheme
 check_file etc/skel/.local/share/konsole/Igorcoin-Qortal.profile
 check_file etc/skel/.config/konsolerc
