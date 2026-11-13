@@ -253,7 +253,7 @@ else
 fi
 
 if [[ -e "$RESTORED_TARGET" ]]; then
-  kdialog --warningyesno "Fail $RESTORED_TARGET on juba olemas. Seda ei kirjutata üle. Vali enne taastamist teine siht või tee olemasolevast varukoopia."
+  kdialog --error "Fail $RESTORED_TARGET on juba olemas. Seda ei kirjutata üle."
   exit 1
 fi
 
@@ -262,21 +262,23 @@ if ! head -n 1 "$SOURCE" | grep -Fxq 'age-encryption.org/v1'; then
   exit 1
 fi
 
-PASSPHRASE="$(kdialog --password "Sisesta walleti varukoopia krüpteerimisparool:")" || exit 0
-[[ -n "$PASSPHRASE" ]] || { kdialog --error "Parool jäi sisestamata."; exit 1; }
-
 mkdir -p "$TARGET_DIR"
-if ! printf '%s' "$PASSPHRASE" | age --decrypt --passphrase --output "$RESTORED_TARGET" "$SOURCE" 2>/dev/null; then
+kdialog --yesno "Valitud walleti varukoopia taastatakse kausta $TARGET_DIR. Järgmises aknas sisesta krüpteerimisparool. Jätkame?"
+|| exit 0
+
+# age reads the passphrase securely from the interactive terminal, not from
+# command-line arguments, environment variables, or an ISO-stored secret.
+if konsole --hold -e age --decrypt --passphrase --output "$RESTORED_TARGET" "$SOURCE"; then
+  chmod 0600 "$RESTORED_TARGET"
+  if [[ "$SOURCE" != "$BUNDLED" ]]; then
+    install -m 0600 "$SOURCE" "$ENCRYPTED_TARGET"
+  fi
+  kdialog --msgbox "Walleti varukoopia taastati edukalt kausta $TARGET_DIR."
+else
   rm -f "$RESTORED_TARGET"
   kdialog --error "Dekrüpteerimine ebaõnnestus. Kontrolli parooli ja proovi uuesti."
   exit 1
 fi
-unset PASSPHRASE
-chmod 0600 "$RESTORED_TARGET"
-if [[ "$SOURCE" != "$BUNDLED" ]]; then
-  install -m 0600 "$SOURCE" "$ENCRYPTED_TARGET"
-fi
-kdialog --msgbox "Walleti varukoopia taastati edukalt kausta $TARGET_DIR."
 WALLET
 chmod 0755 config/includes.chroot/usr/local/bin/igorcoin-restore-wallet
 
