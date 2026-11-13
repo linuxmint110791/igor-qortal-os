@@ -289,6 +289,7 @@ Font=Monospace,10,-1,5,50,0,0,0,0,0
 Blur=true
 
 [General]
+Command=tmux new-session -A -s igorcoin
 Name=Igorcoin Qortal Green
 Parent=FALLBACK/
 
@@ -609,6 +610,7 @@ python3-venv
 kwalletmanager
 libpam-kwallet5
 libsecret-tools
+tmux
 ufw
 unattended-upgrades
 apt-listchanges
