@@ -49,5 +49,13 @@ check_file usr/local/bin/igor-install-qortal
 check_file usr/local/bin/igorcoin-reticulum
 check_file usr/local/bin/igorcoin-network-tray
 check_file opt/reticulum-venv/bin/rnsd
+check_file usr/share/pixmaps/qortal-logo.png
+check_file usr/share/backgrounds/igorcoin-qortal/qortal-dark.jpg
+check_file usr/share/backgrounds/igorcoin-qortal/qortal-extra-dark.jpg
+check_file usr/share/backgrounds/igorcoin-qortal/qortal-light.jpg
+check_file usr/share/backgrounds/igorcoin-qortal/qortal-future.png
+check_file usr/share/wallpapers/Igorcoin-Qortal/metadata.json
+check_file etc/xdg/kdeglobals
+check_file usr/share/sounds/freedesktop/stereo/dialog-information.oga
 
 echo "ISO structural verification passed."
