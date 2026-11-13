@@ -30,6 +30,12 @@ The ISO installs KDE Wallet, the Secret Service command-line client and Debian's
 
 This prepares the operating-system side for a single-login Qortal experience. It does **not yet automatically unlock Qortal Hub**: the current upstream Hub lock screen still asks for the Qortal wallet password and does not expose a Linux Secret Service/KWallet auto-unlock integration. Hub-side support must be added and built into a compatible Hub release before the full one-login flow can be claimed. The Qortal wallet password must never be copied into a shell script, environment variable, plaintext file, or made equal to the Linux password just to simulate single sign-on.
 
+## Qortal Network tray indicator
+
+KDE starts an **Igorcoin Qortal Network** system-tray indicator beside the Wi-Fi/network icon after login. Its menu shows whether the local Qortal Core API port (12391) is listening and whether a Reticulum-related process is detected. It provides shortcuts to open Qortal Hub and KDE network settings. Status is refreshed every five seconds.
+
+Choose **Local**, **Public**, or **Custom** node inside Qortal Hub's own connection-mode screen. The tray indicator is a quick status/launch panel; it does not replace NetworkManager's Wi-Fi controls or silently change Hub connection settings. Reticulum reachability is more than a process check, so the indicator currently reports process detection rather than claiming that a remote Reticulum route is working.
+
 ## Qortal node and Reticulum networking
 
 The official Qortal Hub installer is used so the ISO receives the current Hub release. The Hub's connection selector already supports:
