@@ -8,13 +8,15 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-DEBIAN_SUITE="${DEBIAN_SUITE:-trixie}"
-case "$DEBIAN_SUITE" in
-  trixie|forky) ;;
-  *) echo "Unsupported Debian suite: $DEBIAN_SUITE (allowed: trixie, forky)" >&2; exit 2 ;;
-esac
+DEBIAN_SUITE="trixie"
+DEBIAN_POINT_RELEASE="13.3"
+DEBIAN_SNAPSHOT="${DEBIAN_SNAPSHOT:-20260111T000000Z}"
+if [[ ! "$DEBIAN_SNAPSHOT" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
+  echo "Invalid Debian snapshot timestamp: $DEBIAN_SNAPSHOT" >&2
+  exit 2
+fi
 BUILD_DIR="${BUILD_DIR:-$SCRIPT_DIR/build-${DEBIAN_SUITE}}"
-OUTPUT_ISO="${OUTPUT_ISO:-$SCRIPT_DIR/igorcoin-qortal-os-${DEBIAN_SUITE}-amd64.iso}"
+OUTPUT_ISO="${OUTPUT_ISO:-$SCRIPT_DIR/igorcoin-qortal-os-debian-${DEBIAN_POINT_RELEASE}-amd64.iso}"
 QORTAL_INSTALLER_URL="https://link.qortal.dev/linux-script"
 
 case "$BUILD_DIR" in
@@ -40,6 +42,11 @@ cd "$BUILD_DIR"
 lb config \
   --mode debian \
   --distribution "$DEBIAN_SUITE" \
+  --mirror-bootstrap "https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}/" \
+  --mirror-chroot "https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}/" \
+  --mirror-binary "https://deb.debian.org/debian" \
+  --mirror-binary-security "https://security.debian.org/debian-security" \
+  --apt-options "--yes -o Acquire::Check-Valid-Until=false" \
   --security false \
   --linux-packages none \
   --architectures amd64 \
@@ -77,7 +84,6 @@ cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
 # Install kernel explicitly; skip live-build's obsolete Contents index autodetection.
 linux-image-amd64
 kde-plasma-desktop
-plasma-workspace-wayland
 kwin-wayland
 sddm
 xwayland
@@ -731,7 +737,7 @@ fi
 
 mkdir -p "$(dirname -- "$OUTPUT_ISO")"
 cp -- "$ISO_FILE" "$OUTPUT_ISO"
-echo "Igorcoin Qortal OS ISO ready: $OUTPUT_ISO"
+echo "Igorcoin Qortal OS Debian ${DEBIAN_POINT_RELEASE} baseline ISO ready: $OUTPUT_ISO"
 ISO_BYTES="$(stat -c '%s' "$OUTPUT_ISO")"
 ISO_GIB="$(awk -v bytes="$ISO_BYTES" 'BEGIN { printf "%.2f", bytes / 1024 / 1024 / 1024 }')"
 ISO_GB="$(awk -v bytes="$ISO_BYTES" 'BEGIN { printf "%.2f", bytes / 1000000000 }')"
