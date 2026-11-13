@@ -562,11 +562,24 @@ DESKTOP
 # signed Debian repository metadata and packages.
 printf 'deb http://security.debian.org/debian-security %s-security main contrib non-free non-free-firmware\n' "$DEBIAN_SUITE" > config/archives/debian-security.list.chroot
 cp config/archives/debian-security.list.chroot config/archives/debian-security.list.binary
+# Install Debian's signed 7.3.4 kernel from sid, while keeping the
+# Trixie kernel metapackage as a stable fallback. Sid is chroot-only.
+printf '%s\\n' 'deb https://deb.debian.org/debian sid main' > config/archives/debian-kernel-sid.list.chroot
+cat > config/archives/debian-kernel-sid.pref.chroot <<'KERNELPIN'
+Package: *
+Pin: release a=unstable
+Pin-Priority: -10
+
+Package: linux-image-7.3.4+deb14-amd64
+Pin: version 7.3.4-1
+Pin-Priority: 1001
+KERNELPIN
 
 cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
 # Desktop: KDE Plasma session running on Wayland (Xwayland is intentionally omitted).
 # Install kernel explicitly; skip live-build's obsolete Contents index autodetection.
 linux-image-amd64
+linux-image-7.3.4+deb14-amd64=7.3.4-1
 isolinux
 kde-plasma-desktop
 kwin-wayland
