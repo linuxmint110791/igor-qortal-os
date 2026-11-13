@@ -10,9 +10,19 @@ Igorcoin Qortal OS is a Debian-based desktop ISO project. It provides a Debian 1
 - Debian kernel and official Debian repositories
 - Calamares installer
 - NetworkManager and common firmware packages
+- UFW firewall enabled by default: inbound connections denied, outbound connections allowed
+- No SSH server installed by default; SSH service and socket activation are masked
+- Hardened SSH daemon policy staged for any deliberate future SSH installation (public-key authentication only, root login and password authentication disabled)
+- AppArmor enabled and Debian unattended security updates configured
 - Java 21 runtime and dependencies used by the Qortal setup script
 - Official Qortal Linux installer script from https://link.qortal.dev/linux-script
 - First-login launch of the Qortal installer, plus a manual Applications-menu launcher
+
+## Security defaults
+
+The installed system starts with a deny-incoming UFW firewall and allows normal outbound connections. An SSH server is not installed, and SSH service/socket activation is masked. This prevents unsolicited SSH login attempts from reaching an SSH daemon. The image also enables AppArmor and configures Debian unattended security updates.
+
+If you later deliberately need remote SSH access, you must install and explicitly unmask/enable the SSH service and socket yourself. The included SSH hardening drop-in disables password and root login and permits public-key authentication only. Keep the firewall enabled and add a narrowly scoped allow rule only for the trusted source network before enabling SSH. No configuration can guarantee that a machine is impossible to compromise; keep the OS and applications updated and protect your private keys.
 
 ## Qortal installation
 The ISO contains the official installer script itself. After the operating system is installed and the user logs into KDE for the first time, the installer opens in a terminal automatically. It can also be started later from **Applications → Install Qortal**.
