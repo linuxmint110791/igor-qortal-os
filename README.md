@@ -33,18 +33,13 @@ The ISO does **not** contain blockchain data, private keys, seed phrases or pers
 
 ## Optional encrypted Igorcoin wallet backup
 
-The wallet backup is **not** committed in plaintext. To include it, first install the `age` utility on your own computer and encrypt your original JSON backup with a strong, unique passphrase:
+The installed desktop provides graphical launchers under Applications:
 
-~~~bash
-mkdir -p wallet
-age --passphrase --output wallet/Igorcoin-Wallet.json.age /path/to/your/Igorcoin-Wallet.json
-~~~
+- **Prepare Encrypted Igorcoin Wallet** opens a file picker for the original Qortal wallet JSON, then encrypts a copy with an age passphrase. The original JSON is not modified. The encrypted copy is saved in the user's `igorcoin-wallet-export` folder.
+- **Restore Igorcoin Wallet** lets the user select an `.age` backup (or uses the optional backup bundled in the ISO), then opens a secure passphrase prompt in Konsole and restores the Qortal-encrypted JSON to `~/qortal/Igorcoin-Wallet.json`.
+- The restore tool refuses to overwrite an existing restored wallet.
 
-Use a long passphrase and keep it in a password manager or offline backup. Do not paste it into chat, GitHub, or the build script. Only upload/commit the resulting `.age` file. The repository ignores plaintext wallet JSON files.
-
-When the encrypted file is present at `wallet/Igorcoin-Wallet.json.age`, the ISO build verifies the age file header and includes the encrypted backup. After Qortal is installed, the first-login flow asks for the age passphrase and restores the Qortal-encrypted JSON into `~/qortal/Igorcoin-Wallet.json`. You can also run **Applications → Restore Igorcoin Wallet** later. The restore helper refuses to overwrite an existing restored wallet file.
-
-If you do not add the encrypted file, the OS builds normally without any wallet backup.
+To include the encrypted backup in a later ISO, upload only `Igorcoin-Wallet.json.age` to the repository's `wallet/` folder using GitHub's web interface. The workflow automatically rebuilds the ISO when that encrypted file changes. Never upload the original JSON, and never put the age passphrase in GitHub, the ISO, or the build script. If the encrypted file is not present in the repository during the build, no personal wallet backup is bundled.
 
 ## Download the ISO
 The ISO is published as a separate GitHub Actions artifact, not committed into the source repository.
