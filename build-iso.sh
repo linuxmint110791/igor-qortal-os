@@ -148,19 +148,22 @@ Presentation {
     }
 
     Slide {
-        centeredText: "<h1>Welcome to Igorcoin Qortal OS</h1><br/>A Debian-based desktop built around open technology, local control and the Qortal network.<br/><br/><b>One computer. Your own keys. A community network.</b>"
+        centeredText: "<h1>Igorcoin Qortal OS</h1><br/>A Debian-based desktop with KDE Plasma and Wayland, designed to make getting started with Qortal straightforward.<br/><br/><b>Welcome. Your computer, your keys, your network.</b>"
     }
     Slide {
-        centeredText: "<h1>Your Qortal wallet</h1><br/>Open Qortal Hub to create or restore your account and access your wallet.<br/><br/><b>Support Igorcoin Qortal OS with QORT:</b><br/>QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ<br/><br/>Keep your seed phrase and wallet backup private and safe. Never share them."
+        centeredText: "<h1>What is Qortal?</h1><br/>Qortal is a decentralised blockchain-based network. It combines identity, transactions, data publishing and applications without relying on one central platform.<br/><br/>Participants run nodes that help maintain and share the network."
     }
     Slide {
-        centeredText: "<h1>Start using Qortal</h1><br/>Website: https://qortal.org<br/>Developer portal: https://qortal.dev<br/>Desktop Hub: https://hub.qortal.link<br/>Mobile Go: https://go.qortal.link<br/>Downloads and setup guides are available from the official project sites."
+        centeredText: "<h1>Your Qortal wallet</h1><br/>Your wallet gives you control over your QORT and your Qortal identity. Keep your seed phrase and password private. Back up your wallet securely.<br/><br/><b>Support Igorcoin Qortal OS:</b><br/>QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ"
     }
     Slide {
-        centeredText: "<h1>Join the Qortal community</h1><br/>Discord: https://discord.gg/WyMyB3dNKY<br/>Telegram: https://t.me/qortal_official<br/>Telegram support: https://t.me/qortalchat<br/>Q-Chat is available inside Qortal interfaces."
+        centeredText: "<h1>How does Qortal work?</h1><br/>A Qortal node connects to other nodes and synchronises blockchain data. The network uses its own consensus and account-based identity system. Your node can participate in the network instead of depending on a single central server."
     }
     Slide {
-        centeredText: "<h1>Follow Qortal</h1><br/>X: https://x.com/Qortal_official<br/>Instagram: https://www.instagram.com/Qortal_official<br/>YouTube: https://www.youtube.com/@qortalcommunity<br/>GitHub: https://github.com/Qortal<br/><br/>Explore, contribute, publish and help build the network."
+        centeredText: "<h1>Publish and discover</h1><br/>QDN lets users publish and access websites, files, videos and other data through Qortal names. Qortal apps such as Q-Chat and Q-Tube connect users directly to services in the network."
+    }
+    Slide {
+        centeredText: "<h1>Get started</h1><br/>Qortal website: https://qortal.org<br/>Developer portal: https://qortal.dev<br/>Qortal Hub: https://hub.qortal.link<br/>Qortal Go: https://go.qortal.link<br/><br/>Use the official project pages to find current downloads and guides."
     }
     function onActivate() { presentation.currentSlide = 0 }
     function onLeave() {}
