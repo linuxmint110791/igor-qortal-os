@@ -21,19 +21,41 @@ jobs:
         uses: actions/checkout@v4
       - name: Check build script syntax
         run: bash -n ./build-iso.sh
-      - name: Build Debian ISO (Trixie first, Forky fallback)
+      - name: Build Debian ISO (automatic repair and suite fallback)
         shell: bash
         run: |
           set -Eeuo pipefail
           chmod +x ./build-iso.sh
-          if sudo env DEBIAN_SUITE=trixie ./build-iso.sh; then
+
+          build_with_retries() {
+            local suite="$1"
+            local attempt
+            for attempt in 1 2; do
+              echo "::group::Build $suite — attempt $attempt/2"
+              if sudo env DEBIAN_SUITE="$suite" ./build-iso.sh; then
+                echo "::endgroup::"
+                return 0
+              fi
+              echo "::endgroup::"
+              echo "::warning::Build failed for $suite on attempt $attempt."
+              if [[ "$attempt" -lt 2 ]]; then
+                echo "Retrying from a clean build directory after refreshing package metadata."
+                sudo apt-get update
+                sleep 15
+              fi
+            done
+            return 1
+          }
+
+          if build_with_retries trixie; then
             echo "ISO_FILE=igorcoin-qortal-os-trixie-amd64.iso" >> "$GITHUB_ENV"
             echo "Selected Debian suite: Trixie"
-          else
-            echo "::warning::Debian 13 Trixie build failed. Automatically retrying with Debian Forky."
-            sudo env DEBIAN_SUITE=forky ./build-iso.sh
+          elif build_with_retries forky; then
             echo "ISO_FILE=igorcoin-qortal-os-forky-amd64.iso" >> "$GITHUB_ENV"
             echo "Selected Debian suite: Forky fallback"
+          else
+            echo "::error::Both Debian suites failed after automatic retries. Review the build logs."
+            exit 1
           fi
       - name: Verify ISO file
         run: |
