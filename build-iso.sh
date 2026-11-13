@@ -191,6 +191,8 @@ curl --fail --location --connect-timeout 20 --max-time 180 --retry 4 --retry-all
   "${QORTAL_MEDIA_BASE}qortal_official_logo_transparent_.png" \
   -o config/includes.chroot/usr/share/pixmaps/qortal-logo.png
 test -s config/includes.chroot/usr/share/pixmaps/qortal-logo.png
+install -m 0644 config/includes.chroot/usr/share/pixmaps/qortal-logo.png \
+  config/includes.chroot/etc/calamares/branding/igorcoin/qortal-logo.png
 
 # Create the branded desktop/login wallpaper: official Qortal background plus
 # the official transparent Qortal logo. The source press-kit assets remain intact.
