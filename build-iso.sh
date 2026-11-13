@@ -564,7 +564,7 @@ printf 'deb http://security.debian.org/debian-security %s-security main contrib 
 cp config/archives/debian-security.list.chroot config/archives/debian-security.list.binary
 # Install Debian's signed 7.3.4 kernel from sid, while keeping the
 # Trixie kernel metapackage as a stable fallback. Sid is chroot-only.
-printf '%s\\n' 'deb https://deb.debian.org/debian sid main' > config/archives/debian-kernel-sid.list.chroot
+printf '%s\n' 'deb https://deb.debian.org/debian sid main' > config/archives/debian-kernel-sid.list.chroot
 cat > config/archives/debian-kernel-sid.pref.chroot <<'KERNELPIN'
 Package: *
 Pin: release a=unstable
