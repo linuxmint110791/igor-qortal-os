@@ -6,6 +6,7 @@ cd "$ROOT"
 echo "==> Shell syntax checks"
 bash -n ./build-iso.sh
 bash -n ./setup-build-host.sh
+bash -n ./scripts/verify-iso.sh
 
 echo "==> Debian source manifest checks"
 test -s ./debian-source.env
@@ -27,5 +28,7 @@ grep -Fq "debian-archive-keyring" ./build-iso.sh
 grep -Fq "calamares" ./build-iso.sh
 grep -Fq "igorcoin-auto-update.timer" ./build-iso.sh
 grep -Fq "igorcoin-reticulum.service" ./build-iso.sh
+grep -Fq -- "--initsystem systemd" ./build-iso.sh
+test -s ./scripts/verify-iso.sh
 
 echo "Project validation passed."
