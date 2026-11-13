@@ -50,6 +50,16 @@ check_file usr/local/bin/igorcoin-reticulum
 check_file usr/local/bin/igorcoin-network-tray
 check_file opt/reticulum-venv/bin/rnsd
 check_file usr/share/pixmaps/qortal-logo.png
+check_file usr/share/backgrounds/igorcoin-qortal/igorcoin-qortal-desktop.jpg
+check_file usr/share/color-schemes/Igorcoin-Qortal.colors
+check_file usr/share/sddm/themes/breeze/theme.conf.user
+check_file etc/sddm.conf.d/10-igorcoin-qortal.conf
+check_file etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc
+check_file usr/bin/plasma-systemmonitor
+check_file usr/share/plasma/plasmoids/org.kde.plasma.systemmonitor/metadata.json
+check_file usr/share/applications/igorcoin-system-monitor.desktop
+check_file usr/share/applications/qortal-website.desktop
+check_file usr/share/applications/qortal-hub.desktop
 check_file usr/share/backgrounds/igorcoin-qortal/qortal-dark.jpg
 check_file usr/share/backgrounds/igorcoin-qortal/qortal-extra-dark.jpg
 check_file usr/share/backgrounds/igorcoin-qortal/qortal-light.jpg
