@@ -69,18 +69,14 @@ echo "Downloading official Qortal components for inclusion in the ISO..."
 QORTAL_DIR="$BUILD_DIR/config/includes.chroot/opt/igorcoin-qortal-os"
 curl --fail --location --retry 5 --retry-all-errors --output "$QORTAL_DIR/qortal.zip" "https://github.com/Qortal/qortal/releases/latest/download/qortal.zip"
 curl --fail --location --retry 5 --retry-all-errors --output "$QORTAL_DIR/Qortal-Hub.AppImage" "https://github.com/Qortal/Qortal-Hub/releases/latest/download/Qortal-Hub.AppImage"
-curl --fail --location --retry 5 --retry-all-errors --output "$QORTAL_DIR/Qortal-UI.AppImage" "https://github.com/Qortal/qortal-ui/releases/latest/download/Qortal-Setup-amd64.AppImage"
 test -s "$QORTAL_DIR/qortal.zip"
 test -s "$QORTAL_DIR/Qortal-Hub.AppImage"
-test -s "$QORTAL_DIR/Qortal-UI.AppImage"
 chmod 0644 "$QORTAL_DIR/qortal.zip"
-chmod 0755 "$QORTAL_DIR/Qortal-Hub.AppImage" "$QORTAL_DIR/Qortal-UI.AppImage"
 
 cat > config/includes.chroot/usr/local/bin/igor-install-qortal <<'INSTALL'
 #!/usr/bin/env bash
 set -Eeuo pipefail
 SOURCE="/opt/igorcoin-qortal-os"
-[[ -s "$SOURCE/qortal.zip" && -s "$SOURCE/Qortal-Hub.AppImage" && -s "$SOURCE/Qortal-UI.AppImage" ]] || {
   echo "Qortal installation files are missing from this ISO." >&2
   exit 1
 }
@@ -89,9 +85,7 @@ if [[ ! -d "$HOME/qortal" ]]; then
   echo "Installing Qortal Core from the ISO..."
   unzip -oq "$SOURCE/qortal.zip" -d "$HOME"
 fi
-mkdir -p "$HOME/qortal-hub" "$HOME/qortal-ui" "$HOME/.local/share/applications"
 install -m 0755 "$SOURCE/Qortal-Hub.AppImage" "$HOME/qortal-hub/Qortal-Hub"
-install -m 0755 "$SOURCE/Qortal-UI.AppImage" "$HOME/qortal-ui/Qortal-UI"
 if [[ -d "$HOME/qortal" ]]; then chmod +x "$HOME/qortal/"*.sh 2>/dev/null || true; fi
 
 cat > "$HOME/.local/share/applications/qortal-core.desktop" <<'DESKTOP'
@@ -116,12 +110,9 @@ Terminal=false
 Categories=Network;
 DESKTOP
 
-cat > "$HOME/.local/share/applications/qortal-ui.desktop" <<'DESKTOP'
 [Desktop Entry]
 Type=Application
-Name=Qortal UI
 Comment=Open the Qortal desktop interface installer
-Exec=sh -c "$HOME/qortal-ui/Qortal-UI"
 Icon=applications-internet
 Terminal=false
 Categories=Network;
@@ -129,7 +120,6 @@ DESKTOP
 
 update-desktop-database "$HOME/.local/share/applications" >/dev/null 2>&1 || true
 echo
-echo "Qortal Core, Qortal Hub and Qortal UI are installed locally."
 echo "Find them in the Applications menu. Start Qortal Core first."
 echo "The blockchain data/bootstrap is not included; the node downloads it when started."
 INSTALL
@@ -181,7 +171,6 @@ Type=Application
 Name=Igorcoin Qortal OS information
 Name[et]=Igorcoin Qortal OS teave
 Comment=Debian 13 Trixie with Qortal applications included
-Exec=konsole -e bash -lc 'cat /etc/os-release; echo; echo "Bundled: Qortal Core, Qortal Hub, Qortal UI"; read -rp "Press Enter to close..."'
 Icon=help-about
 Terminal=false
 Categories=System;
