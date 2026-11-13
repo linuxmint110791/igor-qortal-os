@@ -90,6 +90,7 @@ xdg-utils
 ffmpeg
 yt-dlp
 fastfetch
+age
 ufw
 unattended-upgrades
 apparmor
@@ -176,6 +177,21 @@ test -s "$QORTAL_INSTALLER"
 bash -n "$QORTAL_INSTALLER"
 chmod 0644 "$QORTAL_INSTALLER"
 
+# Optional personal wallet backup: only an age-encrypted file may enter the ISO.
+# Plain JSON wallet exports are deliberately rejected.
+WALLET_SOURCE="$SCRIPT_DIR/wallet/Igorcoin-Wallet.json.age"
+WALLET_TARGET="config/includes.chroot/usr/local/share/igorcoin-qortal-os/Igorcoin-Wallet.json.age"
+if [[ -f "$WALLET_SOURCE" ]]; then
+  if ! file --brief "$WALLET_SOURCE" >/dev/null 2>&1; then
+    echo "Cannot inspect optional encrypted wallet file." >&2
+    exit 1
+  fi
+  install -m 0600 "$WALLET_SOURCE" "$WALLET_TARGET"
+  echo "Encrypted Igorcoin wallet backup included (age-encrypted; passphrase not included)."
+else
+  echo "No encrypted wallet backup found; building without personal wallet data."
+fi
+
 cat > config/includes.chroot/usr/local/bin/igor-install-qortal <<'INSTALL'
 #!/usr/bin/env bash
 set -Eeuo pipefail
@@ -210,6 +226,53 @@ if command -v konsole >/dev/null 2>&1; then
 fi
 FIRSTLOGIN
 chmod 0755 config/includes.chroot/usr/local/bin/igor-qortal-first-login
+
+cat > config/includes.chroot/usr/local/bin/igorcoin-restore-wallet <<'WALLET'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SOURCE="/usr/local/share/igorcoin-qortal-os/Igorcoin-Wallet.json.age"
+TARGET_DIR="$HOME/qortal"
+ENCRYPTED_TARGET="$TARGET_DIR/Igorcoin-Wallet.json.age"
+RESTORED_TARGET="$TARGET_DIR/Igorcoin-Wallet.json"
+
+if [[ ! -s "$SOURCE" ]]; then
+  echo "No encrypted Igorcoin wallet backup is included in this ISO." >&2
+  exit 1
+fi
+if [[ ! -d "$TARGET_DIR" ]]; then
+  echo "Qortal Core directory not found: $TARGET_DIR" >&2
+  echo "Install Qortal first, then run this command again." >&2
+  exit 1
+fi
+if [[ -e "$RESTORED_TARGET" ]]; then
+  echo "Refusing to overwrite existing wallet file: $RESTORED_TARGET" >&2
+  exit 1
+fi
+
+install -m 0600 "$SOURCE" "$ENCRYPTED_TARGET"
+echo "Encrypted backup copied to: $ENCRYPTED_TARGET"
+echo "Decrypting now. Enter the separate age passphrase when prompted."
+age --decrypt --output "$RESTORED_TARGET" "$ENCRYPTED_TARGET"
+chmod 0600 "$RESTORED_TARGET"
+echo "Wallet backup restored to: $RESTORED_TARGET"
+echo "The JSON remains encrypted by Qortal's own wallet password as well."
+WALLET
+chmod 0755 config/includes.chroot/usr/local/bin/igorcoin-restore-wallet
+
+cat > config/includes.chroot/usr/share/applications/igorcoin-restore-wallet.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Restore Igorcoin Wallet
+Name[et]=Taasta Igorcoin rahakott
+Comment=Decrypt and copy the optional Igorcoin wallet backup into ~/qortal
+Comment[et]=Ava krüpteeritud Igorcoin rahakoti varukoopia kausta ~/qortal
+Exec=konsole --hold -e /usr/local/bin/igorcoin-restore-wallet
+Icon=wallet-open
+Terminal=false
+Categories=Network;System;
+DESKTOP
+
 
 cat > config/includes.chroot/etc/xdg/autostart/igor-qortal-first-login.desktop <<'DESKTOP'
 [Desktop Entry]
