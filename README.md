@@ -25,6 +25,17 @@ The following preview images are from the Qortal Project's community-use press k
 |---|---|
 | ![Qortal light background](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal_background_light_.jpg) | ![Qortal future wallpaper](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal-thefuture-wallpaper.png) |
 
+### Desktop and login-screen branding
+
+The default KDE desktop wallpaper is branded with the official Qortal logo. The SDDM login screen uses the same Qortal-branded background and official logo. A custom **Igorcoin Qortal** KDE color scheme follows the current Qortal website's dark, navy and cyan/blue visual direction. Qortal Website and Qortal Hub launchers are included.
+
+New user profiles receive three live Plasma System Monitor desktop widgets by default:
+- CPU load
+- Physical memory usage
+- Network download and upload
+
+For the full running-process list and per-process CPU/RAM usage, open **Igorcoin System Monitor** from the applications menu. The widgets are intended to sit on the desktop over the wallpaper and can be moved or removed by the user.
+
 ## Igorcoin Qortal visual theme and sounds
 
 The image includes official Qortal Project press-kit backgrounds (dark, extra-dark, light, and “Welcome to the Future”), a KDE wallpaper entry, and the official transparent Qortal logo for desktop branding. The standard freedesktop sound theme is installed and selected for KDE notification sounds. These are community-use Qortal press-kit assets; see the [official Qortal Images/Press Kit](https://wiki.qortal.org/doku.php?id=official_images_press_kit).
