@@ -251,7 +251,7 @@ KONSOLECOLORS
 cat > config/includes.chroot/etc/skel/.local/share/konsole/Igorcoin-Qortal.profile <<'KONSOLEPROFILE'
 [Appearance]
 ColorScheme=Igorcoin-Green
-Font=Hack,10,-1,5,50,0,0,0,0,0
+Font=Monospace,10,-1,5,50,0,0,0,0,0
 Blur=true
 
 [General]
