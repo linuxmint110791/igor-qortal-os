@@ -1,8 +1,8 @@
 # Igorcoin Qortal OS
 
-**Debian 13 Trixie + KDE Plasma + Qortal installer.**
+**Debian 13 Trixie + KDE Plasma + Qortal applications bundled in the ISO.**
 
-Igorcoin Qortal OS is a Debian-based desktop ISO project. The goal is a stable Debian 13 system with the Qortal installation workflow ready on first login.
+Igorcoin Qortal OS is a Debian-based desktop ISO project. The goal is a stable Debian 13 system with Qortal ready to set up on first login.
 
 ## Included
 - Debian 13 Trixie
@@ -10,7 +10,13 @@ Igorcoin Qortal OS is a Debian-based desktop ISO project. The goal is a stable D
 - Debian kernel and official Debian repositories
 - Calamares installer
 - NetworkManager and common firmware packages
-- Qortal Linux installer launcher and first-login setup
+- Java runtime and FUSE support
+- Official Qortal Core release bundle
+- Official Qortal Hub AppImage
+- Official Qortal UI AppImage
+- First-login setup that copies the bundled Qortal applications into the user account and creates application-menu launchers
+
+The Qortal Core, Hub and UI application files are downloaded from their official GitHub release download endpoints during the ISO build and stored inside the ISO. The blockchain database, account seed, wallet data and bootstrap are **not** included. Each user creates or restores their own account, and the node downloads blockchain data when started.
 
 ## Download the ISO
 The ISO is published as a separate GitHub Actions artifact, not committed into the source repository.
@@ -23,12 +29,9 @@ The ISO is published as a separate GitHub Actions artifact, not committed into t
 Artifacts are retained for 90 days. Failed builds do not publish an ISO artifact.
 
 ## Qortal setup
-The ISO includes a launcher that downloads the Qortal Linux installer from:
-https://link.qortal.dev/linux-script
+After installing Debian and logging into KDE for the first time, a setup window copies Qortal Core, Qortal Hub and Qortal UI from the ISO to your home folder and creates launchers in the Applications menu. You can also run **Applications → Install Qortal components** later.
 
-The first desktop login offers the installer; it is also available from Applications → Install Qortal. Qortal Core and related components are installed after login, not embedded as static packages in the ISO. An internet connection is required.
-
-Only run installation scripts from sources you trust. Never share your Qortal seed phrase or private keys.
+Start **Qortal Core** first. Then open **Qortal Hub** or **Qortal UI**. An internet connection is still required for node synchronization and normal Qortal network use. The ISO does not contain blockchain data or personal wallet/seed information.
 
 ## Build the ISO
 On a Debian-based amd64 build machine:
@@ -47,8 +50,8 @@ GitHub Actions builds when the build script or workflow changes and supports man
 1. Extract the ISO from the downloaded artifact ZIP.
 2. Write the ISO to a USB drive (this erases the selected USB drive).
 3. Boot from USB and start the live desktop.
-4. Launch the installer and complete Debian installation.
-5. On first KDE desktop login, the Qortal installer is offered.
+4. Launch Calamares and complete Debian installation.
+5. On first KDE desktop login, install the bundled Qortal applications when prompted.
 
 Back up important data before installing an operating system. Test the ISO in a virtual machine first.
 
@@ -60,3 +63,4 @@ The project is under active development. An ISO is ready for testing only after 
 - https://qortal.org/
 - https://github.com/Qortal/qortal
 - https://github.com/Qortal/Qortal-Hub
+- https://github.com/Qortal/qortal-ui
