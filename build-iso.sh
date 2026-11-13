@@ -92,7 +92,85 @@ mkdir -p \
   config/includes.chroot/etc/default \
   config/includes.chroot/etc/ufw \
   config/hooks/normal \
-  config/archives
+  config/archives \
+  config/includes.chroot/etc/calamares/branding/igorcoin
+
+# Custom Calamares branding and Qortal introduction shown while the OS installs.
+# The Debian settings file is adjusted in a late hook after Calamares is installed.
+cat > config/includes.chroot/etc/calamares/branding/igorcoin/branding.desc <<'BRANDING'
+---
+componentName: igorcoin
+welcomeStyleCalamares: false
+windowExpanding: normal
+windowSize: 900px,600px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+strings:
+  productName: Igorcoin Qortal OS
+  shortProductName: Igorcoin OS
+  version: 1.0
+  shortVersion: 1.0
+  versionedName: Igorcoin Qortal OS
+  shortVersionedName: Igorcoin OS
+  bootloaderEntryName: Igorcoin Qortal OS
+  productUrl: https://qortal.org/
+  supportUrl: https://qortal.org/community
+  knownIssuesUrl: https://qortal.dev/
+images:
+  productIcon: /usr/share/pixmaps/qortal-logo.png
+  productLogo: /usr/share/pixmaps/qortal-logo.png
+  productWelcome: /usr/share/pixmaps/qortal-logo.png
+style:
+  sidebarBackground: "#0d1622"
+  sidebarText: "#e8f1f8"
+  sidebarTextSelect: "#00aeda"
+  sidebarTextHighlight: "#142a3b"
+slideshow: "show.qml"
+slideshowAPI: 2
+BRANDING
+
+cat > config/includes.chroot/etc/calamares/branding/igorcoin/show.qml <<'QML'
+import QtQuick 2.5
+import calamares.slideshow 1.0
+
+Presentation {
+    id: presentation
+    titleColor: "#00c8f0"
+    textColor: "#e8f1f8"
+    fontFamily: "Noto Sans"
+
+    Slide {
+        centeredText: "<h1>Welcome to Igorcoin Qortal OS</h1><br/>A Debian-based desktop built around open technology, local control and the Qortal network.<br/><br/><b>One computer. Your own keys. A community network.</b>"
+    }
+    Slide {
+        centeredText: "<h1>Your Qortal wallet</h1><br/>Open Qortal Hub to create or restore your account and access your wallet.<br/><br/><b>Support Igorcoin Qortal OS with QORT:</b><br/>QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ<br/><br/>Keep your seed phrase and wallet backup private and safe. Never share them."
+    }
+    Slide {
+        centeredText: "<h1>Start using Qortal</h1><br/>Website: https://qortal.org<br/>Developer portal: https://qortal.dev<br/>Desktop Hub: https://hub.qortal.link<br/>Mobile Go: https://go.qortal.link<br/>Downloads and setup guides are available from the official project sites."
+    }
+    Slide {
+        centeredText: "<h1>Join the Qortal community</h1><br/>Discord: https://discord.gg/WyMyB3dNKY<br/>Telegram: https://t.me/qortal_official<br/>Telegram support: https://t.me/qortalchat<br/>Q-Chat is available inside Qortal interfaces."
+    }
+    Slide {
+        centeredText: "<h1>Follow Qortal</h1><br/>X: https://x.com/Qortal_official<br/>Instagram: https://www.instagram.com/Qortal_official<br/>YouTube: https://www.youtube.com/@qortalcommunity<br/>GitHub: https://github.com/Qortal<br/><br/>Explore, contribute, publish and help build the network."
+    }
+    function onActivate() { presentation.currentSlide = 0 }
+    function onLeave() {}
+}
+QML
+
+cat > config/hooks/normal/0990-igorcoin-calamares-branding.hook.chroot <<'HOOK'
+#!/bin/sh
+set -eu
+if [ -f /etc/calamares/settings.conf ]; then
+    sed -i 's/^branding:[[:space:]]*.*/branding: igorcoin/' /etc/calamares/settings.conf
+else
+    echo "ERROR: Calamares settings.conf is missing; cannot select Igorcoin branding." >&2
+    exit 1
+fi
+HOOK
+chmod 0755 config/hooks/normal/0990-igorcoin-calamares-branding.hook.chroot
 
 # Official Qortal visual assets from the Qortal Project press kit.
 # The press-kit page explicitly permits community use of its images.
