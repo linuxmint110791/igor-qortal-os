@@ -39,7 +39,7 @@ fi
 
 apt-get update
 apt-get install -y --no-install-recommends \
-  live-build debootstrap curl wget ca-certificates xorriso squashfs-tools \
+  live-build debootstrap debian-archive-keyring curl wget ca-certificates xorriso squashfs-tools \
   dosfstools mtools grub-pc-bin grub-efi-amd64-bin \
   isolinux syslinux-common syslinux-utils
 
