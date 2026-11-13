@@ -11,7 +11,6 @@ Igorcoin Qortal OS is a Debian-based desktop ISO project. The goal is a stable D
 - Calamares installer
 - NetworkManager and common firmware packages
 - Qortal Linux installer launcher and first-login setup
-- SHA-256 checksum for each generated ISO
 
 ## Download the ISO
 The ISO is published as a separate GitHub Actions artifact, not committed into the source repository.
@@ -19,7 +18,7 @@ The ISO is published as a separate GitHub Actions artifact, not committed into t
 1. Open https://github.com/linuxmint110791/igor-qortal-os/actions
 2. Select the newest successful Build Igorcoin Qortal OS — Debian 13 Trixie run.
 3. In the Artifacts section, download Igorcoin-Qortal-OS-Debian13-amd64.
-4. Extract the ZIP. It contains the ISO and its SHA-256 checksum.
+4. Extract the ZIP. It contains the ISO image.
 
 Artifacts are retained for 90 days. Failed builds do not publish an ISO artifact.
 
@@ -39,19 +38,17 @@ cd igor-qortal-os
 sudo bash build-iso.sh
 ~~~
 
-Output files:
+Output file:
 - igorcoin-qortal-os-debian13-amd64.iso
-- igorcoin-qortal-os-debian13-amd64.iso.sha256
 
 GitHub Actions builds when the build script or workflow changes and supports manual runs from the Actions tab.
 
 ## Installation
 1. Extract the ISO from the downloaded artifact ZIP.
-2. Verify its SHA-256 checksum.
-3. Write the ISO to a USB drive (this erases the selected USB drive).
-4. Boot from USB and start the live desktop.
-5. Launch the installer and complete Debian installation.
-6. On first KDE desktop login, the Qortal installer is offered.
+2. Write the ISO to a USB drive (this erases the selected USB drive).
+3. Boot from USB and start the live desktop.
+4. Launch the installer and complete Debian installation.
+5. On first KDE desktop login, the Qortal installer is offered.
 
 Back up important data before installing an operating system. Test the ISO in a virtual machine first.
 
