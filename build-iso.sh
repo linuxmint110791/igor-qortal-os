@@ -91,6 +91,7 @@ ffmpeg
 yt-dlp
 fastfetch
 age
+kdialog
 ufw
 unattended-upgrades
 apparmor
@@ -234,32 +235,48 @@ cat > config/includes.chroot/usr/local/bin/igorcoin-restore-wallet <<'WALLET'
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-SOURCE="/usr/local/share/igorcoin-qortal-os/Igorcoin-Wallet.json.age"
+BUNDLED="/usr/local/share/igorcoin-qortal-os/Igorcoin-Wallet.json.age"
 TARGET_DIR="$HOME/qortal"
 ENCRYPTED_TARGET="$TARGET_DIR/Igorcoin-Wallet.json.age"
 RESTORED_TARGET="$TARGET_DIR/Igorcoin-Wallet.json"
 
-if [[ ! -s "$SOURCE" ]]; then
-  echo "No encrypted Igorcoin wallet backup is included in this ISO." >&2
-  exit 1
-fi
 if [[ ! -d "$TARGET_DIR" ]]; then
-  echo "Qortal Core directory not found: $TARGET_DIR" >&2
-  echo "Install Qortal first, then run this command again." >&2
-  exit 1
-fi
-if [[ -e "$RESTORED_TARGET" ]]; then
-  echo "Refusing to overwrite existing wallet file: $RESTORED_TARGET" >&2
+  kdialog --error "Qortal Core kausta ei leitud. Paigalda Qortal enne rahakoti taastamist."
   exit 1
 fi
 
-install -m 0600 "$SOURCE" "$ENCRYPTED_TARGET"
-echo "Encrypted backup copied to: $ENCRYPTED_TARGET"
-echo "Decrypting now. Enter the separate age passphrase when prompted."
-age --decrypt --output "$RESTORED_TARGET" "$ENCRYPTED_TARGET"
+if [[ -s "$BUNDLED" ]]; then
+  SOURCE="$BUNDLED"
+else
+  SOURCE="$(kdialog --getopenfilename "$HOME" "*.age|Krüpteeritud Igorcoin wallet (*.age)" --title "Vali krüpteeritud walleti varukoopia")" || true
+  [[ -n "$SOURCE" ]] || exit 0
+fi
+
+if [[ -e "$RESTORED_TARGET" ]]; then
+  kdialog --warningyesno "Fail $RESTORED_TARGET on juba olemas. Seda ei kirjutata üle. Vali enne taastamist teine siht või tee olemasolevast varukoopia."
+  exit 1
+fi
+
+if ! head -n 1 "$SOURCE" | grep -Fxq 'age-encryption.org/v1'; then
+  kdialog --error "Valitud fail ei paista olevat age-krüpteeritud varukoopia."
+  exit 1
+fi
+
+PASSPHRASE="$(kdialog --password "Sisesta walleti varukoopia krüpteerimisparool:")" || exit 0
+[[ -n "$PASSPHRASE" ]] || { kdialog --error "Parool jäi sisestamata."; exit 1; }
+
+mkdir -p "$TARGET_DIR"
+if ! printf '%s' "$PASSPHRASE" | age --decrypt --passphrase --output "$RESTORED_TARGET" "$SOURCE" 2>/dev/null; then
+  rm -f "$RESTORED_TARGET"
+  kdialog --error "Dekrüpteerimine ebaõnnestus. Kontrolli parooli ja proovi uuesti."
+  exit 1
+fi
+unset PASSPHRASE
 chmod 0600 "$RESTORED_TARGET"
-echo "Wallet backup restored to: $RESTORED_TARGET"
-echo "The JSON remains encrypted by Qortal's own wallet password as well."
+if [[ "$SOURCE" != "$BUNDLED" ]]; then
+  install -m 0600 "$SOURCE" "$ENCRYPTED_TARGET"
+fi
+kdialog --msgbox "Walleti varukoopia taastati edukalt kausta $TARGET_DIR."
 WALLET
 chmod 0755 config/includes.chroot/usr/local/bin/igorcoin-restore-wallet
 
@@ -268,13 +285,13 @@ cat > config/includes.chroot/usr/share/applications/igorcoin-restore-wallet.desk
 Type=Application
 Name=Restore Igorcoin Wallet
 Name[et]=Taasta Igorcoin rahakott
-Comment=Decrypt and copy the optional Igorcoin wallet backup into ~/qortal
-Comment[et]=Ava krüpteeritud Igorcoin rahakoti varukoopia kausta ~/qortal
-Exec=konsole --hold -e /usr/local/bin/igorcoin-restore-wallet
+Comment=Restore an encrypted wallet backup using graphical dialogs
+Comment[et]=Taasta krüpteeritud rahakoti varukoopia graafiliste akende abil
+Exec=/usr/local/bin/igorcoin-restore-wallet
 Icon=wallet-open
 Terminal=false
 Categories=Network;System;
-DESKTOP
+
 
 
 cat > config/includes.chroot/etc/xdg/autostart/igor-qortal-first-login.desktop <<'DESKTOP'
