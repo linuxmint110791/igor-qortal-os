@@ -47,6 +47,7 @@ mkdir -p \
   config/package-lists \
   config/includes.chroot/usr/local/share/igorcoin-qortal-os \
   config/includes.chroot/usr/local/bin \
+  config/includes.chroot/usr/local/sbin \
   config/includes.chroot/usr/share/applications \
   config/includes.chroot/usr/share/icons/hicolor/scalable/apps \
   config/includes.chroot/etc/systemd/system \
