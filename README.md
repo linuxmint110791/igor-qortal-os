@@ -26,6 +26,8 @@ The following preview images are from the Qortal Project's community-use press k
 | ![Qortal light background](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal_background_light_.jpg) | ![Qortal future wallpaper](https://wiki.qortal.org/lib/exe/fetch.php?media=qortal-thefuture-wallpaper.png) |
 
 ### Desktop and login-screen branding
+The bottom KDE panel is also Qortal-branded: the Start/Application Menu button uses the official Qortal logo and is labelled **Qortal**. The menu hides noisy recent-item sections and includes quick favorites. The taskbar is configured with pinned shortcuts for Dolphin, Konsole, Qortal Website, Qortal Hub and the system monitor, using the dark navy/cyan color scheme.
+
 
 The default KDE desktop wallpaper is branded with the official Qortal logo. The SDDM login screen uses the same Qortal-branded background and official logo. A custom **Igorcoin Qortal** KDE color scheme follows the current Qortal website's dark, navy and cyan/blue visual direction. Qortal Website and Qortal Hub launchers are included.
 
