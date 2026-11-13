@@ -22,6 +22,7 @@ fi
 
 echo "==> Required build components are present"
 grep -Fq "live-build" ./build-iso.sh
+grep -Fq -- "--initsystem systemd" ./build-iso.sh
 grep -Fq "debian-archive-keyring" ./build-iso.sh
 grep -Fq "calamares" ./build-iso.sh
 grep -Fq "igorcoin-auto-update.timer" ./build-iso.sh
