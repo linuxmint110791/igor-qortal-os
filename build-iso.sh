@@ -101,6 +101,7 @@ libpam-kwallet5
 libsecret-tools
 ufw
 unattended-upgrades
+apt-listchanges
 apparmor
 apparmor-utils
 pciutils
@@ -148,9 +149,69 @@ UFWCONF
 
 # Automatically install Debian security updates.
 cat > config/includes.chroot/etc/apt/apt.conf.d/20auto-upgrades <<'APT'
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Unattended-Upgrade "1";
+# Igorcoin OS: the dedicated hourly systemd timer below controls update cadence.
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Unattended-Upgrade "0";
 APT
+
+cat > config/includes.chroot/etc/apt/apt.conf.d/52igorcoin-unattended-upgrades <<'APT'
+Unattended-Upgrade::Origins-Pattern {
+  "origin=Debian,codename=${distro_codename},label=Debian";
+  "origin=Debian,codename=${distro_codename}-updates,label=Debian";
+  "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+};
+Unattended-Upgrade::Automatic-Reboot "false";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "false";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "false";
+APT
+
+cat > config/includes.chroot/usr/local/sbin/igorcoin-auto-update <<'UPDATE'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+exec 9>/run/lock/igorcoin-auto-update.lock
+if ! flock -n 9; then
+  echo "Another Igorcoin update process is already running."
+  exit 0
+fi
+LOG=/var/log/igorcoin-auto-update.log
+mkdir -p /var/log
+{
+  echo "===== Igorcoin Debian update: $(date --iso-8601=seconds) ====="
+  apt-get update
+  unattended-upgrade --verbose
+  echo "===== Update check finished: $(date --iso-8601=seconds) ====="
+} 2>&1 | tee -a "$LOG"
+UPDATE
+chmod 0755 config/includes.chroot/usr/local/sbin/igorcoin-auto-update
+
+cat > config/includes.chroot/etc/systemd/system/igorcoin-auto-update.service <<'UNIT'
+[Unit]
+Description=Igorcoin OS hourly Debian package updates
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/usr/bin/apt-get
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/igorcoin-auto-update
+Nice=10
+IOSchedulingClass=idle
+UNIT
+
+cat > config/includes.chroot/etc/systemd/system/igorcoin-auto-update.timer <<'UNIT'
+[Unit]
+Description=Check Debian package updates every hour
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1h
+RandomizedDelaySec=5min
+Persistent=true
+Unit=igorcoin-auto-update.service
+
+[Install]
+WantedBy=timers.target
+UNIT
 
 cat > config/hooks/normal/0900-igorcoin-security.hook.chroot <<'SECURITY'
 #!/bin/sh
@@ -258,10 +319,10 @@ systemctl --root=/ enable igorcoin-reticulum.service
 # Enable firewall and security services in the installed system image.
 systemctl --root=/ enable ufw.service
 systemctl --root=/ enable apparmor.service
-systemctl --root=/ enable apt-daily.timer apt-daily-upgrade.timer
-
-# Ensure unattended-upgrades is enabled even on systems without a desktop prompt.
-systemctl --root=/ enable unattended-upgrades.service 2>/dev/null || true
+# The Igorcoin hourly timer owns package-list refresh and unattended installs.
+# Disable the standard daily APT timers to avoid overlapping package-manager jobs.
+systemctl --root=/ disable apt-daily.timer apt-daily-upgrade.timer 2>/dev/null || true
+systemctl --root=/ enable igorcoin-auto-update.timer
 SECURITY
 chmod 0755 config/hooks/normal/0900-igorcoin-security.hook.chroot
 
