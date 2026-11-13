@@ -8,8 +8,15 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-DEBIAN_SUITE="trixie"
-DEBIAN_POINT_RELEASE="13.3"
+# Debian release/source metadata is centralized in debian-source.env.
+SOURCE_CONFIG="$SCRIPT_DIR/debian-source.env"
+if [[ -f "$SOURCE_CONFIG" ]]; then
+  # This file is maintained in the repository and contains only simple assignments.
+  # shellcheck disable=SC1090
+  source "$SOURCE_CONFIG"
+fi
+DEBIAN_SUITE="${DEBIAN_SUITE:-trixie}"
+DEBIAN_POINT_RELEASE="${DEBIAN_POINT_RELEASE:-13.3}"
 DEBIAN_SNAPSHOT="${DEBIAN_SNAPSHOT:-20260111T000000Z}"
 if [[ ! "$DEBIAN_SNAPSHOT" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
   echo "Invalid Debian snapshot timestamp: $DEBIAN_SNAPSHOT" >&2
