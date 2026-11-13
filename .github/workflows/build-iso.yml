@@ -28,6 +28,7 @@ jobs:
           chmod +x ./scripts/validate-project.sh
           ./scripts/validate-project.sh
       - name: Build Debian 13.3 ISO (automatic retry)
+        timeout-minutes: 220
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -35,7 +36,8 @@ jobs:
 
           for attempt in 1 2; do
             echo "::group::Debian 13.3 snapshot build — attempt $attempt/2"
-            if sudo ./build-iso.sh; then
+            echo "Build attempt started at $(date -u --iso-8601=seconds)"
+            if timeout --signal=TERM --kill-after=120s 100m stdbuf -oL -eL sudo ./build-iso.sh; then
               echo "::endgroup::"
               echo "ISO_FILE=igorcoin-qortal-os-debian-13.3-amd64.iso" >> "$GITHUB_ENV"
               exit 0
@@ -43,7 +45,7 @@ jobs:
             echo "::endgroup::"
             echo "::warning::Debian 13.3 build failed on attempt $attempt."
             if [[ "$attempt" -lt 2 ]]; then
-              sudo apt-get update
+              timeout --signal=TERM --kill-after=30s 10m sudo apt-get -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2 update
               sleep 15
             fi
           done
