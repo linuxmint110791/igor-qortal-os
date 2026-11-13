@@ -1,5 +1,4 @@
 name: Build Igorcoin Qortal OS — Debian 13 Trixie
-
 on:
   push:
     branches: [main]
@@ -7,14 +6,11 @@ on:
       - 'build-iso.sh'
       - '.github/workflows/build-iso.yml'
   workflow_dispatch:
-
 permissions:
   contents: read
-
 concurrency:
   group: igorcoin-qortal-os-debian13-iso
   cancel-in-progress: true
-
 jobs:
   build-amd64:
     runs-on: ubuntu-24.04
@@ -22,24 +18,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      - name: Check build script syntax
+        run: bash -n ./build-iso.sh
       - name: Build Debian 13 live ISO
         run: |
           chmod +x ./build-iso.sh
           sudo ./build-iso.sh
-
       - name: Verify ISO and checksum
         run: |
           test -s igorcoin-qortal-os-debian13-amd64.iso
           sha256sum -c igorcoin-qortal-os-debian13-amd64.iso.sha256
           file igorcoin-qortal-os-debian13-amd64.iso
-
-      - name: Upload ISO artifact
+          du -h igorcoin-qortal-os-debian13-amd64.iso
+      - name: Upload ISO as a separate downloadable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: igorcoin-qortal-os-debian13-trixie-amd64
+          name: Igorcoin-Qortal-OS-Debian13-amd64
           path: |
             igorcoin-qortal-os-debian13-amd64.iso
             igorcoin-qortal-os-debian13-amd64.iso.sha256
           compression-level: 0
-          retention-days: 30
+          if-no-files-found: error
+          retention-days: 90
