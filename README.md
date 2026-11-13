@@ -110,26 +110,38 @@ The installed desktop provides graphical launchers under Applications:
 To include the encrypted backup in a later ISO, upload only `Igorcoin-Wallet.json.age` to the repository's `wallet/` folder using GitHub's web interface. The workflow automatically rebuilds the ISO when that encrypted file changes. Never upload the original JSON, and never put the age passphrase in GitHub, the ISO, or the build script. If the encrypted file is not present in the repository during the build, no personal wallet backup is bundled.
 
 ## Download the ISO
-The ISO is published as a separate GitHub Actions artifact, not committed into the source repository.
+The ISO is published as a GitHub Release asset and as a temporary GitHub Actions artifact; it is not committed into the source repository.
 
-1. Open https://github.com/linuxmint110791/igor-qortal-os/actions
-2. Select the newest successful Build Igorcoin Qortal OS — Debian 13.3 run.
-3. In the Artifacts section, download Igorcoin-Qortal-OS-Debian13-amd64.
-4. Extract the ZIP. It contains the ISO image.
+1. Open https://github.com/linuxmint110791/igor-qortal-os/releases
+2. Select the newest release named Igorcoin Qortal OS.
+3. Download every numbered `.part` file, plus the `.sha256` file and `DOWNLOAD-INSTRUCTIONS.txt`.
+4. Reconstruct the ISO using the instructions and verify the SHA256 checksum before writing it to USB.
 
-Artifacts are retained for 90 days. Failed builds do not publish an ISO artifact.
+The Actions artifact is retained for 90 days. Failed builds do not publish a release.
 
 ## Build the ISO
-The build uses the official Debian 13.3 archive as its package baseline. Debian 13.3 was published on 10 January 2026; the build pins the Debian package archive to the following day's snapshot so the baseline is reproducible. Current Debian security updates are still included, and the installed OS uses the current Trixie repositories for ongoing updates. This is a custom Live ISO built with Debian Live tools, not a byte-for-byte modification of the small netinst ISO in the archive directory.
+The build uses the official Debian 13.3 Trixie package baseline, pinned to the Debian Snapshot archive dated 11 January 2026. The original Debian 13.3 netinst ISO directory is recorded in `debian-source.env`; the custom image is assembled from signed Debian packages with Debian Live `live-build`, not by modifying the netinst ISO byte-for-byte. The built system uses the official current Trixie and security repositories for subsequent hourly updates.
 
-Official source archive: https://cdimage.debian.org/cdimage/archive/13.3.0/amd64/iso-cd/
+Official Debian installer source: https://cdimage.debian.org/cdimage/archive/13.3.0/amd64/iso-cd/  
+Official package snapshot: https://snapshot.debian.org/archive/debian/20260111T000000Z/  
+Debian Live build documentation: https://live-team.pages.debian.net/live-manual/
 
-On a Debian-based amd64 build machine:
+### Prepare an Ubuntu/Debian build computer
+
+Run the setup script as your normal desktop user (not with `sudo`):
 ~~~bash
-git clone https://github.com/linuxmint110791/igor-qortal-os.git
-cd igor-qortal-os
-sudo bash build-iso.sh
+bash setup-build-host.sh
 ~~~
+
+It installs the build dependencies from the host's configured Ubuntu/Debian repositories and clones the project into `~/igorcoin-os-build`. It does not install the new OS or write to a USB drive.
+
+To build manually after setup:
+~~~bash
+cd ~/igorcoin-os-build
+sudo bash ./build-iso.sh
+~~~
+
+GitHub Actions performs the same validation and build automatically after changes to the build files, or through a manual workflow run.
 
 Output file:
 - igorcoin-qortal-os-debian-13.3-amd64.iso
