@@ -41,6 +41,7 @@ lb config \
   --mode debian \
   --distribution "$DEBIAN_SUITE" \
   --security false \
+  --linux-packages none \
   --architectures amd64 \
   --archive-areas "main contrib non-free non-free-firmware" \
   --binary-images iso-hybrid \
@@ -69,10 +70,12 @@ mkdir -p \
 # add the matching official Debian security archive for this selected suite.
 # HTTP avoids bootstrap CA-certificate timing issues; APT still verifies the
 # signed Debian repository metadata and packages.
-printf 'deb http://security.debian.org/debian-security %s-security main contrib non-free non-free-firmware\\n' "$DEBIAN_SUITE" > config/archives/debian-security.list.chroot
+printf 'deb http://security.debian.org/debian-security %s-security main contrib non-free non-free-firmware\n' "$DEBIAN_SUITE" > config/archives/debian-security.list.chroot
 cp config/archives/debian-security.list.chroot config/archives/debian-security.list.binary
 
 cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
+# Install kernel explicitly; skip live-build's obsolete Contents index autodetection.
+linux-image-amd64
 kde-plasma-desktop
 plasma-workspace-wayland
 kwin-wayland
