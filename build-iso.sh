@@ -283,6 +283,47 @@ fi
 WALLET
 chmod 0755 config/includes.chroot/usr/local/bin/igorcoin-restore-wallet
 
+cat > config/includes.chroot/usr/local/bin/igorcoin-encrypt-wallet <<'ENCRYPT'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+DEST_DIR="$HOME/igorcoin-wallet-export"
+mkdir -p "$DEST_DIR"
+SOURCE="$(kdialog --getopenfilename "$HOME" "*.json|Qortal wallet JSON (*.json)" --title "Vali oma Qortali walleti varukoopia")" || true
+[[ -n "$SOURCE" ]] || exit 0
+if ! kdialog --yesno "Valitud fail krüpteeritakse eraldi parooliga. Algset faili ei muudeta. Krüpteeritud koopia salvestatakse kausta $DEST_DIR. Jätkame?"; then
+  exit 0
+fi
+BASENAME="Igorcoin-Wallet.json.age"
+if [[ -e "$DEST_DIR/$BASENAME" ]]; then
+  kdialog --error "Krüpteeritud fail on juba olemas. Muuda või varunda see enne uuesti loomist."
+  exit 1
+fi
+if konsole --hold -e age --passphrase --output "$DEST_DIR/$BASENAME" "$SOURCE"; then
+  chmod 0600 "$DEST_DIR/$BASENAME"
+  kdialog --msgbox "Valmis! Krüpteeritud fail asub kaustas $DEST_DIR. Hoia parool alles. Ära jaga ega laadi üles algset JSON-faili."
+else
+  rm -f "$DEST_DIR/$BASENAME"
+  kdialog --error "Krüpteerimine ebaõnnestus."
+  exit 1
+fi
+ENCRYPT
+chmod 0755 config/includes.chroot/usr/local/bin/igorcoin-encrypt-wallet
+
+cat > config/includes.chroot/usr/share/applications/igorcoin-encrypt-wallet.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Prepare Encrypted Igorcoin Wallet
+Name[et]=Valmista ette krüpteeritud Igorcoin rahakott
+Comment=Encrypt a wallet backup for optional inclusion in the ISO
+Comment[et]=Krüpteeri rahakoti varukoopia ISO jaoks
+Exec=/usr/local/bin/igorcoin-encrypt-wallet
+Icon=folder-encrypted
+Terminal=false
+Categories=Network;System;
+DESKTOP
+
+
 cat > config/includes.chroot/usr/share/applications/igorcoin-restore-wallet.desktop <<'DESKTOP'
 [Desktop Entry]
 Type=Application
