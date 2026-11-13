@@ -154,7 +154,7 @@ Presentation {
         centeredText: "<h1>What is Qortal?</h1><br/>Qortal is a decentralised blockchain-based network. It combines identity, transactions, data publishing and applications without relying on one central platform.<br/><br/>Participants run nodes that help maintain and share the network."
     }
     Slide {
-        centeredText: "<h1>Your Qortal wallet</h1><br/>Your wallet gives you control over your QORT and your Qortal identity. Keep your seed phrase and password private. Back up your wallet securely.<br/><br/><b>Support Igorcoin Qortal OS:</b><br/>QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ"
+        centeredText: "<h1>Your Qortal wallet</h1><br/>Your wallet gives you control over your QORT and your Qortal identity. Keep your seed phrase and password private. Back up your wallet securely.<br/><br/><img src='qortal-wallet-qr.png' width='190' height='190'/><br/><b>Support Igorcoin Qortal OS:</b><br/>QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ"
     }
     Slide {
         centeredText: "<h1>How does Qortal work?</h1><br/>A Qortal node connects to other nodes and synchronises blockchain data. The network uses its own consensus and account-based identity system. Your node can participate in the network instead of depending on a single central server."
@@ -670,6 +670,7 @@ cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
 # Install kernel explicitly; skip live-build's obsolete Contents index autodetection.
 linux-image-amd64
 linux-image-7.3.4+deb14-amd64=7.3.4-1
+qrencode
 isolinux
 kde-plasma-desktop
 kwin-wayland
