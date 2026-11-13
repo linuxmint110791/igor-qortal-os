@@ -7,6 +7,12 @@
 
 Igorcoin Qortal OS is a Debian-based desktop ISO project. It provides a Debian 13 KDE desktop, Calamares installer and the official Qortal Linux setup script embedded in the ISO.
 
+### Qortal installer introduction
+
+During installation, Calamares displays an Igorcoin Qortal OS slideshow explaining what Qortal is, how wallets and nodes work, how QDN publishing and Qortal apps fit together, and where to start. The wallet slide includes the QR code generated at build time for the confirmed support address `QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ`. It links only to the official Qortal website, developer portal, Hub and Go pages; no social-media promotions are included.
+
+The ISO build installs Debian's signed Linux 7.3.4 kernel package (`linux-image-7.3.4+deb14-amd64`, version `7.3.4-1`) from Debian sid. The sid repository is confined to the build chroot, not enabled as a general repository on the installed system. The ISO verifier checks that the 7.3.4 kernel, module tree, Calamares branding, slideshow and wallet QR are present.
+
 ## Follow and share the project
 
 - [Project announcement and ready-to-share posts](docs/ANNOUNCEMENT.md)
