@@ -189,6 +189,40 @@ inactiveBackground=24,42,59
 inactiveForeground=190,205,216
 COLORS
 
+# Animated Qortal support ticker for terminal sessions.
+# tmux owns the bottom status row so it never overwrites commands or terminal output.
+cat > config/includes.chroot/usr/local/bin/igorcoin-terminal-ticker <<'TICKER'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+message='   SUPPORT ME  |  QORT: QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ  |  SUPPORT THE QORTAL NETWORK   '
+width=64
+stream="$message$message$message"
+seconds="$(date +%s)"
+offset=$(( seconds % ${#message} ))
+printf '%-*s' "$width" "${stream:offset:width}"
+TICKER
+chmod 0755 config/includes.chroot/usr/local/bin/igorcoin-terminal-ticker
+
+mkdir -p config/includes.chroot/etc/skel/.config/tmux
+cat > config/includes.chroot/etc/skel/.config/tmux/tmux.conf <<'TMUX'
+# Igorcoin Qortal animated terminal footer.
+set -g status on
+set -g status-position bottom
+set -g status-interval 1
+set -g status-justify centre
+set -g status-left ""
+set -g status-right-length 90
+set -g status-right '#[fg=#6effa0]#[hyperlink=https://qortal.dev]qortal.dev#[hyperlink=]  #[hyperlink=https://qortal.org]qortal.org#[hyperlink=]'
+set -g status-style 'bg=#07110e,fg=#6effa0'
+set -g window-status-style 'bg=#07110e,fg=#6effa0'
+set -g window-status-current-style 'bg=#07110e,fg=#6effa0,bold'
+set -g window-status-format '#(igorcoin-terminal-ticker)'
+set -g window-status-current-format '#(igorcoin-terminal-ticker)'
+set -g window-status-separator ''
+set -g status-justify centre
+set -g renumber-windows on
+TMUX
+
 # Default Konsole profile: Qortal dark glass with readable phosphor-green text.
 cat > config/includes.chroot/usr/share/konsole/Igorcoin-Green.colorscheme <<'KONSOLECOLORS'
 [Background]
