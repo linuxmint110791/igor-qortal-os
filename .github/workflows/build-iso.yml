@@ -8,7 +8,7 @@ on:
       - '.github/workflows/build-iso.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: igorcoin-qortal-os-debian13-iso
   cancel-in-progress: true
@@ -30,7 +30,7 @@ jobs:
           test -s igorcoin-qortal-os-debian13-amd64.iso
           file igorcoin-qortal-os-debian13-amd64.iso
           du -h igorcoin-qortal-os-debian13-amd64.iso
-      - name: Upload ISO as a separate downloadable artifact
+      - name: Upload temporary ISO artifact
         uses: actions/upload-artifact@v4
         with:
           name: Igorcoin-Qortal-OS-Debian13-amd64
@@ -38,3 +38,43 @@ jobs:
           compression-level: 0
           if-no-files-found: error
           retention-days: 90
+
+      - name: Prepare durable release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          ISO="igorcoin-qortal-os-debian13-amd64.iso"
+          mkdir -p release-files
+          cp "$ISO" release-files/
+          cd release-files
+          sha256sum "$ISO" > "$ISO.sha256"
+          # GitHub Release assets must each be smaller than 2 GiB.
+          # Split into 1800 MiB pieces so even large ISO images fit safely.
+          split --bytes=1800M --numeric-suffixes=1 --suffix-length=3 \
+            --additional-suffix=.part "$ISO" "$ISO."
+          cat > DOWNLOAD-INSTRUCTIONS.txt <<'EOF'
+          Igorcoin Qortal OS — ISO reconstruction
+
+          Download every file named igorcoin-qortal-os-debian13-amd64.iso.NNN.part
+          into the same directory, together with the .sha256 file.
+
+          Linux reconstruction:
+            cat igorcoin-qortal-os-debian13-amd64.iso.*.part > igorcoin-qortal-os-debian13-amd64.iso
+            sha256sum -c igorcoin-qortal-os-debian13-amd64.iso.sha256
+
+          Do not omit or reorder any part. The checksum must report OK.
+          EOF
+          ls -lh
+
+      - name: Publish persistent GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="igorcoin-os-build-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" release-files/igorcoin-qortal-os-debian13-amd64.iso.*.part \
+            release-files/igorcoin-qortal-os-debian13-amd64.iso.sha256 \
+            release-files/DOWNLOAD-INSTRUCTIONS.txt \
+            --title "Igorcoin Qortal OS ${GITHUB_RUN_NUMBER}" \
+            --notes "Debian 13 Trixie AMD64 build. ISO is split into numbered parts under GitHub's per-asset size limit. Download all parts and reconstruct using DOWNLOAD-INSTRUCTIONS.txt. Verify with SHA256 before writing to USB." \
+            --latest
