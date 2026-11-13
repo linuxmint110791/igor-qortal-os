@@ -99,7 +99,7 @@ cat > "$HOME/.local/share/applications/qortal-core.desktop" <<'DESKTOP'
 Type=Application
 Name=Qortal Core
 Comment=Start the Qortal blockchain node
-Exec=konsole --hold -e bash -lc 'cd "$HOME/qortal" && ./start.sh'
+Exec=konsole --hold -e /bin/bash -lc "cd $HOME/qortal && ./start.sh"
 Icon=network-server
 Terminal=false
 Categories=Network;
@@ -110,7 +110,7 @@ cat > "$HOME/.local/share/applications/qortal-hub.desktop" <<'DESKTOP'
 Type=Application
 Name=Qortal Hub
 Comment=Open Qortal Hub
-Exec="$HOME/qortal-hub/Qortal-Hub"
+Exec=sh -c "$HOME/qortal-hub/Qortal-Hub"
 Icon=applications-internet
 Terminal=false
 Categories=Network;
@@ -121,7 +121,7 @@ cat > "$HOME/.local/share/applications/qortal-ui.desktop" <<'DESKTOP'
 Type=Application
 Name=Qortal UI
 Comment=Open the Qortal desktop interface installer
-Exec="$HOME/qortal-ui/Qortal-UI"
+Exec=sh -c "$HOME/qortal-ui/Qortal-UI"
 Icon=applications-internet
 Terminal=false
 Categories=Network;
