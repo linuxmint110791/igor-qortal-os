@@ -47,6 +47,8 @@ mkdir -p \
   config/includes.chroot/usr/local/share/igorcoin-qortal-os \
   config/includes.chroot/usr/local/bin \
   config/includes.chroot/usr/share/applications \
+  config/includes.chroot/usr/share/icons/hicolor/scalable/apps \
+  config/includes.chroot/etc/systemd/system \
   config/includes.chroot/etc/xdg/autostart \
   config/includes.chroot/etc/ssh/sshd_config.d \
   config/includes.chroot/etc/apt/apt.conf.d \
@@ -93,6 +95,8 @@ fastfetch
 age
 kdialog
 python3-pyqt6
+python3-venv
+python3-pip
 kwalletmanager
 libpam-kwallet5
 libsecret-tools
@@ -190,6 +194,67 @@ if command -v ufw >/dev/null 2>&1; then
   ufw allow 12394/tcp comment 'Qortal QDN data peers'
   ufw allow 4243/tcp comment 'Qortal Hub Reticulum mesh'
 fi
+
+# Install Reticulum into an isolated virtual environment. This is a separate
+# system daemon with its own identity/config; it does not overwrite Hub files.
+if ! id reticulum >/dev/null 2>&1; then
+  useradd --system --home-dir /var/lib/reticulum --create-home --shell /usr/sbin/nologin reticulum
+fi
+install -d -o reticulum -g reticulum -m 0700 /var/lib/reticulum/.reticulum
+python3 -m venv /opt/reticulum-venv
+/opt/reticulum-venv/bin/python -m pip install --disable-pip-version-check --no-cache-dir rns
+chown -R root:root /opt/reticulum-venv
+chmod -R a+rX /opt/reticulum-venv
+
+cat > /var/lib/reticulum/.reticulum/config <<'RNSCONFIG'
+[reticulum]
+enable_transport = No
+
+[logging]
+loglevel = 4
+
+[interfaces]
+  [[Igorcoin Reticulum TCP uplink]]
+    type = TCPClientInterface
+    interface_enabled = Yes
+    target_host = node.reticulumnet.nl
+    target_port = 4242
+
+  [[Local LAN AutoInterface]]
+    type = AutoInterface
+    interface_enabled = Yes
+RNSCONFIG
+chown reticulum:reticulum /var/lib/reticulum/.reticulum/config
+chmod 0600 /var/lib/reticulum/.reticulum/config
+
+cat > /etc/systemd/system/igorcoin-reticulum.service <<'RNSUNIT'
+[Unit]
+Description=Igorcoin Reticulum Network Stack
+Documentation=https://reticulum.network/manual/using.html
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=reticulum
+Group=reticulum
+Environment=HOME=/var/lib/reticulum
+Environment=MALLOC_ARENA_MAX=2
+ExecStart=/opt/reticulum-venv/bin/rnsd --service
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=0
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/reticulum
+
+[Install]
+WantedBy=multi-user.target
+RNSUNIT
+
+systemctl --root=/ enable igorcoin-reticulum.service
 
 # Enable firewall and security services in the installed system image.
 systemctl --root=/ enable ufw.service
