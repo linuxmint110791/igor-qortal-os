@@ -47,7 +47,12 @@ mkdir -p \
   config/includes.chroot/usr/local/share/igorcoin-qortal-os \
   config/includes.chroot/usr/local/bin \
   config/includes.chroot/usr/share/applications \
-  config/includes.chroot/etc/xdg/autostart
+  config/includes.chroot/etc/xdg/autostart \
+  config/includes.chroot/etc/ssh/sshd_config.d \
+  config/includes.chroot/etc/apt/apt.conf.d \
+  config/includes.chroot/etc/default \
+  config/includes.chroot/etc/ufw \
+  config/hooks/normal
 
 cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
 kde-plasma-desktop
@@ -85,6 +90,10 @@ xdg-utils
 ffmpeg
 yt-dlp
 fastfetch
+ufw
+unattended-upgrades
+apparmor
+apparmor-utils
 pciutils
 usbutils
 iproute2
@@ -97,6 +106,67 @@ firmware-mediatek
 firmware-atheros
 firmware-brcm80211
 PACKAGES
+
+# SSH is deliberately unavailable by default. Even if an SSH server is added
+# later, the service/socket remain masked until the owner explicitly unmasks them.
+cat > config/includes.chroot/etc/ssh/sshd_config.d/99-igorcoin-hardening.conf <<'SSH'
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+MaxAuthTries 3
+LoginGraceTime 20
+AllowTcpForwarding no
+AllowAgentForwarding no
+X11Forwarding no
+PermitTunnel no
+SSH
+
+# Firewall defaults: block unsolicited inbound connections, allow outbound traffic.
+cat > config/includes.chroot/etc/default/ufw <<'UFW'
+# Igorcoin Qortal OS firewall defaults
+IPV6=yes
+DEFAULT_INPUT_POLICY="DROP"
+DEFAULT_OUTPUT_POLICY="ACCEPT"
+DEFAULT_FORWARD_POLICY="DROP"
+DEFAULT_APPLICATION_POLICY="SKIP"
+UFW
+cat > config/includes.chroot/etc/ufw/ufw.conf <<'UFWCONF'
+# Igorcoin Qortal OS: firewall enabled on installed systems
+ENABLED=yes
+LOGLEVEL=low
+UFWCONF
+
+# Automatically install Debian security updates.
+cat > config/includes.chroot/etc/apt/apt.conf.d/20auto-upgrades <<'APT'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT
+
+cat > config/hooks/normal/0900-igorcoin-security.hook.chroot <<'SECURITY'
+#!/bin/sh
+set -eu
+
+# Never ship an SSH daemon in the default desktop installation.
+if dpkg-query -W -f='\${Status}' openssh-server 2>/dev/null | grep -q 'install ok installed'; then
+  apt-get purge -y openssh-server openssh-sftp-server
+fi
+
+# Mask both service and socket activation, so SSH cannot start accidentally.
+mkdir -p /etc/systemd/system
+ln -sfn /dev/null /etc/systemd/system/ssh.service
+ln -sfn /dev/null /etc/systemd/system/ssh.socket
+ln -sfn /dev/null /etc/systemd/system/sshd.service
+
+# Enable firewall and security services in the installed system image.
+systemctl --root=/ enable ufw.service
+systemctl --root=/ enable apparmor.service
+systemctl --root=/ enable apt-daily.timer apt-daily-upgrade.timer
+
+# Ensure unattended-upgrades is enabled even on systems without a desktop prompt.
+systemctl --root=/ enable unattended-upgrades.service 2>/dev/null || true
+SECURITY
+chmod 0755 config/hooks/normal/0900-igorcoin-security.hook.chroot
 
 echo "Embedding the official Qortal Linux installer into the ISO..."
 QORTAL_INSTALLER="config/includes.chroot/usr/local/share/igorcoin-qortal-os/Qortal-Setup-Linux.sh"
