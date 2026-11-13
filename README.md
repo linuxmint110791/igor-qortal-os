@@ -31,6 +31,21 @@ The official script installs and configures Qortal Core and Qortal Hub, creates 
 
 The ISO does **not** contain blockchain data, private keys, seed phrases or personal wallet data. Those remain under the user's control.
 
+## Optional encrypted Igorcoin wallet backup
+
+The wallet backup is **not** committed in plaintext. To include it, first install the `age` utility on your own computer and encrypt your original JSON backup with a strong, unique passphrase:
+
+~~~bash
+mkdir -p wallet
+age --passphrase --output wallet/Igorcoin-Wallet.json.age /path/to/your/Igorcoin-Wallet.json
+~~~
+
+Use a long passphrase and keep it in a password manager or offline backup. Do not paste it into chat, GitHub, or the build script. Only upload/commit the resulting `.age` file. The repository ignores plaintext wallet JSON files.
+
+When the encrypted file is present at `wallet/Igorcoin-Wallet.json.age`, the ISO build verifies the age file header and includes the encrypted backup. After Qortal is installed, the first-login flow asks for the age passphrase and restores the Qortal-encrypted JSON into `~/qortal/Igorcoin-Wallet.json`. You can also run **Applications → Restore Igorcoin Wallet** later. The restore helper refuses to overwrite an existing restored wallet file.
+
+If you do not add the encrypted file, the OS builds normally without any wallet backup.
+
 ## Download the ISO
 The ISO is published as a separate GitHub Actions artifact, not committed into the source repository.
 
