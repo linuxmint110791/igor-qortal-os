@@ -50,6 +50,11 @@ check_file usr/local/bin/igorcoin-reticulum
 check_file usr/local/bin/igorcoin-network-tray
 check_file opt/reticulum-venv/bin/rnsd
 check_file usr/share/pixmaps/qortal-logo.png
+check_file etc/calamares/branding/igorcoin/branding.desc
+check_file etc/calamares/branding/igorcoin/show.qml
+check_file etc/calamares/branding/igorcoin/qortal-logo.png
+check_file etc/calamares/settings.conf
+check_file etc/calamares/hooks/0990-igorcoin-calamares-branding.hook.chroot
 check_file usr/share/backgrounds/igorcoin-qortal/igorcoin-qortal-desktop.jpg
 check_file usr/share/color-schemes/Igorcoin-Qortal.colors
 check_file usr/share/sddm/themes/breeze/theme.conf.user
