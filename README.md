@@ -54,6 +54,20 @@ Service controls:
 
 Qortal Core is not configured to restart merely because the network disappears. A brief outage should leave the Core process running; P2P peers will disconnect and reconnect when connectivity returns. During a complete network isolation, no software can deliver minted blocks to the wider Qortal network, so successful network-wide minting cannot be guaranteed until peers are reachable again. The ISO does not install a blind Core restart loop, because restarting a healthy Core during a transient outage would make recovery worse.
 
+## Hourly Debian package updates
+
+The installed system checks the configured Debian 13 Trixie APT repositories hourly, starting ten minutes after boot. It refreshes package indexes and runs `unattended-upgrade` for packages allowed by the explicit Debian stable, stable-updates, and stable-security origins. This applies package updates within the installed Debian release; it does not silently change the system to a newer Debian major release or run `full-upgrade`.
+
+Automatic reboots are disabled. Kernel and other updates that require a reboot are installed but take effect fully after the user chooses to reboot. Packages are installed only from configured Debian APT origins accepted by unattended-upgrades. The hourly task uses a lock to avoid overlapping APT operations.
+
+To inspect update history:
+- `sudo journalctl -u igorcoin-auto-update.service`
+- `sudo tail -n 100 /var/log/igorcoin-auto-update.log`
+- `systemctl list-timers igorcoin-auto-update.timer`
+- `sudo systemctl start igorcoin-auto-update.service` to run a check immediately.
+
+This is hourly checking, not instantaneous push delivery: a package published just after a check may take up to roughly an hour plus the configured random delay to be detected. Debian's unattended-upgrades is designed to install only packages from explicitly allowed APT origins and records its actions in its logs. <https://wiki.debian.org/PeriodicUpdates>
+
 ## Qortal node and Reticulum networking
 
 The official Qortal Hub installer is used so the ISO receives the current Hub release. The Hub's connection selector already supports:
