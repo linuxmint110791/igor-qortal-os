@@ -40,7 +40,7 @@ fi
 APT_NETWORK_OPTIONS=(-o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2)
 apt-get "${APT_NETWORK_OPTIONS[@]}" update
 apt-get "${APT_NETWORK_OPTIONS[@]}" install -y --no-install-recommends \
-  live-build debootstrap debian-archive-keyring curl wget ca-certificates xorriso squashfs-tools \
+  live-build debootstrap debian-archive-keyring curl wget ca-certificates xorriso squashfs-tools imagemagick \
   dosfstools mtools grub-pc-bin grub-efi-amd64-bin \
   isolinux syslinux-common syslinux-utils
 
