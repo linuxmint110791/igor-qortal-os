@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'build-iso.sh'
+      - 'setup-build-host.sh'
+      - 'debian-source.env'
+      - 'scripts/**'
       - 'README.md'
       - 'wallet/Igorcoin-Wallet.json.age'
       - '.github/workflows/build-iso.yml'
@@ -20,8 +23,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check build script syntax
-        run: bash -n ./build-iso.sh
+      - name: Validate project configuration
+        run: |
+          chmod +x ./scripts/validate-project.sh
+          ./scripts/validate-project.sh
       - name: Build Debian 13.3 ISO (automatic retry)
         shell: bash
         run: |
@@ -96,5 +101,5 @@ jobs:
             "release-files/$ISO.sha256" \
             release-files/DOWNLOAD-INSTRUCTIONS.txt \
             --title "Igorcoin Qortal OS ${GITHUB_RUN_NUMBER}" \
-            --notes "Debian 13.3 Trixie snapshot baseline, with current Debian security updates. ISO is split into numbered parts under GitHub's per-asset size limit. Download all parts and reconstruct using DOWNLOAD-INSTRUCTIONS.txt. Verify with SHA256 before writing to USB." \
+            --notes "Debian 13.3 Trixie package baseline from the official Debian Snapshot archive, with the official Debian security repository enabled for security fixes. ISO is split into numbered parts under GitHub's per-asset size limit. Download all parts and reconstruct using DOWNLOAD-INSTRUCTIONS.txt. Verify with SHA256 before writing to USB." \
             --latest
