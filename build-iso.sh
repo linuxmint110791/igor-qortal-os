@@ -37,8 +37,9 @@ if [[ "$OUTPUT_ISO" == "$BUILD_DIR"* ]]; then
   exit 1
 fi
 
-apt-get update
-apt-get install -y --no-install-recommends \
+APT_NETWORK_OPTIONS=(-o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2)
+apt-get "${APT_NETWORK_OPTIONS[@]}" update
+apt-get "${APT_NETWORK_OPTIONS[@]}" install -y --no-install-recommends \
   live-build debootstrap debian-archive-keyring curl wget ca-certificates xorriso squashfs-tools \
   dosfstools mtools grub-pc-bin grub-efi-amd64-bin \
   isolinux syslinux-common syslinux-utils
@@ -54,7 +55,7 @@ lb config \
   --mirror-chroot "$DEBIAN_PACKAGE_ARCHIVE" \
   --mirror-binary "$DEBIAN_BINARY_ARCHIVE" \
   --mirror-binary-security "$DEBIAN_SECURITY_ARCHIVE" \
-  --apt-options "--yes -o Acquire::Check-Valid-Until=false" \
+  --apt-options "--yes -o Acquire::Check-Valid-Until=false -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2" \
   --security false \
   --linux-packages none \
   --architectures amd64 \
@@ -359,7 +360,7 @@ chmod 0755 config/hooks/normal/0900-igorcoin-security.hook.chroot
 
 echo "Embedding the official Qortal Linux installer into the ISO..."
 QORTAL_INSTALLER="config/includes.chroot/usr/local/share/igorcoin-qortal-os/Qortal-Setup-Linux.sh"
-curl --fail --location --retry 5 --retry-all-errors \
+curl --fail --location --connect-timeout 20 --max-time 180 --retry 5 --retry-all-errors \
   "$QORTAL_INSTALLER_URL" -o "$QORTAL_INSTALLER"
 test -s "$QORTAL_INSTALLER"
 bash -n "$QORTAL_INSTALLER"
@@ -734,7 +735,7 @@ Terminal=false
 Categories=System;
 DESKTOP
 
-lb build
+lb build --verbose
 
 ISO_FILE="$(find . -maxdepth 1 -type f -name '*.iso' -print -quit)"
 if [[ -z "$ISO_FILE" || ! -s "$ISO_FILE" ]]; then
