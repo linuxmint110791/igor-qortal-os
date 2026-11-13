@@ -7,6 +7,12 @@
 
 Igorcoin Qortal OS is a Debian-based desktop ISO project. It provides a Debian 13 KDE desktop, Calamares installer and the official Qortal Linux setup script embedded in the ISO.
 
+## Follow and share the project
+
+- [Project announcement and ready-to-share posts](docs/ANNOUNCEMENT.md)
+- [Automated ISO build status](https://github.com/linuxmint110791/igor-qortal-os/actions/workflows/build-iso.yml)
+- [Published releases and ISO downloads](https://github.com/linuxmint110791/igor-qortal-os/releases)
+
 ## Included
 - Debian 13.3 Trixie package baseline, resolved from the official Debian Snapshot archive dated 11 January 2026
 - KDE Plasma desktop with Wayland session support
