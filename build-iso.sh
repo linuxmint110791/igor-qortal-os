@@ -50,10 +50,10 @@ cd "$BUILD_DIR"
 lb config \
   --mode debian \
   --distribution "$DEBIAN_SUITE" \
-  --mirror-bootstrap "https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}/" \
-  --mirror-chroot "https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}/" \
-  --mirror-binary "https://deb.debian.org/debian" \
-  --mirror-binary-security "https://security.debian.org/debian-security" \
+  --mirror-bootstrap "$DEBIAN_PACKAGE_ARCHIVE" \
+  --mirror-chroot "$DEBIAN_PACKAGE_ARCHIVE" \
+  --mirror-binary "$DEBIAN_BINARY_ARCHIVE" \
+  --mirror-binary-security "$DEBIAN_SECURITY_ARCHIVE" \
   --apt-options "--yes -o Acquire::Check-Valid-Until=false" \
   --security false \
   --linux-packages none \
