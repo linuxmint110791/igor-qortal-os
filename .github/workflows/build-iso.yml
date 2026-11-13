@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'build-iso.sh'
+      - 'README.md'
       - 'wallet/Igorcoin-Wallet.json.age'
       - '.github/workflows/build-iso.yml'
   workflow_dispatch:
@@ -21,42 +22,29 @@ jobs:
         uses: actions/checkout@v4
       - name: Check build script syntax
         run: bash -n ./build-iso.sh
-      - name: Build Debian ISO (automatic repair and suite fallback)
+      - name: Build Debian 13.3 ISO (automatic retry)
         shell: bash
         run: |
           set -Eeuo pipefail
           chmod +x ./build-iso.sh
 
-          build_with_retries() {
-            local suite="$1"
-            local attempt
-            for attempt in 1 2; do
-              echo "::group::Build $suite — attempt $attempt/2"
-              if sudo env DEBIAN_SUITE="$suite" ./build-iso.sh; then
-                echo "::endgroup::"
-                return 0
-              fi
+          for attempt in 1 2; do
+            echo "::group::Debian 13.3 snapshot build — attempt $attempt/2"
+            if sudo ./build-iso.sh; then
               echo "::endgroup::"
-              echo "::warning::Build failed for $suite on attempt $attempt."
-              if [[ "$attempt" -lt 2 ]]; then
-                echo "Retrying from a clean build directory after refreshing package metadata."
-                sudo apt-get update
-                sleep 15
-              fi
-            done
-            return 1
-          }
+              echo "ISO_FILE=igorcoin-qortal-os-debian-13.3-amd64.iso" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "::warning::Debian 13.3 build failed on attempt $attempt."
+            if [[ "$attempt" -lt 2 ]]; then
+              sudo apt-get update
+              sleep 15
+            fi
+          done
 
-          if build_with_retries trixie; then
-            echo "ISO_FILE=igorcoin-qortal-os-trixie-amd64.iso" >> "$GITHUB_ENV"
-            echo "Selected Debian suite: Trixie"
-          elif build_with_retries forky; then
-            echo "ISO_FILE=igorcoin-qortal-os-forky-amd64.iso" >> "$GITHUB_ENV"
-            echo "Selected Debian suite: Forky fallback"
-          else
-            echo "::error::Both Debian suites failed after automatic retries. Review the build logs."
-            exit 1
-          fi
+          echo "::error::Debian 13.3 build failed after two attempts. Review the build logs."
+          exit 1
       - name: Verify ISO file
         run: |
           test -s "$ISO_FILE"
@@ -108,5 +96,5 @@ jobs:
             "release-files/$ISO.sha256" \
             release-files/DOWNLOAD-INSTRUCTIONS.txt \
             --title "Igorcoin Qortal OS ${GITHUB_RUN_NUMBER}" \
-            --notes "Debian AMD64 build (Trixie preferred; Forky fallback). ISO is split into numbered parts under GitHub's per-asset size limit. Download all parts and reconstruct using DOWNLOAD-INSTRUCTIONS.txt. Verify with SHA256 before writing to USB." \
+            --notes "Debian 13.3 Trixie snapshot baseline, with current Debian security updates. ISO is split into numbered parts under GitHub's per-asset size limit. Download all parts and reconstruct using DOWNLOAD-INSTRUCTIONS.txt. Verify with SHA256 before writing to USB." \
             --latest
