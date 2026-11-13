@@ -31,6 +31,8 @@ Konsole opens with the **Igorcoin Qortal Green Glass** profile: a dark, subtly t
 
 Debian 13 no longer includes the original, unmaintained `neofetch` package. The ISO therefore includes Debian's `neowofetch` fork and a `neofetch` compatibility command, as well as `fastfetch`. Both `neofetch` and `neowofetch` can be run from Konsole.
 
+The default Konsole profile starts a tmux session with an animated, centered Qortal support ticker along the bottom edge. It scrolls the support message and the QORT address `QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ`; the right side provides clickable links to [qortal.dev](https://qortal.dev) and [qortal.org](https://qortal.org). The ticker runs in the tmux status row, so it does not overwrite terminal output or interfere with typing.
+
 ### Desktop and login-screen branding
 The bottom KDE panel is also Qortal-branded: the Start/Application Menu button uses the official Qortal logo and is labelled **Qortal**. The menu hides noisy recent-item sections and includes quick favorites. The taskbar is configured with pinned shortcuts for Dolphin, Konsole, Qortal Website, Qortal Hub and the system monitor, using the dark navy/cyan color scheme.
 
