@@ -475,6 +475,34 @@ cat > config/includes.chroot/usr/share/icons/hicolor/scalable/apps/igorcoin-reti
 </svg>
 SVG
 
+cat > config/includes.chroot/usr/local/bin/igorcoin-reticulum <<'RNSCTL'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+SERVICE="igorcoin-reticulum.service"
+case "${1:-status}" in
+  status)
+    systemctl --no-pager --full status "$SERVICE"
+    ;;
+  start)
+    sudo systemctl start "$SERVICE"
+    ;;
+  stop)
+    sudo systemctl stop "$SERVICE"
+    ;;
+  restart)
+    sudo systemctl restart "$SERVICE"
+    ;;
+  logs)
+    journalctl -u "$SERVICE" -n 100 --no-pager
+    ;;
+  *)
+    echo "Usage: igorcoin-reticulum {status|start|stop|restart|logs}" >&2
+    exit 2
+    ;;
+esac
+RNSCTL
+chmod 0755 config/includes.chroot/usr/local/bin/igorcoin-reticulum
+
 cat > config/includes.chroot/usr/local/bin/igorcoin-network-tray <<'PY'
 #!/usr/bin/python3
 import os
@@ -512,10 +540,10 @@ def core_status():
 def reticulum_status():
     try:
         result = subprocess.run(
-            ["pgrep", "-af", "rnsd|reticulum"],
+            ["systemctl", "is-active", "igorcoin-reticulum.service"],
             capture_output=True, text=True, timeout=2, check=False
         )
-        return "PROCESS DETECTED" if result.returncode == 0 else "NOT DETECTED"
+        return "RUNNING" if result.returncode == 0 else "OFFLINE"
     except Exception:
         return "UNKNOWN"
 
