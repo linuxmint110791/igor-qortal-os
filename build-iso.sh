@@ -33,7 +33,8 @@ fi
 apt-get update
 apt-get install -y --no-install-recommends \
   live-build debootstrap curl wget ca-certificates xorriso squashfs-tools \
-  dosfstools mtools grub-pc-bin grub-efi-amd64-bin
+  dosfstools mtools grub-pc-bin grub-efi-amd64-bin \
+  isolinux syslinux-common syslinux-utils
 
 rm -rf -- "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
@@ -81,12 +82,12 @@ printf 'deb http://security.debian.org/debian-security %s-security main contrib 
 cp config/archives/debian-security.list.chroot config/archives/debian-security.list.binary
 
 cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
+# Desktop: KDE Plasma session running on Wayland (Xwayland is intentionally omitted).
 # Install kernel explicitly; skip live-build's obsolete Contents index autodetection.
 linux-image-amd64
 kde-plasma-desktop
 kwin-wayland
 sddm
-xwayland
 konsole
 dolphin
 kate
@@ -110,7 +111,6 @@ jq
 imagemagick
 rsync
 openjdk-21-jre-headless
-libfuse2t64
 desktop-file-utils
 xdg-utils
 ffmpeg
