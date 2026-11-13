@@ -1,8 +1,8 @@
 # Igorcoin Qortal OS
 
-**Debian 13 Trixie + KDE Plasma + Qortal applications bundled in the ISO.**
+**Debian 13 Trixie + KDE Plasma + the official Qortal Linux installer.**
 
-Igorcoin Qortal OS is a Debian-based desktop ISO project. The goal is a stable Debian 13 system with Qortal ready to set up on first login.
+Igorcoin Qortal OS is a Debian-based desktop ISO project. It provides a Debian 13 KDE desktop, Calamares installer and the official Qortal Linux setup script embedded in the ISO.
 
 ## Included
 - Debian 13 Trixie
@@ -10,13 +10,16 @@ Igorcoin Qortal OS is a Debian-based desktop ISO project. The goal is a stable D
 - Debian kernel and official Debian repositories
 - Calamares installer
 - NetworkManager and common firmware packages
-- Java runtime and FUSE support
-- Official Qortal Core release bundle
-- Official Qortal Hub AppImage
-- Official Qortal UI AppImage
-- First-login setup that copies the bundled Qortal applications into the user account and creates application-menu launchers
+- Java 21 runtime and dependencies used by the Qortal setup script
+- Official Qortal Linux installer script from https://link.qortal.dev/linux-script
+- First-login launch of the Qortal installer, plus a manual Applications-menu launcher
 
-The Qortal Core, Hub and UI application files are downloaded from their official GitHub release download endpoints during the ISO build and stored inside the ISO. The blockchain database, account seed, wallet data and bootstrap are **not** included. Each user creates or restores their own account, and the node downloads blockchain data when started.
+## Qortal installation
+The ISO contains the official installer script itself. After the operating system is installed and the user logs into KDE for the first time, the installer opens in a terminal automatically. It can also be started later from **Applications → Install Qortal**.
+
+The official script installs and configures Qortal Core and Qortal Hub, creates launchers and offers its additional node setup options. It downloads the current Qortal components during installation, so an internet connection is required. The installer runs as the normal desktop user and requests sudo when it needs system-level package installation.
+
+The ISO does **not** contain blockchain data, private keys, seed phrases or personal wallet data. Those remain under the user's control.
 
 ## Download the ISO
 The ISO is published as a separate GitHub Actions artifact, not committed into the source repository.
@@ -27,11 +30,6 @@ The ISO is published as a separate GitHub Actions artifact, not committed into t
 4. Extract the ZIP. It contains the ISO image.
 
 Artifacts are retained for 90 days. Failed builds do not publish an ISO artifact.
-
-## Qortal setup
-After installing Debian and logging into KDE for the first time, a setup window copies Qortal Core, Qortal Hub and Qortal UI from the ISO to your home folder and creates launchers in the Applications menu. You can also run **Applications → Install Qortal components** later.
-
-Start **Qortal Core** first. Then open **Qortal Hub** or **Qortal UI**. An internet connection is still required for node synchronization and normal Qortal network use. The ISO does not contain blockchain data or personal wallet/seed information.
 
 ## Build the ISO
 On a Debian-based amd64 build machine:
@@ -51,7 +49,7 @@ GitHub Actions builds when the build script or workflow changes and supports man
 2. Write the ISO to a USB drive (this erases the selected USB drive).
 3. Boot from USB and start the live desktop.
 4. Launch Calamares and complete Debian installation.
-5. On first KDE desktop login, install the bundled Qortal applications when prompted.
+5. Log into KDE. The official Qortal installer starts automatically on first login.
 
 Back up important data before installing an operating system. Test the ISO in a virtual machine first.
 
@@ -61,6 +59,7 @@ The project is under active development. An ISO is ready for testing only after 
 ## Official resources
 - https://www.debian.org/releases/trixie/
 - https://qortal.org/
+- https://qortal.dev/downloads
 - https://github.com/Qortal/qortal
 - https://github.com/Qortal/Qortal-Hub
-- https://github.com/Qortal/qortal-ui
+- https://github.com/Qortal/QORTector-scripts
