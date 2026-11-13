@@ -53,7 +53,7 @@ The image includes official Qortal Project press-kit backgrounds (dark, extra-da
 ## Included
 - Debian 13.3 Trixie package baseline, resolved from the official Debian Snapshot archive dated 11 January 2026
 - KDE Plasma desktop with Wayland session support
-- Debian kernel and official Debian repositories
+- Debian-signed Linux 7.3.4 kernel from the official Debian sid archive, with the Trixie kernel retained as a stable fallback; sid is used only during the ISO build and is not enabled as a general installed-system repository
 - Calamares installer
 - NetworkManager and common firmware packages
 - UFW firewall enabled by default: inbound connections denied, outbound connections allowed
@@ -163,7 +163,7 @@ The ISO is published as a GitHub Release asset and as a temporary GitHub Actions
 The Actions artifact is retained for 90 days. Failed builds do not publish a release.
 
 ## Build the ISO
-The build uses the official Debian 13.3 Trixie package baseline, pinned to the Debian Snapshot archive dated 11 January 2026. The original Debian 13.3 netinst ISO directory is recorded in `debian-source.env`; the custom image is assembled from signed Debian packages with Debian Live `live-build`, not by modifying the netinst ISO byte-for-byte. The built system uses the official current Trixie and security repositories for subsequent hourly updates.
+The build uses the official Debian 13.3 Trixie package baseline, pinned to the Debian Snapshot archive dated 11 January 2026. It additionally installs Debian's signed Linux 7.3.4 kernel package from the official sid archive, while retaining the Trixie kernel as a fallback. The sid source is available only inside the build chroot; the installed system does not receive a general sid repository. The original Debian 13.3 netinst ISO directory is recorded in `debian-source.env`; the custom image is assembled from signed Debian packages with Debian Live `live-build`, not by modifying the netinst ISO byte-for-byte. The built system uses the official current Trixie and security repositories for subsequent hourly updates.
 
 Official Debian installer source: https://cdimage.debian.org/cdimage/archive/13.3.0/amd64/iso-cd/  
 Official package snapshot: https://snapshot.debian.org/archive/debian/20260111T000000Z/  
