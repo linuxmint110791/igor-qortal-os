@@ -41,8 +41,6 @@ lb config \
   --apt-recommends false \
   --apt-indices false \
   --apt-source-archives false \
-  --chroot-squashfs-compression-type xz \
-  --chroot-squashfs-compression-level 9 \
   --bootappend-live "boot=live components quiet splash"
 
 mkdir -p \
