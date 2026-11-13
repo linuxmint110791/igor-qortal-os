@@ -92,6 +92,9 @@ yt-dlp
 fastfetch
 age
 kdialog
+kwalletmanager
+libpam-kwallet5
+libsecret-tools
 ufw
 unattended-upgrades
 apparmor
@@ -159,6 +162,23 @@ mkdir -p /etc/systemd/system
 ln -sfn /dev/null /etc/systemd/system/ssh.service
 ln -sfn /dev/null /etc/systemd/system/ssh.socket
 ln -sfn /dev/null /etc/systemd/system/sshd.service
+
+# Enable KWallet PAM integration: the user's KDE wallet can unlock at SDDM
+# login when its password matches the Linux account password.
+# Optional PAM modules must never become a login dependency.
+PAM_SDDM="/etc/pam.d/sddm"
+if [[ -f "$PAM_SDDM" ]]; then
+  if ! grep -q 'pam_kwallet5.so' "$PAM_SDDM"; then
+    cat >> "$PAM_SDDM" <<'PAM'
+
+# Igorcoin Qortal OS: unlock the KDE Wallet after successful desktop login.
+auth optional pam_kwallet5.so
+session optional pam_kwallet5.so auto_start
+PAM
+  fi
+else
+  echo "Warning: SDDM PAM file not found; KWallet PAM auto-unlock was not configured."
+fi
 
 # Enable firewall and security services in the installed system image.
 systemctl --root=/ enable ufw.service
