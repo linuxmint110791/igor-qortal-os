@@ -77,6 +77,11 @@ mkdir -p \
   config/includes.chroot/usr/share/backgrounds/igorcoin-qortal \
   config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/contents/images \
   config/includes.chroot/usr/share/pixmaps \
+  config/includes.chroot/usr/share/color-schemes \
+  config/includes.chroot/usr/share/sddm/themes/breeze \
+  config/includes.chroot/etc/sddm.conf.d \
+  config/includes.chroot/etc/skel/.config \
+  config/includes.chroot/etc/skel/.local/share/applications \
   config/includes.chroot/etc/xdg \
   config/includes.chroot/etc/systemd/system \
   config/includes.chroot/etc/xdg/autostart \
@@ -107,8 +112,16 @@ curl --fail --location --connect-timeout 20 --max-time 180 --retry 4 --retry-all
   -o config/includes.chroot/usr/share/pixmaps/qortal-logo.png
 test -s config/includes.chroot/usr/share/pixmaps/qortal-logo.png
 
+# Create the branded desktop/login wallpaper: official Qortal background plus
+# the official transparent Qortal logo. The source press-kit assets remain intact.
+QORTAL_BRANDED_WALLPAPER="config/includes.chroot/usr/share/backgrounds/igorcoin-qortal/igorcoin-qortal-desktop.jpg"
+convert "$QORTAL_ASSET_DIR/qortal-dark.jpg" -resize '1920x1080^' -gravity center -extent 1920x1080 \
+  \( config/includes.chroot/usr/share/pixmaps/qortal-logo.png -resize 420x \) \
+  -gravity southeast -geometry +90+72 -composite -quality 92 "$QORTAL_BRANDED_WALLPAPER"
+test -s "$QORTAL_BRANDED_WALLPAPER"
+
 # Expose a curated default Qortal wallpaper in KDE's wallpaper chooser.
-install -m 0644 "$QORTAL_ASSET_DIR/qortal-dark.jpg" \
+install -m 0644 "$QORTAL_BRANDED_WALLPAPER" \
   config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/contents/images/1920x1080.jpg
 cat > config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/metadata.json <<'WALLPAPER'
 {
@@ -119,11 +132,209 @@ cat > config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/metadata.json 
   }
 }
 WALLPAPER
-# Enable the standard freedesktop notification sound theme in KDE.
+# Qortal-inspired KDE color scheme: deep navy surfaces with cyan/blue accents.
+cat > config/includes.chroot/usr/share/color-schemes/Igorcoin-Qortal.colors <<'COLORS'
+[General]
+Name=Igorcoin Qortal
+ColorScheme=Igorcoin-Qortal
+shadeSortColumn=true
+
+[Colors:Window]
+BackgroundNormal=13,22,34
+BackgroundAlternate=20,33,48
+ForegroundNormal=232,241,248
+ForegroundInactive=145,163,178
+ForegroundActive=255,255,255
+
+[Colors:View]
+BackgroundNormal=10,18,29
+BackgroundAlternate=18,30,43
+ForegroundNormal=232,241,248
+ForegroundInactive=145,163,178
+ForegroundActive=255,255,255
+
+[Colors:Button]
+BackgroundNormal=24,42,59
+BackgroundAlternate=31,53,73
+ForegroundNormal=232,241,248
+ForegroundInactive=145,163,178
+ForegroundActive=255,255,255
+
+[Colors:Selection]
+BackgroundNormal=0,174,218
+BackgroundAlternate=0,137,185
+ForegroundNormal=255,255,255
+ForegroundInactive=232,241,248
+ForegroundActive=255,255,255
+
+[Colors:Tooltip]
+BackgroundNormal=13,22,34
+BackgroundAlternate=20,33,48
+ForegroundNormal=232,241,248
+ForegroundInactive=145,163,178
+
+[Colors:Complementary]
+BackgroundNormal=9,16,26
+BackgroundAlternate=16,27,40
+ForegroundNormal=232,241,248
+ForegroundInactive=145,163,178
+ForegroundActive=255,255,255
+
+[WM]
+activeBackground=0,174,218
+activeForeground=255,255,255
+inactiveBackground=24,42,59
+inactiveForeground=190,205,216
+COLORS
+
+# Enable the Qortal-inspired KDE colors and notification sound theme.
 cat > config/includes.chroot/etc/xdg/kdeglobals <<'KDEGLOBALS'
+[General]
+ColorScheme=Igorcoin-Qortal
+
 [Sounds]
 Theme=freedesktop
 KDEGLOBALS
+
+# SDDM Breeze login screen uses the same Qortal-branded wallpaper and official logo.
+cat > config/includes.chroot/usr/share/sddm/themes/breeze/theme.conf.user <<'SDDM'
+[General]
+type=image
+background=/usr/share/backgrounds/igorcoin-qortal/igorcoin-qortal-desktop.jpg
+color=#0d1622
+showlogo=shown
+logo=/usr/share/pixmaps/qortal-logo.png
+fontSize=10
+needsFullUserModel=false
+SDDM
+cat > config/includes.chroot/etc/sddm.conf.d/10-igorcoin-qortal.conf <<'SDDM'
+[Theme]
+Current=breeze
+SDDM
+
+# Set a branded default desktop and three live system-monitor widgets for new users.
+# KDE Plasma stores desktop widgets in plasma-org.kde.plasma.desktop-appletsrc.
+mkdir -p config/includes.chroot/etc/skel/.config
+cat > config/includes.chroot/etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc <<'PLASMA'
+[ActionPlugins][0]
+RightButton;NoModifier=org.kde.contextmenu
+
+[ActionPlugins][1]
+RightButton;NoModifier=org.kde.contextmenu
+
+[Containments][1]
+activityId=
+formfactor=0
+immutability=1
+lastScreen=0
+location=0
+plugin=org.kde.desktopcontainment
+wallpaperplugin=org.kde.image
+
+[Containments][1][Wallpaper][org.kde.image][General]
+Image=file:///usr/share/wallpapers/Igorcoin-Qortal/contents/images/1920x1080.jpg
+
+[Containments][1][Applets][2]
+immutability=1
+plugin=org.kde.plasma.systemmonitor
+
+[Containments][1][Applets][2][Configuration]
+CurrentPreset=org.kde.plasma.systemmonitor
+PreloadWeight=100
+
+[Containments][1][Applets][2][Configuration][Appearance]
+chartFace=org.kde.ksysguard.linechart
+showTitle=true
+title=CPU LOAD
+
+[Containments][1][Applets][2][Configuration][Sensors]
+highPrioritySensorIds=["cpu/all/usage"]
+
+[Containments][1][Applets][2][Configuration][org.kde.ksysguard.linechart][General]
+historyAmount=60
+
+[Containments][1][Applets][3]
+immutability=1
+plugin=org.kde.plasma.systemmonitor
+
+[Containments][1][Applets][3][Configuration]
+CurrentPreset=org.kde.plasma.systemmonitor
+PreloadWeight=100
+
+[Containments][1][Applets][3][Configuration][Appearance]
+chartFace=org.kde.ksysguard.linechart
+showTitle=true
+title=MEMORY
+
+[Containments][1][Applets][3][Configuration][Sensors]
+highPrioritySensorIds=["memory/physical/usedPercent"]
+
+[Containments][1][Applets][3][Configuration][org.kde.ksysguard.linechart][General]
+historyAmount=60
+
+[Containments][1][Applets][4]
+immutability=1
+plugin=org.kde.plasma.systemmonitor
+
+[Containments][1][Applets][4][Configuration]
+CurrentPreset=org.kde.plasma.systemmonitor
+PreloadWeight=100
+
+[Containments][1][Applets][4][Configuration][Appearance]
+chartFace=org.kde.ksysguard.linechart
+showTitle=true
+title=NETWORK
+
+[Containments][1][Applets][4][Configuration][Sensors]
+highPrioritySensorIds=["network/all/download","network/all/upload"]
+
+[Containments][1][Applets][4][Configuration][SensorLabels]
+network/all/download=Download
+network/all/upload=Upload
+
+[Containments][1][Applets][4][Configuration][org.kde.ksysguard.linechart][General]
+historyAmount=60
+
+[Containments][1][General]
+AppletOrder=2;3;4
+PLASMA
+cat > config/includes.chroot/usr/share/applications/igorcoin-system-monitor.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Igorcoin System Monitor
+Name[et]=Igorcoin süsteemimonitor
+Comment=Inspect running processes, CPU, memory, network and system load
+Comment[et]=Vaata töötavaid protsesse, protsessorit, mälu, võrku ja süsteemi koormust
+Exec=plasma-systemmonitor
+Icon=utilities-system-monitor
+Terminal=false
+Categories=System;Monitor;
+DESKTOP
+
+# Qortal's current web presence emphasizes locally operated infrastructure;
+# provide direct launchers while matching its dark/navy/cyan visual language.
+cat > config/includes.chroot/usr/share/applications/qortal-website.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Qortal Website
+Name[et]=Qortali veebileht
+Comment=Explore the Qortal community-owned digital infrastructure
+Exec=xdg-open https://qortal.org/
+Icon=/usr/share/pixmaps/qortal-logo.png
+Terminal=false
+Categories=Network;WebBrowser;
+DESKTOP
+cat > config/includes.chroot/usr/share/applications/qortal-hub.desktop <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Qortal Hub
+Name[et]=Qortal Hub
+Comment=Open Qortal Hub hosted access
+Exec=xdg-open https://hub.qortal.link/
+Icon=/usr/share/pixmaps/qortal-logo.png
+Terminal=false
+Categories=Network;
+DESKTOP
 
 # Disable the legacy security entry generated by the runner live-build and
 # add the matching official Debian security archive for this selected suite.
@@ -151,6 +362,8 @@ pipewire
 wireplumber
 pavucontrol
 sound-theme-freedesktop
+plasma-systemmonitor
+ksystemstats
 calamares
 calamares-settings-debian
 sudo
