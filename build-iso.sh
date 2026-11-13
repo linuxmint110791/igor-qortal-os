@@ -180,6 +180,16 @@ else
   echo "Warning: SDDM PAM file not found; KWallet PAM auto-unlock was not configured."
 fi
 
+# Keep Qortal Core and Qortal Hub reachable while retaining deny-by-default
+# inbound policy. These are the standard Qortal P2P, QDN data-peer, and
+# Qortal Hub Reticulum mesh listener ports. Public Reticulum bootstrap
+# connections are outbound and do not require broad inbound access.
+if command -v ufw >/dev/null 2>&1; then
+  ufw allow 12392/tcp comment 'Qortal blockchain peers'
+  ufw allow 12394/tcp comment 'Qortal QDN data peers'
+  ufw allow 4243/tcp comment 'Qortal Hub Reticulum mesh'
+fi
+
 # Enable firewall and security services in the installed system image.
 systemctl --root=/ enable ufw.service
 systemctl --root=/ enable apparmor.service
@@ -207,7 +217,7 @@ if [[ -f "$WALLET_SOURCE" ]]; then
     echo "Wallet backup is not an age-encrypted file; refusing to add it to the ISO." >&2
     exit 1
   fi
-  install -m 0600 "$WALLET_SOURCE" "$WALLET_TARGET"
+  install -m 0644 "$WALLET_SOURCE" "$WALLET_TARGET"
   echo "Encrypted Igorcoin wallet backup included (age-encrypted; passphrase not included)."
 else
   echo "No encrypted wallet backup found; building without personal wallet data."
