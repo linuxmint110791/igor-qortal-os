@@ -77,7 +77,9 @@ mkdir -p \
   config/includes.chroot/usr/share/backgrounds/igorcoin-qortal \
   config/includes.chroot/usr/share/wallpapers/Igorcoin-Qortal/contents/images \
   config/includes.chroot/usr/share/pixmaps \
+  config/includes.chroot/usr/share/konsole \
   config/includes.chroot/usr/share/color-schemes \
+  config/includes.chroot/etc/skel/.local/share/konsole \
   config/includes.chroot/usr/share/sddm/themes/breeze \
   config/includes.chroot/etc/sddm.conf.d \
   config/includes.chroot/etc/skel/.config \
@@ -186,6 +188,97 @@ activeForeground=255,255,255
 inactiveBackground=24,42,59
 inactiveForeground=190,205,216
 COLORS
+
+# Default Konsole profile: Qortal dark glass with readable phosphor-green text.
+cat > config/includes.chroot/usr/share/konsole/Igorcoin-Green.colorscheme <<'KONSOLECOLORS'
+[Background]
+Color=7,17,14
+
+[BackgroundFaint]
+Color=7,17,14
+
+[BackgroundIntense]
+Color=12,28,22
+
+[Foreground]
+Color=110,255,160
+
+[ForegroundFaint]
+Color=70,190,115
+
+[ForegroundIntense]
+Color=160,255,190
+
+[Color0]
+Color=15,25,20
+[Color0Intense]
+Color=45,65,52
+[Color1]
+Color=235,75,85
+[Color1Intense]
+Color=255,110,120
+[Color2]
+Color=65,220,115
+[Color2Intense]
+Color=120,255,160
+[Color3]
+Color=210,210,100
+[Color3Intense]
+Color=255,245,130
+[Color4]
+Color=80,160,230
+[Color4Intense]
+Color=130,195,255
+[Color5]
+Color=190,115,220
+[Color5Intense]
+Color=225,160,255
+[Color6]
+Color=65,210,205
+[Color6Intense]
+Color=120,255,240
+[Color7]
+Color=205,225,210
+[Color7Intense]
+Color=245,255,248
+
+[General]
+Description=Igorcoin Qortal Green Glass
+Opacity=0.82
+Wallpaper=
+KONSOLECOLORS
+
+cat > config/includes.chroot/etc/skel/.local/share/konsole/Igorcoin-Qortal.profile <<'KONSOLEPROFILE'
+[Appearance]
+ColorScheme=Igorcoin-Green
+Font=Hack,10,-1,5,50,0,0,0,0,0
+Blur=true
+
+[General]
+Name=Igorcoin Qortal Green
+Parent=FALLBACK/
+
+[Scrolling]
+HistoryMode=2
+HistorySize=10000
+KONSOLEPROFILE
+
+cat > config/includes.chroot/etc/skel/.config/konsolerc <<'KONSOLECONFIG'
+[Desktop Entry]
+DefaultProfile=Igorcoin-Qortal.profile
+
+[KonsoleWindow]
+RememberWindowSize=false
+ShowMenuBar=false
+KONSOLECONFIG
+
+# Debian 13 no longer ships the original unmaintained neofetch package.
+# neowofetch is its maintained fork; fastfetch is installed alongside it.
+cat > config/includes.chroot/usr/local/bin/neofetch <<'NEOFETCH'
+#!/usr/bin/env bash
+exec neowofetch "$@"
+NEOFETCH
+chmod 0755 config/includes.chroot/usr/local/bin/neofetch
 
 # Enable the Qortal-inspired KDE colors and notification sound theme.
 cat > config/includes.chroot/etc/xdg/kdeglobals <<'KDEGLOBALS'
@@ -474,6 +567,7 @@ xdg-utils
 ffmpeg
 yt-dlp
 fastfetch
+neowofetch
 age
 kdialog
 python3-pyqt6
