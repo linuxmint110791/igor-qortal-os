@@ -30,6 +30,27 @@ The ISO installs KDE Wallet, the Secret Service command-line client and Debian's
 
 This prepares the operating-system side for a single-login Qortal experience. It does **not yet automatically unlock Qortal Hub**: the current upstream Hub lock screen still asks for the Qortal wallet password and does not expose a Linux Secret Service/KWallet auto-unlock integration. Hub-side support must be added and built into a compatible Hub release before the full one-login flow can be claimed. The Qortal wallet password must never be copied into a shell script, environment variable, plaintext file, or made equal to the Linux password just to simulate single sign-on.
 
+## Qortal node and Reticulum networking
+
+The official Qortal Hub installer is used so the ISO receives the current Hub release. The Hub's connection selector already supports:
+
+- **Local node** — connects to the Qortal Core running on this computer (the default local API endpoint is `https://127.0.0.1:12391` in the desktop app).
+- **Public node** — connects to the configured Qortal public endpoint for hosted access.
+- **Custom node** — lets the user save and switch between additional node URLs, including other machines on the LAN or self-operated public nodes.
+
+These modes are selected inside Qortal Hub's connection-mode screen; they are not separate blockchain networks. A local Core remains the preferred full-node setup. Public-node access depends on the operator of that public service.
+
+Qortal Hub also includes its own Reticulum integration. It manages its Reticulum daemon, bridge, mesh interfaces and bootstrap connections itself; Igorcoin OS does not start a competing system-wide `rnsd` service. The Hub's documented default mesh bootstrap endpoints include `phantom.mobilefabrik.com:4400`, `reticulum.qortal.link:4444` and `reticulum2.qortal.link:4444`. Reticulum options and connection status are available in Hub's Settings.
+
+### Firewall ports
+
+The default firewall blocks unsolicited inbound traffic but allows outbound connections. The ISO adds narrowly scoped inbound TCP rules for:
+- `12392/tcp` — Qortal blockchain peer connections.
+- `12394/tcp` — Qortal QDN data-peer connections.
+- `4243/tcp` — Qortal Hub's Linux Reticulum mesh listener.
+
+These rules allow other nodes to initiate connections to this computer when the router/network also permits it. Outbound connections to public Qortal nodes and Reticulum bootstrap hubs work without opening broad inbound access. Qortal API port `12391` is not opened to the network; it remains a local interface.
+
 ## Qortal installation
 The ISO contains the official installer script itself. After the operating system is installed and the user logs into KDE for the first time, the installer opens in a terminal automatically. It can also be started later from **Applications → Install Qortal**.
 
