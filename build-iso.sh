@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-if [[ \${EUID} -ne 0 ]]; then echo "Run as root: sudo bash $0"; exit 1; fi
+if [[ ${EUID} -ne 0 ]]; then echo "Run as root: sudo bash $0"; exit 1; fi
 export DEBIAN_FRONTEND=noninteractive
-SCRIPT_DIR="$(cd -- "$(dirname -- "\${BASH_SOURCE[0]}")" && pwd)"
-BUILD_DIR="\${BUILD_DIR:-$SCRIPT_DIR/build-trixie}"
-OUTPUT_ISO="\${OUTPUT_ISO:-$SCRIPT_DIR/igorcoin-qortal-os-debian13-amd64.iso}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+BUILD_DIR="${BUILD_DIR:-$SCRIPT_DIR/build-trixie}"
+OUTPUT_ISO="${OUTPUT_ISO:-$SCRIPT_DIR/igorcoin-qortal-os-debian13-amd64.iso}"
 case "$BUILD_DIR" in ""|"/"|"$SCRIPT_DIR"|"$HOME"|"/home"|"/root") echo "Refusing unsafe build directory: $BUILD_DIR" >&2; exit 1;; esac
 if [[ "$OUTPUT_ISO" == "$BUILD_DIR"* ]]; then echo "Output ISO must be outside build directory." >&2; exit 1; fi
 apt-get update
@@ -119,7 +119,5 @@ ISO_FILE="$(find . -maxdepth 1 -type f -name '*.iso' -print -quit)"
 if [[ -z "$ISO_FILE" || ! -s "$ISO_FILE" ]]; then echo "ISO build failed: no ISO image was produced." >&2; exit 1; fi
 mkdir -p "$(dirname -- "$OUTPUT_ISO")"
 cp -- "$ISO_FILE" "$OUTPUT_ISO"
-sha256sum "$OUTPUT_ISO" > "$OUTPUT_ISO.sha256"
 echo "Igorcoin Qortal OS ISO ready: $OUTPUT_ISO"
 du -h "$OUTPUT_ISO"
-cat "$OUTPUT_ISO.sha256"
