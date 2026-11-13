@@ -154,7 +154,25 @@ Presentation {
         centeredText: "<h1>What is Qortal?</h1><br/>Qortal is a decentralised blockchain-based network. It combines identity, transactions, data publishing and applications without relying on one central platform.<br/><br/>Participants run nodes that help maintain and share the network."
     }
     Slide {
-        centeredText: "<h1>Your Qortal wallet</h1><br/>Your wallet gives you control over your QORT and your Qortal identity. Keep your seed phrase and password private. Back up your wallet securely.<br/><br/><img src='qortal-wallet-qr.png' width='190' height='190'/><br/><b>Support Igorcoin Qortal OS:</b><br/>QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ"
+        Image {
+            source: "qortal-wallet-qr.png"
+            width: 190
+            height: 190
+            fillMode: Image.PreserveAspectFit
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: 22
+        }
+        Text {
+            text: "<h1>Your Qortal wallet</h1><br/>Your wallet gives you control over your QORT and your Qortal identity.<br/><br/><b>Support Igorcoin Qortal OS:</b><br/>QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ<br/><br/>Keep your seed phrase and password private. Back up your wallet securely."
+            color: presentation.textColor
+            width: parent.width - 50
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 28
+        }
     }
     Slide {
         centeredText: "<h1>How does Qortal work?</h1><br/>A Qortal node connects to other nodes and synchronises blockchain data. The network uses its own consensus and account-based identity system. Your node can participate in the network instead of depending on a single central server."
@@ -203,6 +221,10 @@ curl --fail --location --connect-timeout 20 --max-time 180 --retry 4 --retry-all
 test -s config/includes.chroot/usr/share/pixmaps/qortal-logo.png
 install -m 0644 config/includes.chroot/usr/share/pixmaps/qortal-logo.png \
   config/includes.chroot/etc/calamares/branding/igorcoin/qortal-logo.png
+# Generate the installer wallet QR from the exact address confirmed from the supplied image.
+QORTAL_WALLET_ADDRESS="QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ"
+qrencode -t PNG -s 7 -m 3 -o config/includes.chroot/etc/calamares/branding/igorcoin/qortal-wallet-qr.png "$QORTAL_WALLET_ADDRESS"
+test -s config/includes.chroot/etc/calamares/branding/igorcoin/qortal-wallet-qr.png
 
 # Create the branded desktop/login wallpaper: official Qortal background plus
 # the official transparent Qortal logo. The source press-kit assets remain intact.
