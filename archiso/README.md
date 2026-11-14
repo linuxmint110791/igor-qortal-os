@@ -33,7 +33,7 @@ Use OVMF for UEFI. QEMU cannot validate physical hybrid graphics, Wi-Fi, Bluetoo
 The profile uses Calamares' `unpackfs` module to deploy the Archiso squashfs, then configures machine-id, fstab, initramfs, users, SDDM and GRUB. The squashfs path and module behavior must be verified against the actual Archiso build. This installer is experimental until UEFI/GPT, ext4, Btrfs, account creation and first boot pass in a disposable VM. Btrfs subvolumes must be tested separately.
 
 ## Decentralized stack
-Qortal Core and Hub are retrieved from official GitHub latest-release APIs during image creation. For reproducible releases, pin versions and verify checksums. RNS and NomadNet use an isolated Python venv. MeshChat is not represented by an unverified package name; add it only after its upstream Linux package is confirmed.
+Qortal Core and Hub are retrieved from official GitHub latest-release APIs during image creation. For reproducible releases, pin versions and verify checksums. RNS and NomadNet use an isolated Python venv. Reticulum MeshChat is downloaded as its official Linux AppImage from the upstream GitHub release API and gets a desktop launcher.
 
 ## Security
 The live account `liveuser` has passwordless sudo for the live session. Qortal and Reticulum run as separate unprivileged accounts. DNS defaults to Cloudflare with Quad9 fallback. No wallet, seed phrase or private key is embedded.
