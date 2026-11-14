@@ -5,17 +5,19 @@ pkgrel=1
 pkgdesc="Desktop launcher for the official Qortal Linux installer"
 arch=('any')
 url="https://github.com/linuxmint110791/igor-qortal-os"
-license=('custom')
+license=('MIT')
 depends=('bash' 'curl' 'coreutils')
 optdepends=('kdialog: graphical confirmation dialog (KDE)'
             'zenity: graphical confirmation dialog (GTK desktops)')
-install=
 source=('qortal-installer.sh'
-        'qortal-installer.desktop')
-sha256sums=('SKIP'
+        'qortal-installer.desktop'
+        'LICENSE')
+sha256sums=('78c344a6f75a9ffb850d898fbc354da99b4559bc374ef4d75ca0492839b0da04'
+            '07e7a7de7d826918ca1c70b449064dffcf12b2cf957ded3f3dbd33e25e97199d'
             'SKIP')
 
 package() {
   install -Dm755 "$srcdir/qortal-installer.sh" "$pkgdir/usr/bin/qortal-installer"
   install -Dm644 "$srcdir/qortal-installer.desktop" "$pkgdir/usr/share/applications/qortal-installer.desktop"
+  install -Dm644 "$srcdir/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
