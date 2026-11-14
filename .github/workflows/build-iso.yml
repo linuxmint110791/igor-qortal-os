@@ -39,8 +39,10 @@ jobs:
           docker pull archlinux:base-devel
           docker run --rm --privileged --network host \
             --security-opt seccomp=unconfined \
-            -v "$GITHUB_WORKSPACE/archiso:/work" -w /work \
-            archlinux:base-devel bash /work/scripts/container-build.sh
+            -v "$GITHUB_WORKSPACE/archiso:/work" \
+            -v "$RUNNER_TEMP/igorcoin-pacman-cache:/var/cache/pacman/pkg" \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+            -w /work archlinux:base-devel bash /work/scripts/container-build.sh
       - name: Verify ISO and checksum
         run: |
           set -Eeuo pipefail
