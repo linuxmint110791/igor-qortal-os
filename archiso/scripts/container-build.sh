@@ -16,7 +16,7 @@ case "$KERNEL_VERSION" in
   *) echo "Expected Linux 7.3.4, repository offers: $KERNEL_VERSION" >&2; exit 1 ;;
 esac
 
-# Calamares is built from AUR as an unprivileged makepkg user.
+# Build the community Calamares package as an unprivileged makepkg user.
 id builder >/dev/null 2>&1 || useradd -m -G wheel builder
 printf 'builder ALL=(ALL) NOPASSWD: /usr/bin/pacman\n' > /etc/sudoers.d/90-builder
 chmod 0440 /etc/sudoers.d/90-builder
@@ -38,9 +38,10 @@ cp -a "$ROOT/airootfs/." "$PROFILE/airootfs/"
 chmod 0755 "$PROFILE/airootfs/root/customize_airootfs.sh"
 chmod 0440 "$PROFILE/airootfs/etc/sudoers.d/99-liveuser"
 
-# Temporary repository provides Calamares to mkarchiso.
-sed -i '1i[igorcoin]\nServer = file:///tmp/igorcoin-localrepo' "$PROFILE/pacman.conf"
+# The local, unsigned repository exists only in this disposable build container.
+printf '\n[igorcoin]\nSigLevel = Optional TrustAll\nServer = file:///tmp/igorcoin-localrepo\n' >> "$PROFILE/pacman.conf"
 mkarchiso -v -w "$WORK" -o "$OUT" "$PROFILE"
+
 ISO="$(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print -quit)"
 test -n "$ISO"
 mv "$ISO" "$OUT/igorcoin-qortal-os-x86_64.iso"
