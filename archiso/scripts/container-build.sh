@@ -43,5 +43,5 @@ if [[ "$ISO" != "$OUT/igorcoin-qortal-os-x86_64.iso" ]]; then
   mv "$ISO" "$OUT/igorcoin-qortal-os-x86_64.iso"
 fi
 file "$OUT/igorcoin-qortal-os-x86_64.iso"
-sha256sum "$OUT/igorcoin-qortal-os-x86_64.iso" | tee "$OUT/igorcoin-qortal-os-x86_64.iso.sha256"
+(cd "$OUT" && sha256sum igorcoin-qortal-os-x86_64.iso > igorcoin-qortal-os-x86_64.iso.sha256)
 echo "ISO built. This workflow does not yet sign the boot chain for Secure Boot."
