@@ -26,7 +26,7 @@ chmod 0755 /opt/qortal/hub/Qortal-Hub.AppImage
 
 install -d -m 0755 /usr/share/applications
 MESH_JSON="$(curl -fsSL https://api.github.com/repos/liamcottle/reticulum-meshchat/releases/latest)"
-MESH_URL="$(jq -er '[.assets[] | select((.name | test("(x86_64|x64).*\\.AppImage$"; "i")))][0].browser_download_url' <<<"$MESH_JSON")""
+MESH_URL="$(jq -er '[.assets[] | select((.name | test("(x86_64|x64).*\\.AppImage$"; "i")))][0].browser_download_url' <<<"$MESH_JSON")"
 install -d -m 0755 /opt/qortal/meshchat
 curl -fL --retry 3 --retry-delay 2 "$MESH_URL" -o /opt/qortal/meshchat/ReticulumMeshChat.AppImage
 chmod 0755 /opt/qortal/meshchat/ReticulumMeshChat.AppImage
