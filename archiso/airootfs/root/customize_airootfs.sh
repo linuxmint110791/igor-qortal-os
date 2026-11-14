@@ -66,6 +66,34 @@ Type=Application
 Categories=Network;System;
 EOF
 
+cat > /usr/local/bin/igorcoin-qortal-official-install <<'EOF'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+if command -v curl >/dev/null 2>&1; then
+  curl -fL --retry 3 https://link.qortal.dev/linux-script -o "$TMP/Qortal-Setup-Linux.sh"
+elif command -v wget >/dev/null 2>&1; then
+  wget -qO "$TMP/Qortal-Setup-Linux.sh" https://link.qortal.dev/linux-script
+else
+  echo "Install curl or wget first." >&2
+  exit 1
+fi
+test -s "$TMP/Qortal-Setup-Linux.sh"
+bash "$TMP/Qortal-Setup-Linux.sh"
+EOF
+chmod 0755 /usr/local/bin/igorcoin-qortal-official-install
+cat > /usr/share/applications/igorcoin-qortal-official-install.desktop <<'EOF'
+[Desktop Entry]
+Name=Qortal Universal Linux Installer
+Comment=Run the official Qortal Linux setup script
+Exec=konsole -e /usr/local/bin/igorcoin-qortal-official-install
+Icon=applications-internet
+Terminal=false
+Type=Application
+Categories=Network;System;
+EOF
+
 install -d -m 0755 /opt/reticulum
 python -m venv /opt/reticulum/venv
 /opt/reticulum/venv/bin/pip install --no-cache-dir --upgrade pip wheel
