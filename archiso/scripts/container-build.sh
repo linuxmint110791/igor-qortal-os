@@ -39,9 +39,9 @@ if [[ -z "$ISO" ]]; then
   ISO="$(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print -quit)"
 fi
 test -n "$ISO"
-if [[ "$ISO" != "$OUT/igorcoin-qortal-os-x86_64.iso" ]]; then
-  mv "$ISO" "$OUT/igorcoin-qortal-os-x86_64.iso"
+if [[ "$ISO" != "$OUT/amd.iso" ]]; then
+  mv "$ISO" "$OUT/amd.iso"
 fi
-file "$OUT/igorcoin-qortal-os-x86_64.iso"
-(cd "$OUT" && sha256sum igorcoin-qortal-os-x86_64.iso > igorcoin-qortal-os-x86_64.iso.sha256)
+file "$OUT/amd.iso"
+(cd "$OUT" && sha256sum amd.iso > amd.iso.sha256)
 echo "ISO built. This workflow does not yet sign the boot chain for Secure Boot."
