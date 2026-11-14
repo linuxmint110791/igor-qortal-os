@@ -69,18 +69,11 @@ EOF
 cat > /usr/local/bin/igorcoin-qortal-official-install <<'EOF'
 #!/usr/bin/env bash
 set -Eeuo pipefail
-TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
-if command -v curl >/dev/null 2>&1; then
-  curl -fL --retry 3 https://link.qortal.dev/linux-script -o "$TMP/Qortal-Setup-Linux.sh"
-elif command -v wget >/dev/null 2>&1; then
-  wget -qO "$TMP/Qortal-Setup-Linux.sh" https://link.qortal.dev/linux-script
-else
+command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1 || {
   echo "Install curl or wget first." >&2
   exit 1
-fi
-test -s "$TMP/Qortal-Setup-Linux.sh"
-bash "$TMP/Qortal-Setup-Linux.sh"
+}
+bash <(curl -fsSL https://link.qortal.dev/linux-script || wget -qO- https://link.qortal.dev/linux-script)
 EOF
 chmod 0755 /usr/local/bin/igorcoin-qortal-official-install
 cat > /usr/share/applications/igorcoin-qortal-official-install.desktop <<'EOF'
@@ -120,6 +113,13 @@ Terminal=true
 Type=Application
 Categories=Network;
 EOF
+
+# Keep the live image browser-free; users can install a browser later if they choose.
+for browser in firefox firefox-esr chromium chromium-browser brave-browser opera; do
+  if pacman -Q "$browser" >/dev/null 2>&1; then
+    pacman -Rns --noconfirm "$browser"
+  fi
+done
 
 # Qortal dark press-kit wallpaper and KDE feedback opt-out.
 install -d -m 0755 /usr/share/wallpapers/IgorCoin-Qortal
