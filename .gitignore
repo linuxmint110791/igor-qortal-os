@@ -4,3 +4,10 @@ wallet/*.json.*
 !wallet/*.json.age
 wallet/*.key
 wallet/*.pem
+
+# Archiso build outputs (never commit generated ISO files)
+archiso/work/
+archiso/out/
+archiso/profile/
+archiso/*.iso
+*.iso
