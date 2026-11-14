@@ -72,7 +72,28 @@ jobs:
             gh release create "$TAG" \
               --title "IgorCoin-Qortal OS $TAG" \
               --notes "Experimental Arch Linux-based IgorCoin-Qortal OS live image. Secure Boot signing and physical-hardware validation are not yet certified."
+          # GitHub Releases reject individual assets >= 2 GiB.
+          # Keep the original amd.iso in the Actions artifact, and publish
+          # the release image as two downloadable chunks that reassemble byte-for-byte.
+          mkdir -p release-assets
+          split -b 1800M -d -a 2 archiso/out/amd.iso release-assets/amd.iso.part-
+          cp archiso/out/amd.iso.sha256 release-assets/amd.iso.sha256
+          cat > release-assets/README.txt <<'EOF'
+          IgorCoin-Qortal OS AMD64 ISO
+          
+          GitHub Releases limit each individual asset to less than 2 GiB.
+          Download both amd.iso.part-00 and amd.iso.part-01 into the same folder,
+          then run:
+          
+            cat amd.iso.part-00 amd.iso.part-01 > amd.iso
+            sha256sum --check amd.iso.sha256
+          
+          The resulting file is amd.iso.
+          EOF
+          gh release view "$TAG" >/dev/null
           gh release upload "$TAG" \
-            archiso/out/amd.iso \
-            archiso/out/amd.iso.sha256 \
+            release-assets/amd.iso.part-00 \
+            release-assets/amd.iso.part-01 \
+            release-assets/amd.iso.sha256 \
+            release-assets/README.txt \
             --clobber
