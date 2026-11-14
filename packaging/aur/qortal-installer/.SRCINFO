@@ -15,6 +15,6 @@ pkgbase = qortal-installer
 	source = LICENSE
 	sha256sums = 78c344a6f75a9ffb850d898fbc354da99b4559bc374ef4d75ca0492839b0da04
 	sha256sums = 07e7a7de7d826918ca1c70b449064dffcf12b2cf957ded3f3dbd33e25e97199d
-	sha256sums = SKIP
+	sha256sums = 2acfb64283dc93563627de235bed1bf4e10780605149f6f94e8e958d3cdb6aad
 
 pkgname = qortal-installer
