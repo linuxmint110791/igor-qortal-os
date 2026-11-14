@@ -3,10 +3,6 @@ name: Build IgorCoin-Qortal OS (Archiso)
 on:
   push:
     branches: [main]
-    paths:
-      - 'archiso/**'
-      - '.github/workflows/build-igorcoin-qortal.yml'
-      - 'README.md'
   workflow_dispatch:
     inputs:
       release_tag:
