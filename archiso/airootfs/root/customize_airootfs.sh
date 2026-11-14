@@ -2,10 +2,12 @@
 set -Eeuo pipefail
 trap 'echo "customize_airootfs.sh failed at line $LINENO" >&2' ERR
 
+LIVE_USER="igorcoin"
+
 echo igorcoin-qortal > /etc/hostname
-id liveuser >/dev/null 2>&1 || useradd -m -G wheel,audio,video,storage,optical,network -s /bin/bash liveuser
+id "$LIVE_USER" >/dev/null 2>&1 || useradd -m -G wheel,audio,video,storage,optical,network -s /bin/bash "$LIVE_USER"
 install -d -m 0755 /etc/sudoers.d
-printf '%s\n' 'liveuser ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/99-liveuser
+printf '%s\n' "$LIVE_USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/99-liveuser
 chmod 0440 /etc/sudoers.d/99-liveuser
 visudo -cf /etc/sudoers.d/99-liveuser
 
@@ -92,17 +94,6 @@ python -m venv /opt/reticulum/venv
 /opt/reticulum/venv/bin/pip install --no-cache-dir --upgrade pip wheel
 /opt/reticulum/venv/bin/pip install --no-cache-dir rns nomadnet
 
-cat > /usr/share/applications/reticulum-meshchat.desktop <<'EOF'
-[Desktop Entry]
-Name=Reticulum MeshChat
-Comment=Mesh messaging over Reticulum
-Exec=/opt/qortal/meshchat/ReticulumMeshChat.AppImage
-Icon=applications-internet
-Terminal=false
-Type=Application
-Categories=Network;Chat;
-EOF
-
 cat > /usr/share/applications/nomadnet.desktop <<'EOF'
 [Desktop Entry]
 Name=NomadNet
@@ -139,14 +130,22 @@ cat > /etc/skel/.config/kuserfeedbackrc <<'EOF'
 FeedbackLevel=0
 EOF
 
-install -d -o liveuser -g liveuser /home/liveuser/.config /home/liveuser/Desktop /home/liveuser/.config/autostart
-printf '[General]\nColorScheme=BreezeDark\nName=IgorCoin-Qortal Dark\n' > /home/liveuser/.config/kdeglobals
-chown liveuser:liveuser /home/liveuser/.config/kdeglobals
-cp -a /etc/skel/.config/autostart/. /home/liveuser/.config/autostart/ 2>/dev/null || true
-cp /etc/skel/.config/kuserfeedbackrc /home/liveuser/.config/kuserfeedbackrc
-chown -R liveuser:liveuser /home/liveuser/.config
+install -d -o "$LIVE_USER" -g "$LIVE_USER" "/home/$LIVE_USER/.config" "/home/$LIVE_USER/Desktop" "/home/$LIVE_USER/.config/autostart"
+printf '[General]\nColorScheme=BreezeDark\nName=IgorCoin-Qortal Dark\n' > "/home/$LIVE_USER/.config/kdeglobals"
+chown "$LIVE_USER:$LIVE_USER" "/home/$LIVE_USER/.config/kdeglobals"
+cp -a /etc/skel/.config/autostart/. "/home/$LIVE_USER/.config/autostart/" 2>/dev/null || true
+cp /etc/skel/.config/kuserfeedbackrc "/home/$LIVE_USER/.config/kuserfeedbackrc"
+chown -R "$LIVE_USER:$LIVE_USER" "/home/$LIVE_USER/.config"
 
-sed -i '/^\[igorcoin\]$/,/^$/d' /etc/pacman.conf || true
+# Override the upstream Archiso liveuser autologin with the IgorCoin account.
+install -d -m 0755 /etc/sddm.conf.d
+cat > /etc/sddm.conf.d/99-igorcoin-autologin.conf <<'EOF'
+[Autologin]
+User=igorcoin
+Session=cinnamon.desktop
+Relogin=false
+EOF
+
 systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service reticulum.service
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
