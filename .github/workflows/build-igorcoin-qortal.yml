@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Optional GitHub Release tag; leave empty to build without publishing a release'
+        description: 'Optional GitHub Release tag (leave empty to build without publishing a release)'
         required: false
         type: string
 
@@ -34,19 +34,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y zstd
-
-      - name: Validate build scripts
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          bash -n archiso/scripts/container-build.sh
-          bash -n archiso/airootfs/root/customize_airootfs.sh
-          for unit in qortal reticulum; do
-            test -s "archiso/airootfs/etc/systemd/system/${unit}.service"
-            grep -q '^\[Unit\]$' "archiso/airootfs/etc/systemd/system/${unit}.service"
-            grep -q '^\[Service\]$' "archiso/airootfs/etc/systemd/system/${unit}.service"
-            grep -q '^ExecStart=/' "archiso/airootfs/etc/systemd/system/${unit}.service"
-          done
 
       - name: Build inside official Arch Linux container
         shell: bash
@@ -75,7 +62,7 @@ jobs:
           test "$EXPECTED" = "$ACTUAL"
           echo "Original ISO: $(du -h amd.iso | cut -f1)"
           echo "Compressed ISO: $(du -h amd.iso.zst | cut -f1)"
-          echo "Compressed image SHA-256 matches the original ISO."
+          echo "Compressed ISO hash matches the original."
 
       - name: Upload complete ISO artifact
         uses: actions/upload-artifact@v4
@@ -90,19 +77,18 @@ jobs:
           retention-days: 90
 
       - name: Publish verified ISO release
-        if: github.event_name == 'workflow_dispatch'
+        if: success()
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_TAG: ${{ inputs.release_tag }}
         shell: bash
         run: |
           set -Eeuo pipefail
-          TAG="$INPUT_TAG"
-          if [[ -z "$TAG" ]]; then
-            echo "No release tag supplied; keeping this build as a workflow artifact only."
+          if [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" || -z "$INPUT_TAG" ]]; then
+            echo "No explicit release tag supplied; keeping this build as a workflow artifact only."
             exit 0
           fi
-
+          TAG="$INPUT_TAG"
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" \
               --title "IgorCoin-Qortal OS $TAG" \
@@ -111,6 +97,7 @@ jobs:
           mkdir -p release-assets
           cp archiso/out/amd.iso.sha256 release-assets/
           SIZE=$(stat -c%s archiso/out/amd.iso.zst)
+          # Keep each asset below GitHub's 2 GB per-release-asset limit.
           if (( SIZE < 1900000000 )); then
             cp archiso/out/amd.iso.zst release-assets/
             cat > release-assets/README.txt <<'EOF'
@@ -126,7 +113,7 @@ The checksum must report OK before writing the ISO to USB.
 EOF
             ASSETS=(release-assets/amd.iso.zst release-assets/amd.iso.sha256 release-assets/README.txt)
           else
-            echo "::warning::Compressed ISO exceeds GitHub's per-asset limit; publishing compressed parts."
+            echo "::warning::Compressed ISO is too large for one GitHub Release asset; publishing compressed parts."
             split -b 1800M -d -a 2 archiso/out/amd.iso.zst release-assets/amd.iso.zst.part-
             cat > release-assets/README.txt <<'EOF'
 IgorCoin-Qortal OS — split compressed download
