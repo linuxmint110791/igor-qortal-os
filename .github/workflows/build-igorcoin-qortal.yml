@@ -43,6 +43,9 @@ jobs:
           docker run --rm --privileged --network host \
             -v "$GITHUB_WORKSPACE/archiso:/work" -w /work \
             archlinux:base-devel bash /work/scripts/container-build.sh
+          # The build container runs as root; restore runner ownership for checksum/compression.
+          sudo chown -R "$(id -u):$(id -g)" archiso/out
+          sudo chmod -R u+rwX archiso/out
 
       - name: Verify and compress ISO
         shell: bash
