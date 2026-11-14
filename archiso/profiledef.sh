@@ -3,11 +3,11 @@ iso_name="igorcoin-qortal-os"
 iso_label="IGORCOIN_QORTAL"
 iso_publisher="IgorCoin-Qortal OS"
 iso_application="IgorCoin-Qortal Live System"
-iso_version="0.1.0"
+iso_version="0.1.1"
 install_dir="arch"
 buildmodes=('iso')
-# Current archiso boot-mode syntax. Secure Boot signing is a separate release gate.
-bootmodes=('uefi.systemd-boot' 'bios.syslinux')
+# GRUB provides a readable green UEFI boot menu; Syslinux remains for legacy BIOS.
+bootmodes=('bios.syslinux' 'uefi.grub')
 arch="x86_64"
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
