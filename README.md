@@ -9,7 +9,7 @@
 - **KDE Plasma available as an alternative session** through SDDM
 - SDDM display manager; the live session is configured to start Cinnamon
 - Linux kernel **7.3.4 is the requested release target**; the current profile still installs the repository `linux` package and does not yet pin or build 7.3.4
-- Qortal Core and Qortal Hub fetched from their upstream GitHub releases during image customization
+- Qortal is optional: first desktop login offers to install Qortal Core and Qortal Hub; the installer remains available from the application menu
 - Reticulum (RNS), NomadNet and Reticulum MeshChat
 - NetworkManager, Bluetooth, PipeWire and common laptop utilities
 - Archinstall available for installation; a polished graphical installer is not yet part of this first build
