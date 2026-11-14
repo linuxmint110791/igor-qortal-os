@@ -1,0 +1,72 @@
+name: Build IgorCoin-Qortal OS (Archiso)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'archiso/**'
+      - '.github/workflows/build-igorcoin-qortal.yml'
+      - 'README.md'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional GitHub Release tag (leave empty to upload an artifact only)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: igorcoin-qortal-archiso
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build custom IgorCoin-Qortal live ISO
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build inside official Arch Linux container
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          docker pull archlinux:base-devel
+          docker run --rm --privileged --network host \
+            -v "$GITHUB_WORKSPACE/archiso:/work" -w /work \
+            archlinux:base-devel bash /work/scripts/container-build.sh
+
+      - name: Verify output
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -s archiso/out/igorcoin-qortal-os-x86_64.iso
+          test -s archiso/out/igorcoin-qortal-os-x86_64.iso.sha256
+          cd archiso/out
+          sha256sum --check igorcoin-qortal-os-x86_64.iso.sha256
+
+      - name: Upload IgorCoin-Qortal OS ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: IgorCoin-Qortal-OS-x86_64
+          path: |
+            archiso/out/igorcoin-qortal-os-x86_64.iso
+            archiso/out/igorcoin-qortal-os-x86_64.iso.sha256
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish GitHub Release
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          gh release create "${{ inputs.release_tag }}" \
+            archiso/out/igorcoin-qortal-os-x86_64.iso \
+            archiso/out/igorcoin-qortal-os-x86_64.iso.sha256 \
+            --title "IgorCoin-Qortal OS ${{ inputs.release_tag }}" \
+            --notes "Experimental Arch Linux-based IgorCoin-Qortal OS live image. Secure Boot signing and physical-hardware validation are not yet certified."
