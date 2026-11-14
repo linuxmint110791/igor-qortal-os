@@ -59,14 +59,20 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Publish GitHub Release
-        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+      - name: Publish downloadable ISO release
+        if: always() && steps.build.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.release_tag }}
         run: |
           set -Eeuo pipefail
-          gh release create "${{ inputs.release_tag }}" \
+          TAG="${INPUT_TAG:-v0.1.0}"
+          gh release view "$TAG" >/dev/null 2>&1 || \
+            gh release create "$TAG" \
+              --title "IgorCoin-Qortal OS $TAG" \
+              --notes "Experimental Arch Linux-based IgorCoin-Qortal OS live image. Secure Boot signing and physical-hardware validation are not yet certified."
+          gh release upload "$TAG" \
             archiso/out/igorcoin-qortal-os-x86_64.iso \
             archiso/out/igorcoin-qortal-os-x86_64.iso.sha256 \
-            --title "IgorCoin-Qortal OS ${{ inputs.release_tag }}" \
-            --notes "Experimental Arch Linux-based IgorCoin-Qortal OS live image. Secure Boot signing and physical-hardware validation are not yet certified."
+            --clobber
