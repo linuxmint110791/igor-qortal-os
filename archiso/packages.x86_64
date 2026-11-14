@@ -1,4 +1,5 @@
 # Base live environment and installer tools
+grub
 base
 base-devel
 linux
