@@ -1,5 +1,6 @@
 # Base live environment and installer tools
 grub
+efibootmgr
 base
 base-devel
 linux
