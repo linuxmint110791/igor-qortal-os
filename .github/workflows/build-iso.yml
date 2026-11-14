@@ -23,6 +23,15 @@ jobs:
     timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
+      - name: Restore Arch package cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/igorcoin-pacman-cache
+          key: arch-pacman-${{ runner.os }}-${{ hashFiles('archiso/packages.x86_64', 'archiso/pacman.conf') }}
+          restore-keys: |
+            arch-pacman-${{ runner.os }}-
+      - name: Prepare package cache
+        run: mkdir -p "${RUNNER_TEMP}/igorcoin-pacman-cache"
       - name: Build in privileged Arch container
         shell: bash
         run: |
