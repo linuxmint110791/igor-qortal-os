@@ -92,33 +92,33 @@ jobs:
           if (( SIZE < 1900000000 )); then
             cp archiso/out/amd.iso.zst release-assets/
             cat > release-assets/README.txt <<'EOF'
-IgorCoin-Qortal OS — single-file download
+          IgorCoin-Qortal OS — single-file download
 
-Download amd.iso.zst and amd.iso.sha256.
-Decompress:
-  zstd -d amd.iso.zst -o amd.iso
-Verify:
-  sha256sum --check amd.iso.sha256
+          Download amd.iso.zst and amd.iso.sha256.
+          Decompress:
+            zstd -d amd.iso.zst -o amd.iso
+          Verify:
+            sha256sum --check amd.iso.sha256
 
-The checksum must report OK before writing the ISO to USB.
-EOF
+          The checksum must report OK before writing the ISO to USB.
+          EOF
             ASSETS=(release-assets/amd.iso.zst release-assets/amd.iso.sha256 release-assets/README.txt)
           else
             echo "::warning::Compressed ISO is still too large for one GitHub Release asset; publishing verified split compressed parts."
             split -b 1800M -d -a 2 archiso/out/amd.iso.zst release-assets/amd.iso.zst.part-
             cat > release-assets/README.txt <<'EOF'
-IgorCoin-Qortal OS — split compressed download
+          IgorCoin-Qortal OS — split compressed download
 
-Download every amd.iso.zst.part-* file and amd.iso.sha256.
-Reassemble and decompress:
-  cat amd.iso.zst.part-* > amd.iso.zst
-  zstd -t amd.iso.zst
-  zstd -d amd.iso.zst -o amd.iso
-Verify:
-  sha256sum --check amd.iso.sha256
+          Download every amd.iso.zst.part-* file and amd.iso.sha256.
+          Reassemble and decompress:
+            cat amd.iso.zst.part-* > amd.iso.zst
+            zstd -t amd.iso.zst
+            zstd -d amd.iso.zst -o amd.iso
+          Verify:
+            sha256sum --check amd.iso.sha256
 
-The checksum must report OK before writing the ISO to USB.
-EOF
+          The checksum must report OK before writing the ISO to USB.
+          EOF
             ASSETS=(release-assets/amd.iso.zst.part-* release-assets/amd.iso.sha256 release-assets/README.txt)
           fi
 
