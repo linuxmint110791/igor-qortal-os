@@ -14,7 +14,7 @@ This Arch Linux/Archiso implementation is isolated beside the existing Debian pr
 sudo apt update
 sudo apt install -y docker.io
 sudo systemctl enable --now docker
-./archiso/build.sh
+bash ./archiso/build.sh
 ```
 The script builds inside a privileged Arch container. It does not install Arch packages on Mint. Privileged containers have broad access to the host kernel; use only with trusted source.
 
