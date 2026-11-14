@@ -26,7 +26,7 @@ chmod 0755 /opt/qortal/hub/Qortal-Hub.AppImage
 
 install -d -m 0755 /usr/share/applications
 MESH_JSON="$(curl -fsSL https://api.github.com/repos/liamcottle/reticulum-meshchat/releases/latest)"
-MESH_URL="$(jq -er '[.assets[] | select((.name | test("linux.*\\.AppImage$"; "i")))][0].browser_download_url' <<<"$MESH_JSON")"
+MESH_URL="$(jq -er '[.assets[] | select((.name | test("(x86_64|x64).*\\.AppImage$"; "i")))][0].browser_download_url' <<<"$MESH_JSON")""
 install -d -m 0755 /opt/qortal/meshchat
 curl -fL --retry 3 --retry-delay 2 "$MESH_URL" -o /opt/qortal/meshchat/ReticulumMeshChat.AppImage
 chmod 0755 /opt/qortal/meshchat/ReticulumMeshChat.AppImage
@@ -105,15 +105,14 @@ cp /etc/skel/.config/kuserfeedbackrc /home/liveuser/.config/kuserfeedbackrc
 chown -R liveuser:liveuser /home/liveuser/.config
 
 sed -i '/^\[igorcoin\]$/,/^$/d' /etc/pacman.conf || true
-systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service docker.service qortal.service reticulum.service
-systemctl enable podman.socket || true
+systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service qortal.service reticulum.service
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
-cat > /usr/share/applications/calamares.desktop <<'EOF'
+cat > /usr/share/applications/archinstall.desktop <<'EOF'
 [Desktop Entry]
 Name=Install IgorCoin-Qortal OS
-Comment=Install IgorCoin-Qortal OS
-Exec=pkexec calamares
+Comment=Open the Archinstall guided installer
+Exec=konsole -e archinstall
 Icon=system-software-install
 Terminal=false
 Type=Application
