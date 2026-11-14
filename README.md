@@ -1,44 +1,53 @@
 # IgorCoin-Qortal OS
 
-**IgorCoin-Qortal OS** is an experimental Arch Linux-based distribution project. It uses the official Archiso releng profile as its starting point and produces a separately branded x86_64 live ISO.
+**IgorCoin-Qortal OS** is an experimental x86_64 Linux distribution built from the official Arch Linux repositories and the official Archiso `releng` profile.
 
-## Current design
+## Download
 
-- Arch Linux base and rolling package repositories
-- **Cinnamon 6.8 as the intended default desktop session**
-- **KDE Plasma available as an alternative session** through SDDM
-- SDDM display manager; the live session is configured to start Cinnamon
-- Linux kernel **7.3.4 is the requested release target**; the current profile still installs the repository `linux` package and does not yet pin or build 7.3.4
-- Qortal is optional: first desktop login offers to install Qortal Core and Qortal Hub; the installer remains available from the application menu
-- Reticulum (RNS), NomadNet and Reticulum MeshChat
-- NetworkManager, Bluetooth, PipeWire and common laptop utilities
-- Archinstall available for installation; a polished graphical installer is not yet part of this first build
-- No wallet seed, private key or user credentials are embedded in the image
+**[Download IgorCoin-Qortal OS — official GitHub Releases](https://github.com/linuxmint110791/igor-qortal-os/releases/latest)**
 
-## Build
+This is the dedicated download location for published ISO releases. Do not use an Actions run page as the permanent download address.
 
-GitHub Actions → **Build IgorCoin-Qortal OS (Archiso)** → **Run workflow**.
-
-A successful run uploads the artifact:
-
-**IgorCoin-Qortal-OS-x86_64**
-
-The ZIP contains:
-- `igorcoin-qortal-os-x86_64.iso`
-- `igorcoin-qortal-os-x86_64.iso.sha256`
-
-Verify after extracting:
+GitHub limits each individual release asset to less than 2 GiB. The ISO is therefore published as numbered parts alongside its SHA-256 checksum. Download every `amd.iso.part-*` file and `amd.iso.sha256` into one directory, then reassemble and verify:
 
 ```bash
-sha256sum -c igorcoin-qortal-os-x86_64.iso.sha256
+cat amd.iso.part-* > amd.iso
+sha256sum --check amd.iso.sha256
 ```
 
-## Important security status
+Only use the ISO if the checksum reports `OK`.
 
-**Secure Boot is not yet implemented or certified in this build.** The image has UEFI boot support, but its bootloader is not signed with a key trusted by a typical PC's factory Secure Boot database. Keep Secure Boot enabled only after a signed boot chain and the required trust/enrollment process have been implemented and tested. Do not assume that a successful ISO build means Secure Boot compatibility.
+## System design
 
-The live session's `liveuser` account has passwordless sudo for installation and recovery tasks. Do not use the live account as a permanent daily account. The installed system and installer workflow still need further testing.
+- Official Arch Linux package repositories: `core`, `extra`, and `multilib`
+- Official Archiso releng profile as the image foundation
+- Branded IgorCoin-Qortal OS live environment
+- Cinnamon is the intended default desktop; KDE Plasma remains an alternative target. Actual session availability must be confirmed against the built image.
+- Archinstall is included as the guided installation tool
+- Reticulum / RNS and NomadNet integration
+- Qortal installation is optional. The desktop includes a Qortal setup choice, and the upstream universal installer is available from the application menu.
+- The upstream Qortal universal installer is maintained by the Qortal community and is fetched from `https://link.qortal.dev/linux-script` when the user chooses to run it. It is not silently executed during OS installation.
 
-## Project status
+## Qortal installer
 
-This is an experimental first distribution build, not a stable release. Each successful artifact must be tested in a UEFI virtual machine and on physical hardware before being recommended for installation. Qortal and Reticulum upstream assets are fetched during the image build, so the build is not yet fully reproducible or version-pinned. Cinnamon and KDE package availability and session startup must be verified in CI before the ISO is considered successful. The kernel 7.3.4 target requires a separately pinned package/build step.
+The repository includes `scripts/install-qortal.sh`, a wrapper for the official upstream Qortal universal Linux installer:
+
+```bash
+bash <(curl -fsSL https://link.qortal.dev/linux-script || wget -qO- https://link.qortal.dev/linux-script)
+```
+
+The same installer is available in the desktop application menu as **Qortal Universal Linux Installer**. Review upstream script changes before running it; it installs software and may modify the user's Qortal directories.
+
+## Build status and security
+
+This is an experimental distribution, not yet a certified stable release. A successful GitHub Actions build and checksum do not replace testing in a UEFI virtual machine and on physical hardware.
+
+Secure Boot signing has not been implemented or certified. The requested Linux kernel 7.3.4 is not pinned in the current profile; the image uses the Arch repository kernel package. Do not assume either feature is present until explicitly implemented and tested.
+
+The live account has elevated installation privileges. Do not treat the live session as a hardened daily-use installation.
+
+## Source and build
+
+- Source: https://github.com/linuxmint110791/igor-qortal-os
+- Official downloads: https://github.com/linuxmint110791/igor-qortal-os/releases/latest
+- Build workflow: https://github.com/linuxmint110791/igor-qortal-os/actions/workflows/build-igorcoin-qortal.yml
