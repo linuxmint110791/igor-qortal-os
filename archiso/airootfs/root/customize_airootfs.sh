@@ -20,7 +20,7 @@ curl -fL --retry 3 --retry-delay 2 "$CORE_URL" -o /opt/qortal/core/qortal.jar
 chown qortal:qortal /opt/qortal/core/qortal.jar
 
 HUB_JSON="$(curl -fsSL https://api.github.com/repos/Qortal/Qortal-Hub/releases/latest)"
-HUB_URL="$(jq -er '[.assets[] | select((.name | test("x86_64|x64"; "i")) and (.name | endswith(".AppImage")))][0].browser_download_url' <<<"$HUB_JSON")"
+HUB_URL="$(jq -er '[.assets[] | select((.name | test("x86_64|x64|Qortal-Hub\\.AppImage$"; "i")) and (.name | endswith(".AppImage")))][0].browser_download_url' <<<"$HUB_JSON")"
 curl -fL --retry 3 --retry-delay 2 "$HUB_URL" -o /opt/qortal/hub/Qortal-Hub.AppImage
 chmod 0755 /opt/qortal/hub/Qortal-Hub.AppImage
 
