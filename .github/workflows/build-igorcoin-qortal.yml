@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Optional GitHub Release tag (leave empty to build without publishing a release)'
+        description: 'Optional GitHub Release tag (leave empty to use v0.1.0)'
         required: false
         type: string
 
@@ -55,14 +55,13 @@ jobs:
           test -s archiso/out/amd.iso.sha256
           cd archiso/out
           sha256sum --check amd.iso.sha256
-          zstd -T2 -15 --no-progress amd.iso -o amd.iso.zst
+          zstd -T0 -19 --no-progress amd.iso -o amd.iso.zst
           zstd -t amd.iso.zst
           EXPECTED="$(awk '{print $1}' amd.iso.sha256)"
           ACTUAL="$(zstd -dc amd.iso.zst | sha256sum | awk '{print $1}')"
           test "$EXPECTED" = "$ACTUAL"
           echo "Original ISO: $(du -h amd.iso | cut -f1)"
           echo "Compressed ISO: $(du -h amd.iso.zst | cut -f1)"
-          echo "Compressed ISO hash matches the original."
 
       - name: Upload complete ISO artifact
         uses: actions/upload-artifact@v4
@@ -76,7 +75,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Publish verified ISO release
+      - name: Publish one-file download when it fits GitHub limits
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
@@ -84,24 +83,20 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          if [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" || -z "$INPUT_TAG" ]]; then
-            echo "No explicit release tag supplied; keeping this build as a workflow artifact only."
-            exit 0
-          fi
-          TAG="$INPUT_TAG"
+          TAG="${INPUT_TAG:-v0.1.0}"
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" \
               --title "IgorCoin-Qortal OS $TAG" \
-              --notes "Experimental Arch Linux-based IgorCoin-Qortal OS live image. Download amd.iso.zst (or all split compressed parts) and decompress it with zstd. Verify the resulting ISO using amd.iso.sha256. Secure Boot signing and physical-hardware validation are not yet certified."
+              --notes "Experimental Arch Linux-based IgorCoin-Qortal OS live image. Download amd.iso.zst and decompress it with zstd -d. Verify the resulting ISO using amd.iso.sha256. Secure Boot signing and physical-hardware validation are not yet certified."
 
           mkdir -p release-assets
           cp archiso/out/amd.iso.sha256 release-assets/
           SIZE=$(stat -c%s archiso/out/amd.iso.zst)
-          # Keep each asset below GitHub's 2 GB per-release-asset limit.
+          # Keep below GitHub's 2 GB per-release-asset limit.
           if (( SIZE < 1900000000 )); then
             cp archiso/out/amd.iso.zst release-assets/
             cat > release-assets/README.txt <<'EOF'
-IgorCoin-Qortal OS — single compressed download
+IgorCoin-Qortal OS — single-file download
 
 Download amd.iso.zst and amd.iso.sha256.
 Decompress:
@@ -113,15 +108,14 @@ The checksum must report OK before writing the ISO to USB.
 EOF
             ASSETS=(release-assets/amd.iso.zst release-assets/amd.iso.sha256 release-assets/README.txt)
           else
-            echo "::warning::Compressed ISO is too large for one GitHub Release asset; publishing compressed parts."
+            echo "::warning::Compressed ISO is still too large for one GitHub Release asset; publishing verified split compressed parts."
             split -b 1800M -d -a 2 archiso/out/amd.iso.zst release-assets/amd.iso.zst.part-
             cat > release-assets/README.txt <<'EOF'
 IgorCoin-Qortal OS — split compressed download
 
 Download every amd.iso.zst.part-* file and amd.iso.sha256.
-Reassemble:
+Reassemble and decompress:
   cat amd.iso.zst.part-* > amd.iso.zst
-Test and decompress:
   zstd -t amd.iso.zst
   zstd -d amd.iso.zst -o amd.iso
 Verify:
@@ -132,5 +126,9 @@ EOF
             ASSETS=(release-assets/amd.iso.zst.part-* release-assets/amd.iso.sha256 release-assets/README.txt)
           fi
 
+          # Remove old split assets so the release does not show stale download instructions.
+          for asset in amd.iso.part-00 amd.iso.part-01 amd.iso.sha256 README.txt amd.iso.zst; do
+            gh release delete-asset "$TAG" "$asset" --yes >/dev/null 2>&1 || true
+          done
           gh release upload "$TAG" "${ASSETS[@]}" --clobber
           echo "Published release $TAG"
