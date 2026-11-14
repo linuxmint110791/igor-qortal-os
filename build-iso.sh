@@ -42,7 +42,7 @@ apt-get "${APT_NETWORK_OPTIONS[@]}" update
 apt-get "${APT_NETWORK_OPTIONS[@]}" install -y --no-install-recommends \
   live-build debootstrap debian-archive-keyring curl wget ca-certificates xorriso squashfs-tools imagemagick \
   dosfstools mtools grub-pc-bin grub-efi-amd64-bin \
-  isolinux syslinux-common syslinux-utils
+  isolinux syslinux-common syslinux-utils qrencode
 
 rm -rf -- "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
