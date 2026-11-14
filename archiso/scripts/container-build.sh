@@ -48,3 +48,4 @@ ISO="$(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print -quit)"
 test -n "$ISO"
 mv "$ISO" "$OUT/igorcoin-qortal-os-x86_64.iso"
 sha256sum "$OUT/igorcoin-qortal-os-x86_64.iso" | tee "$OUT/igorcoin-qortal-os-x86_64.iso.sha256"
+chown -R "${HOST_UID:-1000}:${HOST_GID:-1000}" "$WORK" "$OUT" 2>/dev/null || true
