@@ -14,42 +14,38 @@ id reticulum >/dev/null 2>&1 || useradd --system --create-home --home-dir /var/l
 install -d -o qortal -g qortal -m 0750 /opt/qortal/core /opt/qortal/hub /var/lib/qortal
 install -d -o reticulum -g reticulum -m 0750 /var/lib/reticulum
 
-CORE_JSON="$(curl -fsSL https://api.github.com/repos/Qortal/qortal/releases/latest)"
-CORE_URL="$(jq -er '[.assets[] | select(.name | test("qortal.*\\.jar$"; "i"))][0].browser_download_url' <<<"$CORE_JSON")"
-curl -fL --retry 3 --retry-delay 2 "$CORE_URL" -o /opt/qortal/core/qortal.jar
-chown qortal:qortal /opt/qortal/core/qortal.jar
-
-HUB_JSON="$(curl -fsSL https://api.github.com/repos/Qortal/Qortal-Hub/releases/latest)"
-HUB_URL="$(jq -er '[.assets[] | select((.name | test("x86_64|x64|Qortal-Hub\\.AppImage$"; "i")) and (.name | endswith(".AppImage")))][0].browser_download_url' <<<"$HUB_JSON")"
-curl -fL --retry 3 --retry-delay 2 "$HUB_URL" -o /opt/qortal/hub/Qortal-Hub.AppImage
-chmod 0755 /opt/qortal/hub/Qortal-Hub.AppImage
-
-install -d -m 0755 /usr/share/applications
-MESH_JSON="$(curl -fsSL https://api.github.com/repos/liamcottle/reticulum-meshchat/releases/latest)"
-MESH_URL="$(jq -er '[.assets[] | select((.name | test("(linux|x86_64|x64).*\\.AppImage$"; "i")))][0].browser_download_url' <<<"$MESH_JSON")"
-install -d -m 0755 /opt/qortal/meshchat
-curl -fL --retry 3 --retry-delay 2 "$MESH_URL" -o /opt/qortal/meshchat/ReticulumMeshChat.AppImage
-chmod 0755 /opt/qortal/meshchat/ReticulumMeshChat.AppImage
-
-cat > /usr/share/applications/qortal-core.desktop <<'EOF'
+# Qortal is optional and offered after the first desktop login.
+install -d -m 0755 /usr/local/bin
+cat > /usr/local/bin/igorcoin-qortal-setup <<'QORTAL_SETUP'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+zenity --question --title="IgorCoin-Qortal OS" --width=420 --text="Kas soovid paigaldada Qortal Core'i ja Qortal Hubi?\n\nVõid valida Ei ja paigaldada Qortali hiljem rakenduste menüüst." || exit 0
+sudo -v
+(
+  set -Eeuo pipefail
+  CORE_JSON="$(curl -fsSL https://api.github.com/repos/Qortal/qortal/releases/latest)"
+  CORE_URL="$(jq -er '[.assets[] | select(.name | test("qortal.*\\.jar$"; "i"))][0].browser_download_url' <<<"$CORE_JSON")"
+  HUB_JSON="$(curl -fsSL https://api.github.com/repos/Qortal/Qortal-Hub/releases/latest)"
+  HUB_URL="$(jq -er '[.assets[] | select((.name | test("x86_64|x64|Qortal-Hub\\.AppImage$"; "i")) and (.name | endswith(".AppImage")))][0].browser_download_url' <<<"$HUB_JSON")"
+  sudo install -d -o qortal -g qortal -m 0750 /opt/qortal/core /opt/qortal/hub
+  curl -fL --retry 3 "$CORE_URL" -o /tmp/qortal.jar
+  sudo install -o qortal -g qortal -m 0640 /tmp/qortal.jar /opt/qortal/core/qortal.jar
+  curl -fL --retry 3 "$HUB_URL" -o /tmp/Qortal-Hub.AppImage
+  sudo install -o root -g root -m 0755 /tmp/Qortal-Hub.AppImage /opt/qortal/hub/Qortal-Hub.AppImage
+  sudo systemctl enable --now qortal.service
+) 2>&1 | zenity --progress --title="Qortal installation" --text="Laadin ja seadistan Qortali..." --pulsate --auto-close
+zenity --info --title="IgorCoin-Qortal OS" --text="Qortal Core ja Hub on paigaldatud. Core: https://127.0.0.1:12391"
+QORTAL_SETUP
+chmod 0755 /usr/local/bin/igorcoin-qortal-setup
+cat > /usr/share/applications/igorcoin-qortal-setup.desktop <<'EOF'
 [Desktop Entry]
-Name=Qortal Core Web Interface
-Comment=Open the local Qortal Core interface
-Exec=xdg-open https://127.0.0.1:12391
+Name=Install Qortal
+Comment=Install Qortal Core and Qortal Hub when you choose
+Exec=/usr/local/bin/igorcoin-qortal-setup
 Icon=applications-internet
 Terminal=false
 Type=Application
-Categories=Network;
-EOF
-cat > /usr/share/applications/qortal-hub.desktop <<'EOF'
-[Desktop Entry]
-Name=Qortal Hub
-Comment=Decentralized Qortal interface
-Exec=/opt/qortal/hub/Qortal-Hub.AppImage
-Icon=applications-internet
-Terminal=false
-Type=Application
-Categories=Network;
+Categories=Network;System;
 EOF
 
 install -d -m 0755 /opt/reticulum
@@ -105,7 +101,7 @@ cp /etc/skel/.config/kuserfeedbackrc /home/liveuser/.config/kuserfeedbackrc
 chown -R liveuser:liveuser /home/liveuser/.config
 
 sed -i '/^\[igorcoin\]$/,/^$/d' /etc/pacman.conf || true
-systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service qortal.service reticulum.service
+systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service reticulum.service
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
 cat > /usr/share/applications/archinstall.desktop <<'EOF'
