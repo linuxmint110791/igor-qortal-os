@@ -39,39 +39,48 @@ jobs:
           docker run --rm --privileged --network host \
             -v "$GITHUB_WORKSPACE/archiso:/work" -w /work \
             archlinux:base-devel bash /work/scripts/container-build.sh
-          # The build container runs as root; restore runner ownership for checksum/compression.
           sudo chown -R "$(id -u):$(id -g)" archiso/out
           sudo chmod -R u+rwX archiso/out
 
-      - name: Verify and compress ISO
+      - name: Create 2026 folder and reassemble the ISO from two parts
         shell: bash
         run: |
           set -Eeuo pipefail
           test -s archiso/out/amd.iso
-          test -s archiso/out/amd.iso.sha256
-          cd archiso/out
-          sha256sum --check amd.iso.sha256
-          zstd -T0 -19 --no-progress amd.iso -o amd.iso.zst
-          zstd -t amd.iso.zst
-          EXPECTED="$(awk '{print $1}' amd.iso.sha256)"
-          ACTUAL="$(zstd -dc amd.iso.zst | sha256sum | awk '{print $1}')"
-          test "$EXPECTED" = "$ACTUAL"
-          echo "Original ISO: $(du -h amd.iso | cut -f1)"
-          echo "Compressed ISO: $(du -h amd.iso.zst | cut -f1)"
+          mkdir -p igorcoin-qortal-os/2026
+          bash scripts/assemble-iso-2026.sh \
+            archiso/out/amd.iso \
+            igorcoin-qortal-os/2026
+          cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.sha256 \
+            igorcoin-qortal-os/2026/
 
-      - name: Upload complete ISO artifact
+      - name: Compress and verify the single ISO
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cd igorcoin-qortal-os/2026
+          sha256sum --check igorcoin-qortal-os.iso.sha256
+          zstd -T0 -6 --no-progress igorcoin-qortal-os.iso -o igorcoin-qortal-os.iso.zst
+          zstd -t igorcoin-qortal-os.iso.zst
+          EXPECTED="$(awk '{print $1}' igorcoin-qortal-os.iso.sha256)"
+          ACTUAL="$(zstd -dc igorcoin-qortal-os.iso.zst | sha256sum | awk '{print $1}')"
+          test "$EXPECTED" = "$ACTUAL"
+          echo "Single ISO: $(du -h igorcoin-qortal-os.iso | cut -f1)"
+          echo "Compressed ISO: $(du -h igorcoin-qortal-os.iso.zst | cut -f1)"
+
+      - name: Upload one downloadable ISO artifact
         uses: actions/upload-artifact@v4
         with:
-          name: IgorCoin-Qortal-OS-amd64
+          name: IgorCoin-Qortal-OS-2026-ISO
           path: |
-            archiso/out/amd.iso
-            archiso/out/amd.iso.sha256
-            archiso/out/amd.iso.zst
+            igorcoin-qortal-os/2026/igorcoin-qortal-os.iso
+            igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.sha256
+            igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst
           compression-level: 0
           if-no-files-found: error
           retention-days: 90
 
-      - name: Publish one-file download when it fits GitHub limits
+      - name: Publish release download (split only if GitHub's per-file limit requires it)
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
@@ -83,47 +92,44 @@ jobs:
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" \
               --title "IgorCoin-Qortal OS $TAG" \
-              --notes "Experimental Arch Linux-based IgorCoin-Qortal OS live image. Download amd.iso.zst and decompress it with zstd -d. Verify the resulting ISO using amd.iso.sha256. Secure Boot signing and physical-hardware validation are not yet certified."
+              --notes "Experimental Arch Linux-based IgorCoin-Qortal OS. Download the ISO artifact or the compressed release assets. Verify SHA256 before writing to USB. Secure Boot signing and physical-hardware validation are not certified."
 
           mkdir -p release-assets
-          cp archiso/out/amd.iso.sha256 release-assets/
-          SIZE=$(stat -c%s archiso/out/amd.iso.zst)
-          # Keep below GitHub's 2 GB per-release-asset limit.
+          cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.sha256 release-assets/
+          SIZE=$(stat -c%s igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst)
           if (( SIZE < 1900000000 )); then
-            cp archiso/out/amd.iso.zst release-assets/
+            cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/
             cat > release-assets/README.txt <<'EOF'
-          IgorCoin-Qortal OS — single-file download
+          IgorCoin-Qortal OS 2026
 
-          Download amd.iso.zst and amd.iso.sha256.
+          Download igorcoin-qortal-os.iso.zst and igorcoin-qortal-os.iso.sha256.
           Decompress:
-            zstd -d amd.iso.zst -o amd.iso
+            zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
           Verify:
-            sha256sum --check amd.iso.sha256
-
-          The checksum must report OK before writing the ISO to USB.
+            sha256sum --check igorcoin-qortal-os.iso.sha256
+          Write the verified .iso file to USB.
           EOF
-            ASSETS=(release-assets/amd.iso.zst release-assets/amd.iso.sha256 release-assets/README.txt)
+            ASSETS=(release-assets/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.sha256 release-assets/README.txt)
           else
-            echo "::warning::Compressed ISO is still too large for one GitHub Release asset; publishing verified split compressed parts."
-            split -b 1800M -d -a 2 archiso/out/amd.iso.zst release-assets/amd.iso.zst.part-
+            echo "::warning::Compressed ISO exceeds GitHub's per-release-asset limit; splitting the compressed download into parts."
+            split -b 1800M -d -a 2 igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.zst.part-
             cat > release-assets/README.txt <<'EOF'
-          IgorCoin-Qortal OS — split compressed download
+          IgorCoin-Qortal OS 2026 — split compressed download
 
-          Download every amd.iso.zst.part-* file and amd.iso.sha256.
-          Reassemble and decompress:
-            cat amd.iso.zst.part-* > amd.iso.zst
-            zstd -t amd.iso.zst
-            zstd -d amd.iso.zst -o amd.iso
+          Download every igorcoin-qortal-os.iso.zst.part-* file and the SHA256 file.
+          Join the compressed parts:
+            cat igorcoin-qortal-os.iso.zst.part-* > igorcoin-qortal-os.iso.zst
+          Decompress:
+            zstd -t igorcoin-qortal-os.iso.zst
+            zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
           Verify:
-            sha256sum --check amd.iso.sha256
-
-          The checksum must report OK before writing the ISO to USB.
+            sha256sum --check igorcoin-qortal-os.iso.sha256
+          Write the verified .iso file to USB.
           EOF
-            ASSETS=(release-assets/amd.iso.zst.part-* release-assets/amd.iso.sha256 release-assets/README.txt)
+            ASSETS=(release-assets/igorcoin-qortal-os.iso.zst.part-* release-assets/igorcoin-qortal-os.iso.sha256 release-assets/README.txt)
           fi
 
-          # Remove old split assets so the release does not show stale download instructions.
-          for asset in amd.iso.part-00 amd.iso.part-01 amd.iso.sha256 README.txt amd.iso.zst; do
+          for asset in igorcoin-qortal-os.iso.zst igorcoin-qortal-os.iso.zst.part-00 igorcoin-qortal-os.iso.zst.part-01 igorcoin-qortal-os.iso.sha256 README.txt; do
             gh release delete-asset "$TAG" "$asset" --yes >/dev/null 2>&1 || true
           done
           gh release upload "$TAG" "${ASSETS[@]}" --clobber
