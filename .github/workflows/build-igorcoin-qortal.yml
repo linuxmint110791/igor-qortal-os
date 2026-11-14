@@ -51,8 +51,6 @@ jobs:
           bash scripts/assemble-iso-2026.sh \
             archiso/out/amd.iso \
             igorcoin-qortal-os/2026
-          cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.sha256 \
-            igorcoin-qortal-os/2026/
 
       - name: Compress and verify the single ISO
         shell: bash
