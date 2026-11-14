@@ -44,7 +44,7 @@ jobs:
               -w /workspace \
               debian:trixie bash ./build-iso.sh; then
               echo "::endgroup::"
-              echo "ISO_FILE=igorcoin-qortal-os-debian-13.7-amd64.iso" >> "$GITHUB_ENV"
+              echo "ISO_FILE=igorcoin-qortal-os-debian13-amd64.iso" >> "$GITHUB_ENV"
               exit 0
             fi
             echo "::endgroup::"
