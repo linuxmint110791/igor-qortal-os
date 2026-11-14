@@ -216,3 +216,12 @@ The project is under active development. An ISO is ready for testing only after 
 - https://github.com/Qortal/qortal
 - https://github.com/Qortal/Qortal-Hub
 - https://github.com/Qortal/QORTector-scripts
+
+
+---
+
+## Arch-based edition: IgorCoin-Qortal OS
+
+The repository now also contains an isolated Arch Linux/Archiso implementation in [`archiso/`](archiso/README.md). It builds inside a privileged Arch Docker container, leaving a Linux Mint host's package database untouched. It targets Linux 7.3.4 from Arch's signed repositories, KDE Plasma Wayland, Calamares, Qortal Core/Hub and Reticulum/NomadNet. The Arch build has its own GitHub Actions workflow and publishes a release only when manually dispatched with a release tag.
+
+**Build on Linux Mint:** install `docker.io`, then run `./archiso/build.sh`. Full instructions, limitations and QEMU testing are in [`archiso/README.md`](archiso/README.md). The Arch installer remains experimental until virtual-machine and physical-hardware installation tests pass.
