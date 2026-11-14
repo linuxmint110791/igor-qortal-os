@@ -62,6 +62,7 @@ lb config \
   --architectures amd64 \
   --archive-areas "main contrib non-free non-free-firmware" \
   --binary-images iso-hybrid \
+  --bootloaders "grub-pc grub-efi" \
   --apt-recommends false \
   --apt-indices false \
   --apt-source-archives false \
