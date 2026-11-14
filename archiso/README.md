@@ -3,7 +3,7 @@
 This Arch Linux/Archiso implementation is isolated beside the existing Debian project; it does not replace the Debian build.
 
 ## Target and versions
-- x86_64 Live ISO; UEFI and BIOS boot profile.
+- x86_64 Live ISO; UEFI GRUB boot menu and legacy BIOS Syslinux boot profile.
 - Arch `linux` and `linux-headers`; the build aborts unless the official package version is 7.3.4.x.
 - KDE Plasma from Arch's rolling `plasma` group.
 - Calamares is built from the Arch User Repository (AUR); inspect its PKGBUILD before production use.
@@ -36,6 +36,7 @@ The profile uses Calamares' `unpackfs` module to deploy the Archiso squashfs, th
 Qortal is not bundled into the Live ISO. On first desktop login, the user is offered optional installation of Qortal Core and Qortal Hub; the same option remains in the application menu. The setup fetches upstream GitHub latest releases, so pin versions and verify checksums before stable releases. RNS and NomadNet use an isolated Python venv. Reticulum MeshChat is downloaded as its official Linux AppImage from the upstream GitHub release API and gets a desktop launcher.
 
 ## Security
+- UEFI GRUB boot files are currently unsigned. Secure Boot must be disabled in firmware for this experimental image; no custom Secure Boot key is silently enrolled or embedded. A Microsoft-trusted shim/signed-GRUB chain is a separate release task.
 The live account `liveuser` has passwordless sudo for the live session. Qortal and Reticulum run as separate unprivileged accounts. DNS defaults to Cloudflare with Quad9 fallback. No wallet, seed phrase or private key is embedded.
 
 ## Status
