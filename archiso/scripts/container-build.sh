@@ -18,7 +18,7 @@ FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
 echo "==> Refreshing Arch keyring and packages"
 pacman -Sy --noconfirm archlinux-keyring
 pacman -Syu --noconfirm
-pacman -S --needed --noconfirm archiso base-devel git curl jq sudo \
+pacman -S --needed --noconfirm archiso base-devel git curl jq sudo grub \
   squashfs-tools dosfstools mtools xorriso libisoburn e2fsprogs btrfs-progs
 
 echo "==> Preparing official Archiso releng profile"
