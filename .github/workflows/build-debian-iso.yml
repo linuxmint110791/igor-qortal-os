@@ -1,16 +1,5 @@
 name: Build Igorcoin Qortal OS — Debian 13.7 Trixie
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'build-iso.sh'
-      - 'setup-build-host.sh'
-      - 'debian-source.env'
-      - 'scripts/**'
-      - 'README.md'
-      - 'wallet/Igorcoin-Wallet.json.age'
-      - '.github/workflows/build-iso.yml'
-      - '.github/workflows/build-debian-iso.yml'
   workflow_dispatch:
 permissions:
   contents: write
