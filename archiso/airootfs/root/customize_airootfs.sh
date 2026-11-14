@@ -37,6 +37,24 @@ sudo -v
 zenity --info --title="IgorCoin-Qortal OS" --text="Qortal Core ja Hub on paigaldatud. Core: https://127.0.0.1:12391"
 QORTAL_SETUP
 chmod 0755 /usr/local/bin/igorcoin-qortal-setup
+cat > /usr/share/applications/qortal-hub.desktop <<'EOF'
+[Desktop Entry]
+Name=Qortal Hub
+Comment=Qortal desktop interface (available after optional installation)
+Exec=/opt/qortal/hub/Qortal-Hub.AppImage
+Icon=applications-internet
+Terminal=false
+Type=Application
+Categories=Network;
+EOF
+install -d -m 0755 /etc/skel/.config/autostart
+cat > /etc/skel/.config/autostart/igorcoin-qortal-choice.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=IgorCoin Qortal Setup
+Exec=/usr/local/bin/igorcoin-qortal-setup
+X-GNOME-Autostart-enabled=true
+EOF
 cat > /usr/share/applications/igorcoin-qortal-setup.desktop <<'EOF'
 [Desktop Entry]
 Name=Install Qortal
