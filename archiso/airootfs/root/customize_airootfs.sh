@@ -25,6 +25,12 @@ curl -fL --retry 3 --retry-delay 2 "$HUB_URL" -o /opt/qortal/hub/Qortal-Hub.AppI
 chmod 0755 /opt/qortal/hub/Qortal-Hub.AppImage
 
 install -d -m 0755 /usr/share/applications
+MESH_JSON="$(curl -fsSL https://api.github.com/repos/liamcottle/reticulum-meshchat/releases/latest)"
+MESH_URL="$(jq -er '[.assets[] | select((.name | test("linux.*\\.AppImage$"; "i")))][0].browser_download_url' <<<"$MESH_JSON")"
+install -d -m 0755 /opt/qortal/meshchat
+curl -fL --retry 3 --retry-delay 2 "$MESH_URL" -o /opt/qortal/meshchat/ReticulumMeshChat.AppImage
+chmod 0755 /opt/qortal/meshchat/ReticulumMeshChat.AppImage
+
 cat > /usr/share/applications/qortal-core.desktop <<'EOF'
 [Desktop Entry]
 Name=Qortal Core Web Interface
@@ -50,6 +56,28 @@ install -d -m 0755 /opt/reticulum
 python -m venv /opt/reticulum/venv
 /opt/reticulum/venv/bin/pip install --no-cache-dir --upgrade pip wheel
 /opt/reticulum/venv/bin/pip install --no-cache-dir rns nomadnet
+
+cat > /usr/share/applications/reticulum-meshchat.desktop <<'EOF'
+[Desktop Entry]
+Name=Reticulum MeshChat
+Comment=Mesh messaging over Reticulum
+Exec=/opt/qortal/meshchat/ReticulumMeshChat.AppImage
+Icon=applications-internet
+Terminal=false
+Type=Application
+Categories=Network;Chat;
+EOF
+
+cat > /usr/share/applications/nomadnet.desktop <<'EOF'
+[Desktop Entry]
+Name=NomadNet
+Comment=Reticulum mesh network terminal
+Exec=/opt/reticulum/venv/bin/nomadnet
+Icon=utilities-terminal
+Terminal=true
+Type=Application
+Categories=Network;
+EOF
 
 install -d -o liveuser -g liveuser /home/liveuser/.config /home/liveuser/Desktop
 printf '[General]\nColorScheme=BreezeDark\nName=IgorCoin-Qortal Dark\n' > /home/liveuser/.config/kdeglobals
