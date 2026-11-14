@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Qortal Installer
+GenericName=Qortal Setup
+Comment=Install or refresh Qortal Core and Qortal Hub using the official Linux setup script
+Exec=qortal-installer
+Icon=applications-internet
+Terminal=true
+Type=Application
+Categories=System;Utility;
+Keywords=Qortal;Blockchain;Node;Installer;
