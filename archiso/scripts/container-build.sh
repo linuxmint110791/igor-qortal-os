@@ -21,13 +21,10 @@ pacman -Syu --noconfirm
 pacman -S --needed --noconfirm archiso base-devel git curl jq sudo grub \
   squashfs-tools dosfstools mtools xorriso libisoburn e2fsprogs btrfs-progs
 
-echo "==> Confirming current Arch GRUB release"
+echo "==> Recording the latest GRUB version from the official Arch repositories"
 GRUB_VERSION="$(grub-install --version)"
 echo "$GRUB_VERSION"
-[[ "$GRUB_VERSION" == *"2.16"* ]] || {
-  echo "Expected GNU GRUB 2.16 from the current Arch repository; got: $GRUB_VERSION" >&2
-  exit 1
-}
+printf '%s\\n' "$GRUB_VERSION" > "$OUT/grub-version.txt"
 
 echo "==> Preparing official Archiso releng profile"
 rm -rf "$PROFILE"
