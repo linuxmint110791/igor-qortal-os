@@ -1,0 +1,21 @@
+# Maintainer: IgorCoin community
+pkgname=qortal-installer
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Desktop launcher for the official Qortal Linux installer"
+arch=('any')
+url="https://github.com/linuxmint110791/igor-qortal-os"
+license=('custom')
+depends=('bash' 'curl' 'coreutils')
+optdepends=('kdialog: graphical confirmation dialog (KDE)'
+            'zenity: graphical confirmation dialog (GTK desktops)')
+install=
+source=('qortal-installer.sh'
+        'qortal-installer.desktop')
+sha256sums=('SKIP'
+            'SKIP')
+
+package() {
+  install -Dm755 "$srcdir/qortal-installer.sh" "$pkgdir/usr/bin/qortal-installer"
+  install -Dm644 "$srcdir/qortal-installer.desktop" "$pkgdir/usr/share/applications/qortal-installer.desktop"
+}
