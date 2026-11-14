@@ -1,107 +1,61 @@
-name: Build Igorcoin Qortal OS — Debian 13 Trixie
+name: Build IgorCoin-Qortal OS (Archiso)
 on:
   push:
     branches: [main]
     paths:
-      - 'build-iso.sh'
-      - 'setup-build-host.sh'
-      - 'debian-source.env'
-      - 'scripts/**'
-      - 'README.md'
-      - 'wallet/Igorcoin-Wallet.json.age'
+      - 'archiso/**'
       - '.github/workflows/build-iso.yml'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional release tag, e.g. v1.0.0-arch1. Leave empty for artifact only.'
+        required: false
+        type: string
 permissions:
   contents: write
 concurrency:
-  group: igorcoin-qortal-os-debian13-iso
-  cancel-in-progress: true
+  group: igorcoin-qortal-archiso
+  cancel-in-progress: false
 jobs:
-  build-amd64:
+  build:
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Validate project configuration
-        run: |
-          chmod +x ./scripts/validate-project.sh
-          ./scripts/validate-project.sh
-      - name: Build Debian 13.3 ISO (automatic retry)
-        timeout-minutes: 220
+      - uses: actions/checkout@v4
+      - name: Build in privileged Arch container
         shell: bash
         run: |
           set -Eeuo pipefail
-          chmod +x ./build-iso.sh
-
-          for attempt in 1 2; do
-            echo "::group::Debian 13.3 snapshot build — attempt $attempt/2"
-            echo "Build attempt started at $(date -u --iso-8601=seconds)"
-            if timeout --signal=TERM --kill-after=120s 100m stdbuf -oL -eL sudo ./build-iso.sh; then
-              echo "::endgroup::"
-              echo "ISO_FILE=igorcoin-qortal-os-debian-13.3-amd64.iso" >> "$GITHUB_ENV"
-              exit 0
-            fi
-            echo "::endgroup::"
-            echo "::warning::Debian 13.3 build failed on attempt $attempt."
-            if [[ "$attempt" -lt 2 ]]; then
-              timeout --signal=TERM --kill-after=30s 10m sudo apt-get -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2 update
-              sleep 15
-            fi
-          done
-
-          echo "::error::Debian 13.3 build failed after two attempts. Review the build logs."
-          exit 1
-      - name: Verify ISO file and system structure
+          docker pull archlinux:base-devel
+          docker run --rm --privileged --network host \
+            --security-opt seccomp=unconfined \
+            -v "$GITHUB_WORKSPACE/archiso:/work" -w /work \
+            archlinux:base-devel bash /work/scripts/container-build.sh
+      - name: Verify ISO and checksum
         run: |
-          chmod +x ./scripts/verify-iso.sh
-          ./scripts/verify-iso.sh "$ISO_FILE"
-          du -h "$ISO_FILE"
-      - name: Upload temporary ISO artifact
-        uses: actions/upload-artifact@v4
+          set -Eeuo pipefail
+          test -s archiso/out/igorcoin-qortal-os-x86_64.iso
+          cd archiso/out
+          sha256sum -c igorcoin-qortal-os-x86_64.iso.sha256
+      - uses: actions/upload-artifact@v4
         with:
-          name: Igorcoin-Qortal-OS-amd64
-          path: ${{ env.ISO_FILE }}
+          name: igorcoin-qortal-os-x86_64
+          path: |
+            archiso/out/igorcoin-qortal-os-x86_64.iso
+            archiso/out/igorcoin-qortal-os-x86_64.iso.sha256
           compression-level: 0
           if-no-files-found: error
           retention-days: 90
-
-      - name: Prepare durable release files
-        shell: bash
-        run: |
-          set -euo pipefail
-          ISO="$ISO_FILE"
-          mkdir -p release-files
-          cp "$ISO" release-files/
-          cd release-files
-          sha256sum "$ISO" > "$ISO.sha256"
-          # GitHub Release assets must each be smaller than 2 GiB.
-          # Split into 1800 MiB pieces so even large ISO images fit safely.
-          split --bytes=1800M --numeric-suffixes=1 --suffix-length=3 \
-            --additional-suffix=.part "$ISO" "$ISO."
-          cat > DOWNLOAD-INSTRUCTIONS.txt <<EOF
-          Igorcoin Qortal OS — ISO reconstruction
-
-          Download every numbered part named $ISO.NNN.part into the same directory,
-          together with $ISO.sha256.
-
-          Linux reconstruction:
-            cat $ISO.*.part > $ISO
-            sha256sum -c $ISO.sha256
-
-          Do not omit or reorder any part. The checksum must report OK.
-          EOF
-          ls -lh
-
-      - name: Publish persistent GitHub Release
+      - name: Publish GitHub Release when a tag was requested
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-          set -euo pipefail
-          TAG="igorcoin-os-build-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" release-files/"$ISO".*.part \
-            "release-files/$ISO.sha256" \
-            release-files/DOWNLOAD-INSTRUCTIONS.txt \
-            --title "Igorcoin Qortal OS ${GITHUB_RUN_NUMBER}" \
-            --notes "Debian 13.3 Trixie package baseline from the official Debian Snapshot archive, with the official Debian security repository enabled for security fixes. ISO is split into numbered parts under GitHub's per-asset size limit. Download all parts and reconstruct using DOWNLOAD-INSTRUCTIONS.txt. Verify with SHA256 before writing to USB." \
+          set -Eeuo pipefail
+          gh release create "$RELEASE_TAG" \
+            archiso/out/igorcoin-qortal-os-x86_64.iso \
+            archiso/out/igorcoin-qortal-os-x86_64.iso.sha256 \
+            --title "IgorCoin-Qortal OS $RELEASE_TAG" \
+            --notes "Archiso x86_64 build. Verify SHA-256 before writing the ISO to USB. Experimental until hardware and installer tests pass." \
             --latest
