@@ -10,6 +10,7 @@ mkinitcpio-archiso
 archiso
 arch-install-scripts
 archinstall
+syslinux
 sudo
 git
 curl
