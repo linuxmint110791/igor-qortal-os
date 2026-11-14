@@ -7,16 +7,10 @@ on:
       - 'archiso/**'
       - '.github/workflows/build-igorcoin-qortal.yml'
       - 'README.md'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'archiso/**'
-      - '.github/workflows/build-igorcoin-qortal.yml'
-      - 'README.md'
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Optional GitHub Release tag (leave empty to build without publishing a release)'
+        description: 'Optional GitHub Release tag; leave empty to build without publishing a release'
         required: false
         type: string
 
@@ -24,7 +18,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: igorcoin-qortal-archiso-${{ github.ref }}
+  group: igorcoin-qortal-archiso
   cancel-in-progress: false
 
 jobs:
@@ -36,15 +30,12 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Free runner disk space
-        shell: bash
+      - name: Install compression tools
         run: |
-          set -Eeuo pipefail
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell
-          sudo apt-get clean
-          df -h /
+          sudo apt-get update
+          sudo apt-get install -y zstd
 
-      - name: Validate build scripts and systemd unit definitions
+      - name: Validate build scripts
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -65,6 +56,7 @@ jobs:
           docker run --rm --privileged --network host \
             -v "$GITHUB_WORKSPACE/archiso:/work" -w /work \
             archlinux:base-devel bash /work/scripts/container-build.sh
+          # The build container runs as root; restore runner ownership for checksum/compression.
           sudo chown -R "$(id -u):$(id -g)" archiso/out
           sudo chmod -R u+rwX archiso/out
 
@@ -78,9 +70,12 @@ jobs:
           sha256sum --check amd.iso.sha256
           zstd -T2 -15 --no-progress amd.iso -o amd.iso.zst
           zstd -t amd.iso.zst
-          zstd -dc amd.iso.zst | sha256sum --check amd.iso.sha256
+          EXPECTED="$(awk '{print $1}' amd.iso.sha256)"
+          ACTUAL="$(zstd -dc amd.iso.zst | sha256sum | awk '{print $1}')"
+          test "$EXPECTED" = "$ACTUAL"
           echo "Original ISO: $(du -h amd.iso | cut -f1)"
           echo "Compressed ISO: $(du -h amd.iso.zst | cut -f1)"
+          echo "Compressed image SHA-256 matches the original ISO."
 
       - name: Upload complete ISO artifact
         uses: actions/upload-artifact@v4
@@ -95,7 +90,7 @@ jobs:
           retention-days: 90
 
       - name: Publish verified ISO release
-        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_TAG: ${{ inputs.release_tag }}
@@ -103,6 +98,11 @@ jobs:
         run: |
           set -Eeuo pipefail
           TAG="$INPUT_TAG"
+          if [[ -z "$TAG" ]]; then
+            echo "No release tag supplied; keeping this build as a workflow artifact only."
+            exit 0
+          fi
+
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" \
               --title "IgorCoin-Qortal OS $TAG" \
