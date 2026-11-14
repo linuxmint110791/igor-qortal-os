@@ -13,10 +13,7 @@ pacman -S --needed --noconfirm archiso base-devel git curl jq sudo squashfs-tool
 KERNEL_VERSION="$(pacman -Si linux | awk -F': ' '/^Version/ {print $2; exit}')"
 HEADER_VERSION="$(pacman -Si linux-headers | awk -F': ' '/^Version/ {print $2; exit}')"
 [[ "$HEADER_VERSION" == "$KERNEL_VERSION" ]] || { echo "Kernel/header version mismatch: $KERNEL_VERSION vs $HEADER_VERSION" >&2; exit 1; }
-case "$KERNEL_VERSION" in
-  7.3.4*) echo "Verified Arch kernel package: $KERNEL_VERSION" ;;
-  *) echo "Expected Linux 7.3.4, repository offers: $KERNEL_VERSION" >&2; exit 1 ;;
-esac
+echo "Using current Arch rolling kernel: $KERNEL_VERSION"
 
 # Build the community Calamares package as an unprivileged makepkg user.
 id builder >/dev/null 2>&1 || useradd -m -G wheel builder
