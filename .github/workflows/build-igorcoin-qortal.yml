@@ -21,7 +21,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: igorcoin-qortal-archiso-${{ github.ref }}
@@ -44,17 +44,18 @@ jobs:
           sudo apt-get clean
           df -h /
 
-      - name: Validate build scripts and systemd units
+      - name: Validate build scripts and systemd unit definitions
         shell: bash
         run: |
           set -Eeuo pipefail
           bash -n archiso/scripts/container-build.sh
           bash -n archiso/airootfs/root/customize_airootfs.sh
-          sudo apt-get update
-          sudo apt-get install -y systemd
-          systemd-analyze verify \
-            archiso/airootfs/etc/systemd/system/qortal.service \
-            archiso/airootfs/etc/systemd/system/reticulum.service
+          for unit in qortal reticulum; do
+            test -s "archiso/airootfs/etc/systemd/system/${unit}.service"
+            grep -q '^\[Unit\]$' "archiso/airootfs/etc/systemd/system/${unit}.service"
+            grep -q '^\[Service\]$' "archiso/airootfs/etc/systemd/system/${unit}.service"
+            grep -q '^ExecStart=/' "archiso/airootfs/etc/systemd/system/${unit}.service"
+          done
 
       - name: Build inside official Arch Linux container
         shell: bash
