@@ -11,3 +11,7 @@ archiso/out/
 archiso/profile/
 archiso/*.iso
 *.iso
+
+# Generic local build directories
+work/
+out/
