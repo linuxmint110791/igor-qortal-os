@@ -137,6 +137,15 @@ cp -a /etc/skel/.config/autostart/. "/home/$LIVE_USER/.config/autostart/" 2>/dev
 cp /etc/skel/.config/kuserfeedbackrc "/home/$LIVE_USER/.config/kuserfeedbackrc"
 chown -R "$LIVE_USER:$LIVE_USER" "/home/$LIVE_USER/.config"
 
+# Override the upstream Archiso liveuser autologin with the IgorCoin account.
+install -d -m 0755 /etc/sddm.conf.d
+cat > /etc/sddm.conf.d/99-igorcoin-autologin.conf <<'EOF'
+[Autologin]
+User=igorcoin
+Session=cinnamon.desktop
+Relogin=false
+EOF
+
 systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service reticulum.service
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
