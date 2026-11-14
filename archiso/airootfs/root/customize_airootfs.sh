@@ -25,6 +25,16 @@ curl -fL --retry 3 --retry-delay 2 "$HUB_URL" -o /opt/qortal/hub/Qortal-Hub.AppI
 chmod 0755 /opt/qortal/hub/Qortal-Hub.AppImage
 
 install -d -m 0755 /usr/share/applications
+cat > /usr/share/applications/qortal-core.desktop <<'EOF'
+[Desktop Entry]
+Name=Qortal Core Web Interface
+Comment=Open the local Qortal Core interface
+Exec=xdg-open https://127.0.0.1:12391
+Icon=applications-internet
+Terminal=false
+Type=Application
+Categories=Network;
+EOF
 cat > /usr/share/applications/qortal-hub.desktop <<'EOF'
 [Desktop Entry]
 Name=Qortal Hub
