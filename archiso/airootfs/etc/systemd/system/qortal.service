@@ -1,0 +1,19 @@
+[Unit]
+Description=Qortal Core
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=qortal
+Group=qortal
+Environment=HOME=/var/lib/qortal
+WorkingDirectory=/opt/qortal/core
+ExecStart=/usr/bin/java -jar /opt/qortal/core/qortal.jar
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
