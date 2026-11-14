@@ -23,7 +23,13 @@ nano
 vim
 bash-completion
 
-# KDE Plasma Wayland desktop
+# Cinnamon default desktop and KDE Plasma alternative session
+cinnamon
+cinnamon-translations
+nemo
+nemo-fileroller
+cinnamon-screensaver
+cinnamon-settings-daemon
 plasma
 sddm
 konsole
@@ -41,6 +47,7 @@ breeze-gtk
 plasma-nm
 xdg-desktop-portal
 xdg-desktop-portal-kde
+xdg-desktop-portal-gtk
 qt6-wayland
 xorg-xwayland
 
