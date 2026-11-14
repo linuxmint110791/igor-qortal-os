@@ -23,7 +23,7 @@ if [[ ! "$DEBIAN_SNAPSHOT" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
   exit 2
 fi
 BUILD_DIR="${BUILD_DIR:-$SCRIPT_DIR/build-${DEBIAN_SUITE}}"
-OUTPUT_ISO="${OUTPUT_ISO:-$SCRIPT_DIR/igorcoin-qortal-os-debian-${DEBIAN_POINT_RELEASE}-amd64.iso}"
+OUTPUT_ISO="${OUTPUT_ISO:-$SCRIPT_DIR/igorcoin-qortal-os-debian13-amd64.iso}"
 QORTAL_INSTALLER_URL="https://link.qortal.dev/linux-script"
 
 case "$BUILD_DIR" in
