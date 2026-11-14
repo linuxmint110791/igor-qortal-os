@@ -1,29 +1,42 @@
-# Igorcoin Qortal OS project
+# IgorCoin-Qortal OS
 
-This repository currently distributes the **unmodified official Arch Linux x86_64 installation ISO**. It does not build or modify an Arch ISO.
+**IgorCoin-Qortal OS** is an experimental Arch Linux-based distribution project. It uses the official Archiso releng profile as its starting point and produces a separately branded x86_64 live ISO.
 
-The GitHub Actions workflow downloads the current ISO from the official Arch mirror network and verifies it against Arch Linux's published `sha256sums.txt` before uploading it as the artifact:
+## Current design
 
-**`ArchLinux-Official-ISO-amd64`**
-- `archlinux-x86_64.iso`
-- `archlinux-x86_64.iso.sha256`
-- `SOURCE.txt`
+- Arch Linux base and rolling package repositories
+- KDE Plasma desktop with Wayland session support
+- SDDM display manager
+- Qortal Core and Qortal Hub fetched from their upstream GitHub releases during image customization
+- Reticulum (RNS), NomadNet and Reticulum MeshChat
+- NetworkManager, Bluetooth, PipeWire and common laptop utilities
+- Archinstall available for installation; a polished graphical installer is not yet part of this first build
+- No wallet seed, private key or user credentials are embedded in the image
 
-## Download
+## Build
 
-1. Open [GitHub Actions](https://github.com/linuxmint110791/igor-qortal-os/actions/workflows/build-iso.yml).
-2. Open the latest successful **Download Official Arch Linux ISO** run.
-3. Under **Artifacts**, download `ArchLinux-Official-ISO-amd64`.
-4. Extract the ZIP. Verify the ISO in the extracted directory:
+GitHub Actions → **Build IgorCoin-Qortal OS (Archiso)** → **Run workflow**.
+
+A successful run uploads the artifact:
+
+**IgorCoin-Qortal-OS-x86_64**
+
+The ZIP contains:
+- `igorcoin-qortal-os-x86_64.iso`
+- `igorcoin-qortal-os-x86_64.iso.sha256`
+
+Verify after extracting:
 
 ```bash
-sha256sum -c archlinux-x86_64.iso.sha256
+sha256sum -c igorcoin-qortal-os-x86_64.iso.sha256
 ```
 
-The result must say `archlinux-x86_64.iso: OK`.
+## Important security status
 
-## Important distinction
+**Secure Boot is not yet implemented or certified in this build.** The image has UEFI boot support, but its bootloader is not signed with a key trusted by a typical PC's factory Secure Boot database. Keep Secure Boot enabled only after a signed boot chain and the required trust/enrollment process have been implemented and tested. Do not assume that a successful ISO build means Secure Boot compatibility.
 
-This download is the standard Arch Linux installer supplied by Arch Linux. It is **not** a preconfigured Igorcoin/Qortal desktop, and it does not contain Qortal, KDE customizations, or this project's branding. Those would require a separate installation/configuration step after installing Arch.
+The live session's `liveuser` account has passwordless sudo for installation and recovery tasks. Do not use the live account as a permanent daily account. The installed system and installer workflow still need further testing.
 
-Official upstream source: [Arch Linux downloads](https://archlinux.org/download/).
+## Project status
+
+This is an experimental first distribution build, not a stable release. Each successful artifact must be tested in a UEFI virtual machine and on physical hardware before being recommended for installation. Qortal and Reticulum upstream assets are fetched during the image build, so the build is not yet fully reproducible or version-pinned.
