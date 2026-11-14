@@ -1,0 +1,11 @@
+---
+componentName: igorcoin-qortal
+welcomeStyle: sidebar
+strings:
+  productName: "IgorCoin-Qortal OS"
+  shortProductName: "IgorCoin-Qortal"
+  version: "1.0.0"
+  shortVersion: "1.0"
+  bootloaderEntryName: "IgorCoin-Qortal OS"
+  productUrl: "https://github.com/linuxmint110791/igor-qortal-os"
+  supportUrl: "https://github.com/linuxmint110791/igor-qortal-os/issues"
