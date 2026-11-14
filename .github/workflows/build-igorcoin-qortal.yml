@@ -43,18 +43,18 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          test -s archiso/out/igorcoin-qortal-os-x86_64.iso
-          test -s archiso/out/igorcoin-qortal-os-x86_64.iso.sha256
+          test -s archiso/out/amd.iso
+          test -s archiso/out/amd.iso.sha256
           cd archiso/out
-          sha256sum --check igorcoin-qortal-os-x86_64.iso.sha256
+          sha256sum --check amd.iso.sha256
 
       - name: Upload IgorCoin-Qortal OS ISO
         uses: actions/upload-artifact@v4
         with:
-          name: IgorCoin-Qortal-OS-x86_64
+          name: IgorCoin-Qortal-OS-amd64
           path: |
-            archiso/out/igorcoin-qortal-os-x86_64.iso
-            archiso/out/igorcoin-qortal-os-x86_64.iso.sha256
+            archiso/out/amd.iso
+            archiso/out/amd.iso.sha256
           compression-level: 0
           if-no-files-found: error
           retention-days: 90
@@ -73,6 +73,6 @@ jobs:
               --title "IgorCoin-Qortal OS $TAG" \
               --notes "Experimental Arch Linux-based IgorCoin-Qortal OS live image. Secure Boot signing and physical-hardware validation are not yet certified."
           gh release upload "$TAG" \
-            archiso/out/igorcoin-qortal-os-x86_64.iso \
-            archiso/out/igorcoin-qortal-os-x86_64.iso.sha256 \
+            archiso/out/amd.iso \
+            archiso/out/amd.iso.sha256 \
             --clobber
