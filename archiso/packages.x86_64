@@ -3,6 +3,8 @@ base-devel
 linux
 linux-headers
 linux-firmware
+jre21-openjdk-headless
+fuse2
 mkinitcpio
 amd-ucode
 intel-ucode
