@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 trap 'echo "customize_airootfs.sh failed at line $LINENO" >&2' ERR
 
-echo igorcoin-qortal-os > /etc/hostname
+echo igorcoin-qortal > /etc/hostname
 id liveuser >/dev/null 2>&1 || useradd -m -G wheel,audio,video,storage,optical,network -s /bin/bash liveuser
 install -d -m 0755 /etc/sudoers.d
 printf '%s\n' 'liveuser ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/99-liveuser
@@ -14,7 +14,6 @@ id reticulum >/dev/null 2>&1 || useradd --system --create-home --home-dir /var/l
 install -d -o qortal -g qortal -m 0750 /opt/qortal/core /opt/qortal/hub /var/lib/qortal
 install -d -o reticulum -g reticulum -m 0750 /var/lib/reticulum
 
-pacman -S --noconfirm --needed jre21-openjdk-headless fuse2
 CORE_JSON="$(curl -fsSL https://api.github.com/repos/Qortal/qortal/releases/latest)"
 CORE_URL="$(jq -er '[.assets[] | select(.name | test("qortal.*\\.jar$"; "i"))][0].browser_download_url' <<<"$CORE_JSON")"
 curl -fL --retry 3 --retry-delay 2 "$CORE_URL" -o /opt/qortal/core/qortal.jar
@@ -46,7 +45,9 @@ install -d -o liveuser -g liveuser /home/liveuser/.config /home/liveuser/Desktop
 printf '[General]\nColorScheme=BreezeDark\nName=IgorCoin-Qortal Dark\n' > /home/liveuser/.config/kdeglobals
 chown liveuser:liveuser /home/liveuser/.config/kdeglobals
 
-systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service qortal.service reticulum.service
+sed -i '/^\[igorcoin\]$/,/^$/d' /etc/pacman.conf || true
+systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service docker.service qortal.service reticulum.service
+systemctl enable podman.socket || true
 systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service
 
 cat > /usr/share/applications/calamares.desktop <<'EOF'
