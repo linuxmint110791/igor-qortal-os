@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'archiso/**'
+      - 'build.sh'
       - '.github/workflows/build-iso.yml'
   workflow_dispatch:
     inputs:
