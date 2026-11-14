@@ -1,0 +1,18 @@
+[Unit]
+Description=Reticulum Network Stack daemon
+After=network.target
+
+[Service]
+Type=simple
+User=reticulum
+Group=reticulum
+Environment=HOME=/var/lib/reticulum
+WorkingDirectory=/var/lib/reticulum
+ExecStart=/opt/reticulum/venv/bin/rnsd --service
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
