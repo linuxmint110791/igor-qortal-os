@@ -9,6 +9,8 @@ amd-ucode
 intel-ucode
 mkinitcpio
 mkinitcpio-archiso
+mkinitcpio-nfs-utils
+nbd
 archiso
 arch-install-scripts
 archinstall
