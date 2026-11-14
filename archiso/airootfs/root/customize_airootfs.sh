@@ -79,9 +79,30 @@ Type=Application
 Categories=Network;
 EOF
 
-install -d -o liveuser -g liveuser /home/liveuser/.config /home/liveuser/Desktop
+# Qortal dark press-kit wallpaper and KDE feedback opt-out.
+install -d -m 0755 /usr/share/wallpapers/IgorCoin-Qortal
+if curl -fL --retry 3 --retry-delay 2 'https://wiki.qortal.org/lib/exe/fetch.php?media=qortal_background_extra_dark_.jpg' -o /usr/share/wallpapers/IgorCoin-Qortal/wallpaper.jpg; then
+  install -d -m 0755 /etc/skel/.config/autostart
+  cat > /etc/skel/.config/autostart/igorcoin-wallpaper.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=IgorCoin-Qortal Wallpaper
+Exec=plasma-apply-wallpaperimage /usr/share/wallpapers/IgorCoin-Qortal/wallpaper.jpg
+X-KDE-autostart-after=panel
+EOF
+fi
+install -d -m 0755 /etc/skel/.config
+cat > /etc/skel/.config/kuserfeedbackrc <<'EOF'
+[UserFeedback]
+FeedbackLevel=0
+EOF
+
+install -d -o liveuser -g liveuser /home/liveuser/.config /home/liveuser/Desktop /home/liveuser/.config/autostart
 printf '[General]\nColorScheme=BreezeDark\nName=IgorCoin-Qortal Dark\n' > /home/liveuser/.config/kdeglobals
 chown liveuser:liveuser /home/liveuser/.config/kdeglobals
+cp -a /etc/skel/.config/autostart/. /home/liveuser/.config/autostart/ 2>/dev/null || true
+cp /etc/skel/.config/kuserfeedbackrc /home/liveuser/.config/kuserfeedbackrc
+chown -R liveuser:liveuser /home/liveuser/.config
 
 sed -i '/^\[igorcoin\]$/,/^$/d' /etc/pacman.conf || true
 systemctl enable NetworkManager.service systemd-resolved.service sddm.service bluetooth.service docker.service qortal.service reticulum.service
