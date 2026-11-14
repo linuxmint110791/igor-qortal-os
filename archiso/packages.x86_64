@@ -12,6 +12,7 @@ arch-install-scripts
 archinstall
 syslinux
 sudo
+zenity
 git
 curl
 wget
