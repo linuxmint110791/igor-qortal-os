@@ -3,7 +3,7 @@
 ![ISO build status](https://github.com/linuxmint110791/igor-qortal-os/actions/workflows/build-iso.yml/badge.svg)
 
 
-**Debian 13.3 Trixie snapshot baseline + KDE Plasma + the official Qortal Linux installer.**
+**Debian 13.7 Trixie snapshot baseline + KDE Plasma + the official Qortal Linux installer.**
 
 Igorcoin Qortal OS is a Debian-based desktop ISO project. It provides a Debian 13 KDE desktop, Calamares installer and the official Qortal Linux setup script embedded in the ISO.
 
@@ -11,7 +11,7 @@ Igorcoin Qortal OS is a Debian-based desktop ISO project. It provides a Debian 1
 
 During installation, Calamares displays an Igorcoin Qortal OS slideshow explaining what Qortal is, how wallets and nodes work, how QDN publishing and Qortal apps fit together, and where to start. The wallet slide includes the QR code generated at build time for the confirmed support address `QZwfPesnDjvE4S3baXHDbFN5UZZAifqaSZ`. It links only to the official Qortal website, developer portal, Hub and Go pages; no social-media promotions are included.
 
-The ISO build installs Debian's signed Linux 7.3.4 kernel package (`linux-image-7.3.4+deb14-amd64`, version `7.3.4-1`) from Debian sid. The sid repository is confined to the build chroot, not enabled as a general repository on the installed system. The ISO verifier checks that the 7.3.4 kernel, module tree, Calamares branding, slideshow and wallet QR are present.
+The ISO build installs Debian's signed AMD64 kernel through the `linux-image-amd64` metapackage from the official Debian 13 Trixie archive. The build does not mix in Debian sid or Debian 14 packages. The ISO verifier checks that the kernel ABI is a Debian 13 (`+deb13-amd64`) build, alongside the module tree, Calamares branding, slideshow and wallet QR.
 
 ## Follow and share the project
 
@@ -57,9 +57,9 @@ For the full running-process list and per-process CPU/RAM usage, open **Igorcoin
 The image includes official Qortal Project press-kit backgrounds (dark, extra-dark, light, and “Welcome to the Future”), a KDE wallpaper entry, and the official transparent Qortal logo for desktop branding. The standard freedesktop sound theme is installed and selected for KDE notification sounds. These are community-use Qortal press-kit assets; see the [official Qortal Images/Press Kit](https://wiki.qortal.org/doku.php?id=official_images_press_kit).
 
 ## Included
-- Debian 13.3 Trixie package baseline, resolved from the official Debian Snapshot archive dated 11 January 2026
+- Debian 13.7 Trixie package baseline, resolved from the official Debian Snapshot archive dated 13 September 2026
 - KDE Plasma desktop with Wayland session support
-- Debian-signed Linux 7.3.4 kernel from the official Debian sid archive, with the Trixie kernel retained as a stable fallback; sid is used only during the ISO build and is not enabled as a general installed-system repository
+- Debian-signed AMD64 Linux kernel from the official Debian 13 Trixie archive; no Debian sid or Debian 14 kernel packages are mixed into the image
 - Calamares installer
 - NetworkManager and common firmware packages
 - UFW firewall enabled by default: inbound connections denied, outbound connections allowed
@@ -84,9 +84,9 @@ This prepares the operating-system side for a single-login Qortal experience. It
 
 ## Qortal Network tray indicator
 
-KDE starts an **Igorcoin Qortal Network** system-tray indicator beside the Wi-Fi/network icon after login. Its menu shows whether the local Qortal Core API port (12391) is listening and whether a Reticulum-related process is detected. It provides shortcuts to open Qortal Hub and KDE network settings. Status is refreshed every five seconds.
+KDE starts an **Igorcoin Qortal Network** system-tray indicator beside the Wi-Fi/network icon after login. Its menu shows whether the local Qortal Core API port (12391) is listening and whether the `igorcoin-reticulum.service` systemd unit is active. It provides shortcuts to open Qortal Hub and KDE network settings. Status is refreshed every five seconds.
 
-Choose **Local**, **Public**, or **Custom** node inside Qortal Hub's own connection-mode screen. The tray indicator is a quick status/launch panel; it does not replace NetworkManager's Wi-Fi controls or silently change Hub connection settings. Reticulum reachability is more than a process check, so the indicator currently reports process detection rather than claiming that a remote Reticulum route is working.
+Choose **Local**, **Public**, or **Custom** node inside Qortal Hub's own connection-mode screen. The tray indicator is a quick status/launch panel; it does not replace NetworkManager's Wi-Fi controls or silently change Hub connection settings. The indicator reports the local service state only; it does not claim that a remote Reticulum route is reachable.
 
 ## Reticulum background service and brief network outages
 
@@ -108,7 +108,7 @@ Qortal Core is not configured to restart merely because the network disappears. 
 
 ## Hourly Debian package updates
 
-The installed system checks the configured Debian 13.3 Trixie APT repositories hourly, starting ten minutes after boot. It refreshes package indexes and runs `unattended-upgrade` for packages allowed by the explicit Debian stable, stable-updates, and stable-security origins. This applies package updates within the installed Debian release; it does not silently change the system to a newer Debian major release or run `full-upgrade`.
+The installed system checks the configured Debian 13.7 Trixie APT repositories hourly, starting ten minutes after boot. It refreshes package indexes and runs `unattended-upgrade` for packages allowed by the explicit Debian stable, stable-updates, and stable-security origins. This applies package updates within the installed Debian release; it does not silently change the system to a newer Debian major release or run `full-upgrade`.
 
 Automatic reboots are disabled. Kernel and other updates that require a reboot are installed but take effect fully after the user chooses to reboot. Packages are installed only from configured Debian APT origins accepted by unattended-upgrades. The hourly task uses a lock to avoid overlapping APT operations.
 
@@ -130,7 +130,7 @@ The official Qortal Hub installer is used so the ISO receives the current Hub re
 
 These modes are selected inside Qortal Hub's connection-mode screen; they are not separate blockchain networks. A local Core remains the preferred full-node setup. Public-node access depends on the operator of that public service.
 
-Qortal Hub also includes its own Reticulum integration. It manages its Reticulum daemon, bridge, mesh interfaces and bootstrap connections itself; Igorcoin OS does not start a competing system-wide `rnsd` service. The Hub's documented default mesh bootstrap endpoints include `phantom.mobilefabrik.com:4400`, `reticulum.qortal.link:4444` and `reticulum2.qortal.link:4444`. Reticulum options and connection status are available in Hub's Settings.
+Qortal Hub also includes its own Reticulum integration. Igorcoin OS separately starts `igorcoin-reticulum.service` as a standalone Reticulum client with its own configuration under `/var/lib/reticulum`; it does not bridge Qortal Core peer traffic over Reticulum or replace Hub's own bridge. The two integrations are separate clients. The Hub's documented default mesh bootstrap endpoints include `phantom.mobilefabrik.com:4400`, `reticulum.qortal.link:4444` and `reticulum2.qortal.link:4444`. Reticulum options and connection status are available in Hub's Settings.
 
 ### Firewall ports
 
@@ -159,7 +159,7 @@ The installed desktop provides graphical launchers under Applications:
 To include the encrypted backup in a later ISO, upload only `Igorcoin-Wallet.json.age` to the repository's `wallet/` folder using GitHub's web interface. The workflow automatically rebuilds the ISO when that encrypted file changes. Never upload the original JSON, and never put the age passphrase in GitHub, the ISO, or the build script. If the encrypted file is not present in the repository during the build, no personal wallet backup is bundled.
 
 ## Download the ISO
-The ISO is published as a GitHub Release asset and as a temporary GitHub Actions artifact; it is not committed into the source repository.
+The ISO is published as a GitHub Release asset and as the GitHub Actions artifact `Igorcoin-Qortal-OS-Debian13-amd64`; it is not committed into the source repository.
 
 1. Open https://github.com/linuxmint110791/igor-qortal-os/releases
 2. Select the newest release named Igorcoin Qortal OS.
@@ -169,10 +169,10 @@ The ISO is published as a GitHub Release asset and as a temporary GitHub Actions
 The Actions artifact is retained for 90 days. Failed builds do not publish a release.
 
 ## Build the ISO
-The build uses the official Debian 13.3 Trixie package baseline, pinned to the Debian Snapshot archive dated 11 January 2026. It additionally installs Debian's signed Linux 7.3.4 kernel package from the official sid archive, while retaining the Trixie kernel as a fallback. The sid source is available only inside the build chroot; the installed system does not receive a general sid repository. The original Debian 13.3 netinst ISO directory is recorded in `debian-source.env`; the custom image is assembled from signed Debian packages with Debian Live `live-build`, not by modifying the netinst ISO byte-for-byte. The built system uses the official current Trixie and security repositories for subsequent hourly updates.
+The build uses the official Debian 13.7 Trixie package baseline, pinned to the Debian Snapshot archive dated 13 September 2026. The kernel is selected through Debian's signed `linux-image-amd64` metapackage from Trixie; no sid or Debian 14 package source is enabled. The original Debian 13.7 netinst ISO directory is recorded in `debian-source.env`; the custom image is assembled from signed Debian packages with Debian Live `live-build`, not by modifying the netinst ISO byte-for-byte. The installed system uses the official current Trixie and security repositories for subsequent hourly updates.
 
-Official Debian installer source: https://cdimage.debian.org/cdimage/archive/13.3.0/amd64/iso-cd/  
-Official package snapshot: https://snapshot.debian.org/archive/debian/20260111T000000Z/  
+Official Debian installer source: https://cdimage.debian.org/cdimage/archive/13.7.0/amd64/iso-cd/  
+Official package snapshot: https://snapshot.debian.org/archive/debian/20260913T000000Z/  
 Debian Live build documentation: https://live-team.pages.debian.net/live-manual/
 
 ### Prepare an Ubuntu/Debian build computer
@@ -222,6 +222,6 @@ The project is under active development. An ISO is ready for testing only after 
 
 ## Arch-based edition: IgorCoin-Qortal OS
 
-The repository now also contains an isolated Arch Linux/Archiso implementation in [`archiso/`](archiso/README.md). It builds inside a privileged Arch Docker container, leaving a Linux Mint host's package database untouched. It targets Linux 7.3.4 from Arch's signed repositories, KDE Plasma Wayland, Calamares, Qortal Core/Hub and Reticulum/NomadNet. The Arch build has its own GitHub Actions workflow and publishes a release only when manually dispatched with a release tag.
+The repository now also contains an isolated Arch Linux/Archiso implementation in [`archiso/`](archiso/README.md). It builds inside a privileged Arch Docker container, leaving a Linux Mint host's package database untouched. It targets Linux 6.12 from Arch's signed repositories, KDE Plasma Wayland, Calamares, Qortal Core/Hub and Reticulum/NomadNet. The Arch build has its own GitHub Actions workflow and publishes a release only when manually dispatched with a release tag.
 
 **Build on Linux Mint:** install `docker.io`, then run `bash ./archiso/build.sh`. Full instructions, limitations and QEMU testing are in [`archiso/README.md`](archiso/README.md). The Arch installer remains experimental until virtual-machine and physical-hardware installation tests pass.

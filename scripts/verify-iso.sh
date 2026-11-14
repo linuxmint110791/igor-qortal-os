@@ -49,9 +49,22 @@ check_file usr/local/bin/igorcoin-reticulum
 check_file usr/local/bin/igorcoin-network-tray
 check_file opt/reticulum-venv/bin/rnsd
 
-echo "==> Checking Linux 7.3.4 kernel"
-check_file boot/vmlinuz-7.3.4+deb14-amd64
-check_file lib/modules/7.3.4+deb14-amd64/modules.dep
+echo "==> Checking Debian 13 AMD64 kernel"
+KERNEL_IMAGE="$(find "$ROOTFS/boot" -maxdepth 1 -type f -name 'vmlinuz-*' -printf '%f\n' | sort -V | tail -n 1)"
+if [[ -z "$KERNEL_IMAGE" ]]; then
+  echo "ISO does not contain a Linux kernel image in /boot." >&2
+  exit 1
+fi
+KERNEL_VERSION="${KERNEL_IMAGE#vmlinuz-}"
+case "$KERNEL_VERSION" in
+  *+deb13-amd64) ;;
+  *)
+    echo "Expected a Debian 13 AMD64 kernel, found: $KERNEL_VERSION" >&2
+    exit 1
+    ;;
+esac
+check_file "boot/$KERNEL_IMAGE"
+check_file "lib/modules/$KERNEL_VERSION/modules.dep"
 
 echo "==> Checking Qortal desktop branding and installer"
 check_file usr/share/pixmaps/qortal-logo.png

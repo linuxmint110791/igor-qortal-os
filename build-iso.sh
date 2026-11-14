@@ -16,8 +16,8 @@ if [[ -f "$SOURCE_CONFIG" ]]; then
   source "$SOURCE_CONFIG"
 fi
 DEBIAN_SUITE="${DEBIAN_SUITE:-trixie}"
-DEBIAN_POINT_RELEASE="${DEBIAN_POINT_RELEASE:-13.3}"
-DEBIAN_SNAPSHOT="${DEBIAN_SNAPSHOT:-20260111T000000Z}"
+DEBIAN_POINT_RELEASE="${DEBIAN_POINT_RELEASE:-13.7}"
+DEBIAN_SNAPSHOT="${DEBIAN_SNAPSHOT:-20260913T000000Z}"
 if [[ ! "$DEBIAN_SNAPSHOT" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
   echo "Invalid Debian snapshot timestamp: $DEBIAN_SNAPSHOT" >&2
   exit 2
@@ -677,24 +677,11 @@ DESKTOP
 # signed Debian repository metadata and packages.
 printf 'deb http://security.debian.org/debian-security %s-security main contrib non-free non-free-firmware\n' "$DEBIAN_SUITE" > config/archives/debian-security.list.chroot
 cp config/archives/debian-security.list.chroot config/archives/debian-security.list.binary
-# Install Debian's signed 7.3.4 kernel from sid, while keeping the
-# Trixie kernel metapackage as a stable fallback. Sid is chroot-only.
-printf '%s\n' 'deb https://deb.debian.org/debian sid main' > config/archives/debian-kernel-sid.list.chroot
-cat > config/archives/debian-kernel-sid.pref.chroot <<'KERNELPIN'
-Package: *
-Pin: release a=unstable
-Pin-Priority: -10
-
-Package: linux-image-7.3.4+deb14-amd64
-Pin: version 7.3.4-1
-Pin-Priority: 1001
-KERNELPIN
-
+# Use only the signed AMD64 kernel metapackage from the selected Debian Trixie snapshot.
 cat > config/package-lists/igorcoin-qortal-os.list.chroot <<'PACKAGES'
 # Desktop: KDE Plasma session running on Wayland (Xwayland is intentionally omitted).
 # Install kernel explicitly; skip live-build's obsolete Contents index autodetection.
 linux-image-amd64
-linux-image-7.3.4+deb14-amd64=7.3.4-1
 qrencode
 isolinux
 kde-plasma-desktop
