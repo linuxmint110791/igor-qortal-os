@@ -5,8 +5,10 @@
 ## Current design
 
 - Arch Linux base and rolling package repositories
-- KDE Plasma desktop with Wayland session support
-- SDDM display manager
+- **Cinnamon 6.8 as the intended default desktop session**
+- **KDE Plasma available as an alternative session** through SDDM
+- SDDM display manager; the live session is configured to start Cinnamon
+- Linux kernel **7.3.4 is the requested release target**; the current profile still installs the repository `linux` package and does not yet pin or build 7.3.4
 - Qortal Core and Qortal Hub fetched from their upstream GitHub releases during image customization
 - Reticulum (RNS), NomadNet and Reticulum MeshChat
 - NetworkManager, Bluetooth, PipeWire and common laptop utilities
@@ -39,4 +41,4 @@ The live session's `liveuser` account has passwordless sudo for installation and
 
 ## Project status
 
-This is an experimental first distribution build, not a stable release. Each successful artifact must be tested in a UEFI virtual machine and on physical hardware before being recommended for installation. Qortal and Reticulum upstream assets are fetched during the image build, so the build is not yet fully reproducible or version-pinned.
+This is an experimental first distribution build, not a stable release. Each successful artifact must be tested in a UEFI virtual machine and on physical hardware before being recommended for installation. Qortal and Reticulum upstream assets are fetched during the image build, so the build is not yet fully reproducible or version-pinned. Cinnamon and KDE package availability and session startup must be verified in CI before the ISO is considered successful. The kernel 7.3.4 target requires a separately pinned package/build step.
