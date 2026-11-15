@@ -30,16 +30,16 @@ sha256sum --check igorcoin-qortal-os.iso.sha256
 
 Only write the ISO to USB after the checksum reports `OK`. Writing an image erases the selected USB drive.
 
-## Standard Arch Linux base
+## Qortal-centred KDE desktop
 
 - Official Arch Linux repositories and package signatures.
-- Current upstream Archiso `releng` live environment and package set.
-- Standard Arch boot menu: Syslinux for legacy BIOS and systemd-boot for UEFI.
-- Standard Arch live shell and official `archinstall` installer.
-- No custom desktop environment, custom display manager, Calamares installer, DNS override, or custom service stack is added.
-- Only the distribution identity and Qortal installer command are layered on top of upstream Archiso.
+- KDE Plasma desktop with SDDM login.
+- No Brave, Firefox, or other general-purpose browser package is included.
+- Qortal Hub is included as a native AppImage and appears in the application menu.
+- NetworkManager, Wi-Fi firmware, PipeWire audio, and Bluetooth support.
+- The standard Arch live installer remains available.
 
-The live environment is a standard Arch installation environment, not a preconfigured desktop distribution. Use `archinstall` from the live shell to install Arch Linux to disk.
+This is a Qortal-centred KDE live environment, not a browser-based desktop. The live ISO can be used to test the desktop before installing Arch Linux to disk.
 
 ## Qortal installer
 
