@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Qortal Hub
+Comment=Start the local Qortal Core and open Qortal Hub at login
+Exec=/usr/local/bin/igorcoin-qortal-session
+Terminal=false
+X-KDE-autostart-after=panel
