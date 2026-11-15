@@ -1,4 +1,34 @@
-# Additional packages on top of the current official Archiso releng profile.
-# GRUB provides UEFI boot support; legacy BIOS continues using Syslinux.
+# Official Arch Linux releng base plus a complete KDE live desktop,
+# Wi-Fi/network support, firmware, Bluetooth, and PipeWire audio.
+# GRUB is used for UEFI; Syslinux remains for legacy BIOS.
 grub
+archinstall
 curl
+wget
+zstd
+networkmanager
+network-manager-applet
+iwd
+wireless-regdb
+linux-firmware
+sof-firmware
+alsa-ucm-conf
+pipewire
+pipewire-alsa
+pipewire-pulse
+wireplumber
+alsa-utils
+pavucontrol
+bluez
+bluez-utils
+plasma-desktop
+plasma-nm
+plasma-pa
+plasma-workspace
+sddm
+konsole
+dolphin
+ark
+kate
+xdg-user-dirs
+xdg-utils
