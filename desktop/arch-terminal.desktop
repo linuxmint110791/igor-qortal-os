@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Arch Terminal
+Comment=Open the Arch Linux terminal
+Exec=konsole
+Icon=utilities-terminal
+Terminal=false
+Categories=System;TerminalEmulator;
