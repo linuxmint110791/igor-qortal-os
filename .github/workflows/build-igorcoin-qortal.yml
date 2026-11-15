@@ -109,6 +109,10 @@ jobs:
           mkdir -p release-assets
           cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.sha256 release-assets/
           cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst.sha256 release-assets/
+          ISO_SIZE=$(stat -c%s igorcoin-qortal-os/2026/igorcoin-qortal-os.iso)
+          if (( ISO_SIZE < 1900000000 )); then
+            cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso release-assets/
+          fi
           SIZE=$(stat -c%s igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst)
           if (( SIZE < 1900000000 )); then
             cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/
@@ -119,7 +123,7 @@ jobs:
           Decompress: zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
           Verify: sha256sum --check igorcoin-qortal-os.iso.sha256
           EOF
-            ASSETS=(release-assets/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.sha256 release-assets/igorcoin-qortal-os.iso.zst.sha256 release-assets/README.txt)
+            ASSETS=(release-assets/igorcoin-qortal-os.iso* release-assets/igorcoin-qortal-os.iso.sha256 release-assets/igorcoin-qortal-os.iso.zst.sha256 release-assets/README.txt)
           else
             split -b 1800M -d -a 2 igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.zst.part-
             cat > release-assets/README.txt <<'EOF'
