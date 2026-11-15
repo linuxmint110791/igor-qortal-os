@@ -45,6 +45,27 @@ cp "$ROOT/pacman.conf" "$PROFILE/pacman.conf"
 install -Dm755 "$ROOT/../scripts/install-qortal.sh" \
   "$PROFILE/airootfs/usr/local/bin/igorcoin-qortal-install"
 
+# Enable NetworkManager in the live environment so Wi-Fi works after boot.
+install -d "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants"
+ln -sfn /usr/lib/systemd/system/NetworkManager.service \
+  "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service"
+
+# Enable Bluetooth where supported.
+ln -sfn /usr/lib/systemd/system/bluetooth.service \
+  "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/bluetooth.service"
+
+# Add the Estonian-flag default wallpaper to the live image.
+install -Dm644 "$ROOT/../assets/estonia-default.svg" \
+  "$PROFILE/airootfs/usr/share/backgrounds/igorcoin/estonia-default.svg"
+install -Dm755 "$ROOT/../scripts/set-wallpaper.sh" \
+  "$PROFILE/airootfs/usr/local/bin/igorcoin-set-wallpaper"
+
+# Add the Wi-Fi-first installer launchers.
+install -Dm755 "$ROOT/../scripts/igorcoin-install.sh" \
+  "$PROFILE/airootfs/usr/local/bin/igorcoin-install"
+install -Dm755 "$ROOT/../scripts/igorcoin-qortal-install.sh" \
+  "$PROFILE/airootfs/usr/local/bin/igorcoin-qortal-install"
+
 echo "==> Building branded image using official Archiso releng"
 mkarchiso -v -w "$WORK" -o "$OUT" "$PROFILE"
 
