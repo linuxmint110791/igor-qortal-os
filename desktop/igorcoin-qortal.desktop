@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Install Qortal
+Comment=Connect to Wi-Fi, then download and run the official Qortal installer
+Exec=konsole -e /usr/local/bin/igorcoin-qortal-install
+Icon=network-server
+Terminal=false
+Categories=Network;
