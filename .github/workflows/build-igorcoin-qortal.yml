@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
   schedule:
-    # Daily rolling-release build; Arch packages are refreshed with pacman -Syu.
     - cron: '17 3 * * *'
   workflow_dispatch:
     inputs:
@@ -40,8 +39,8 @@ jobs:
           set -Eeuo pipefail
           docker pull archlinux:base-devel
           docker run --rm --privileged --network host \
-            -v "$GITHUB_WORKSPACE/archiso:/work" -w /work \
-            archlinux:base-devel bash /work/scripts/container-build.sh
+            -v "$GITHUB_WORKSPACE:/repo" -w /repo/archiso \
+            archlinux:base-devel bash /repo/archiso/scripts/container-build.sh
           sudo chown -R "$(id -u):$(id -g)" archiso/out
           sudo chmod -R u+rwX archiso/out
 
@@ -90,7 +89,6 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-
           if [[ -n "$INPUT_TAG" ]]; then
             TAG="$INPUT_TAG"
           elif [[ "$EVENT_NAME" == "schedule" ]]; then
@@ -100,8 +98,8 @@ jobs:
           fi
 
           NOTES="IgorCoin-Qortal OS rolling Arch Linux image.
-          Built from current official Arch repositories. The image is refreshed daily.
-          Verify SHA256 before writing to USB. Secure Boot signing and physical-hardware validation are not certified."
+          Built from current official Arch repositories. Verify SHA256 before writing to USB.
+          Secure Boot signing and physical-hardware validation are not certified."
 
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" --title "IgorCoin-Qortal OS $TAG" --notes "$NOTES"
@@ -112,35 +110,25 @@ jobs:
           if (( SIZE < 1900000000 )); then
             cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/
             cat > release-assets/README.txt <<'EOF'
-          IgorCoin-Qortal OS — rolling release
+          IgorCoin-Qortal OS
 
           Download igorcoin-qortal-os.iso.zst and igorcoin-qortal-os.iso.sha256.
-          Decompress:
-            zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
-          Verify:
-            sha256sum --check igorcoin-qortal-os.iso.sha256
-          Write the verified .iso file to USB.
+          Decompress: zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
+          Verify: sha256sum --check igorcoin-qortal-os.iso.sha256
           EOF
             ASSETS=(release-assets/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.sha256 release-assets/README.txt)
           else
-            echo "::warning::Compressed ISO exceeds GitHub's per-file release limit; splitting into parts."
             split -b 1800M -d -a 2 igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.zst.part-
             cat > release-assets/README.txt <<'EOF'
-          IgorCoin-Qortal OS — rolling release, split compressed download
-
-          Download every igorcoin-qortal-os.iso.zst.part-* file and the SHA256 file.
-          Join the parts:
-            cat igorcoin-qortal-os.iso.zst.part-* > igorcoin-qortal-os.iso.zst
-          Test and decompress:
-            zstd -t igorcoin-qortal-os.iso.zst
-            zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
-          Verify:
-            sha256sum --check igorcoin-qortal-os.iso.sha256
+          IgorCoin-Qortal OS — split compressed download
+          Join: cat igorcoin-qortal-os.iso.zst.part-* > igorcoin-qortal-os.iso.zst
+          Test: zstd -t igorcoin-qortal-os.iso.zst
+          Decompress: zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
+          Verify: sha256sum --check igorcoin-qortal-os.iso.sha256
           EOF
             ASSETS=(release-assets/igorcoin-qortal-os.iso.zst.part-* release-assets/igorcoin-qortal-os.iso.sha256 release-assets/README.txt)
           fi
 
-          # Replace every asset in this tag so the rolling release never mixes builds.
           while IFS= read -r asset; do
             [[ -n "$asset" ]] && gh release delete-asset "$TAG" "$asset" --yes
           done < <(gh release view "$TAG" --json assets --jq '.assets[].name')
