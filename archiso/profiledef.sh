@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Official Archiso releng profile with IgorCoin-Qortal branding only.
-# Boot modes, compression and live-system defaults follow upstream Archiso.
+# Official Archiso releng profile with IgorCoin-Qortal branding.
 iso_name="igorcoin-qortal-os"
 iso_label="IGORCOIN_$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y%m)"
 iso_publisher="IgorCoin-Qortal OS"
@@ -8,7 +7,7 @@ iso_application="IgorCoin-Qortal OS Live/Rescue System"
 iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
 install_dir="arch"
 buildmodes=('iso')
-bootmodes=('bios.syslinux' 'uefi.systemd-boot')
+bootmodes=('bios.syslinux' 'uefi.grub')
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
 airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86,arm64' '-b' '1M' '-Xdict-size' '1M')
