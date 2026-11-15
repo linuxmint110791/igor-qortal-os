@@ -1,4 +1,4 @@
 # Additional packages on top of the current official Archiso releng profile.
-# Keep the live image as close to stock Arch Linux as possible.
-# curl is required by the unchanged official Qortal installer wrapper.
+# GRUB provides UEFI boot support; legacy BIOS continues using Syslinux.
+grub
 curl
