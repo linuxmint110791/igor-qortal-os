@@ -4,27 +4,40 @@
 
 ## Download
 
-**[Download IgorCoin-Qortal OS — official GitHub Releases](https://github.com/linuxmint110791/igor-qortal-os/releases/latest)**
+**[Download the latest rolling IgorCoin-Qortal OS image](https://github.com/linuxmint110791/igor-qortal-os/releases/tag/rolling)**
 
-A successful GitHub Actions build also publishes an `IgorCoin-Qortal-OS-amd64` workflow artifact containing the ISO, its SHA-256 checksum, and a compressed copy. Workflow artifacts are temporary (90-day retention); published Releases are the permanent download location.
+The `rolling` release is refreshed automatically once every day from the current official Arch Linux repositories. Each successful build replaces the previous ISO assets in that rolling release, so this link always points to the latest successful daily image.
 
-GitHub limits each individual release asset to less than 2 GB. If the compressed ISO fits, download `amd.iso.zst` and `amd.iso.sha256`. Decompress and verify:
+Versioned builds triggered by source changes are published separately. GitHub Actions also retains a downloadable build artifact for 90 days.
 
-```bash
-zstd -d amd.iso.zst -o amd.iso
-sha256sum --check amd.iso.sha256
-```
-
-If the compressed image is too large, the Release contains numbered `amd.iso.zst.part-*` files. Download every part into one directory, reassemble, decompress, and verify:
+If the compressed image is below GitHub's per-file release limit, download `igorcoin-qortal-os.iso.zst` and `igorcoin-qortal-os.iso.sha256`. Decompress and verify:
 
 ```bash
-cat amd.iso.zst.part-* > amd.iso.zst
-zstd -t amd.iso.zst
-zstd -d amd.iso.zst -o amd.iso
-sha256sum --check amd.iso.sha256
+zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
+sha256sum --check igorcoin-qortal-os.iso.sha256
 ```
 
-Only use the ISO if the checksum reports `OK`. Write the resulting `amd.iso` to a USB drive with balenaEtcher, GNOME Disks, or another image writer. Writing the image erases the USB drive.
+If the compressed image is too large, the Release contains numbered `igorcoin-qortal-os.iso.zst.part-*` files. Download every part into one directory, reassemble, decompress, and verify:
+
+```bash
+cat igorcoin-qortal-os.iso.zst.part-* > igorcoin-qortal-os.iso.zst
+zstd -t igorcoin-qortal-os.iso.zst
+zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
+sha256sum --check igorcoin-qortal-os.iso.sha256
+```
+
+Only use the ISO if the checksum reports `OK`. Write the resulting `.iso` file to a USB drive with balenaEtcher, GNOME Disks, or another image writer. Writing the image erases the USB drive.
+
+## Rolling-release model
+
+- A scheduled GitHub Actions build runs daily at 03:17 UTC.
+- Every build refreshes the Arch package database and upgrades the build environment using `pacman -Syu`.
+- The ISO is rebuilt from the current official Arch Linux repositories, not from a frozen package snapshot.
+- The build validates the ISO and compressed archive, then verifies the SHA-256 checksum.
+- Only a successful scheduled build updates the `rolling` release. If a build fails, the previous working rolling ISO remains available.
+- Pushes to `main` still trigger a separate versioned build; manual runs may specify a release tag.
+
+Rolling releases can include new upstream packages and occasional breaking changes. They are intended for testing and early adoption, not guaranteed long-term reproducibility. Keep backups and verify the checksum before writing an image to USB.
 
 ## System design
 
@@ -59,5 +72,6 @@ The live account has elevated installation privileges. Do not treat the live ses
 ## Source and build
 
 - Source: https://github.com/linuxmint110791/igor-qortal-os
-- Official downloads: https://github.com/linuxmint110791/igor-qortal-os/releases/latest
+- Latest rolling download: https://github.com/linuxmint110791/igor-qortal-os/releases/tag/rolling
+- All releases: https://github.com/linuxmint110791/igor-qortal-os/releases
 - Custom ISO build workflow: https://github.com/linuxmint110791/igor-qortal-os/actions/workflows/build-igorcoin-qortal.yml
