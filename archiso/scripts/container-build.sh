@@ -43,7 +43,7 @@ cp "$ROOT/pacman.conf" "$PROFILE/pacman.conf"
 # Keep the existing Qortal installer script unchanged and make it available
 # in the standard Arch live shell as: igorcoin-qortal-install
 install -Dm755 "$ROOT/../scripts/install-qortal.sh" \
-  "$PROFILE/airootfs/usr/local/bin/igorcoin-qortal-install"
+  "$PROFILE/airootfs/usr/local/lib/igorcoin/install-qortal.sh"
 
 # Enable NetworkManager in the live environment so Wi-Fi works after boot.
 install -d "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants"
@@ -51,8 +51,10 @@ ln -sfn /usr/lib/systemd/system/NetworkManager.service \
   "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service"
 
 # Enable Bluetooth where supported.
-ln -sfn /usr/lib/systemd/system/bluetooth.service \
-  "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/bluetooth.service"
+if [[ -f /usr/lib/systemd/system/bluetooth.service ]]; then
+  ln -sfn /usr/lib/systemd/system/bluetooth.service \
+    "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/bluetooth.service"
+fi
 
 # Add the Estonian-flag default wallpaper to the live image.
 install -Dm644 "$ROOT/../assets/estonia-default.svg" \
@@ -65,6 +67,28 @@ install -Dm755 "$ROOT/../scripts/igorcoin-install.sh" \
   "$PROFILE/airootfs/usr/local/bin/igorcoin-install"
 install -Dm755 "$ROOT/../scripts/igorcoin-qortal-install.sh" \
   "$PROFILE/airootfs/usr/local/bin/igorcoin-qortal-install"
+
+# KDE menu launchers and default wallpaper application on first Plasma start.
+install -Dm644 "$ROOT/../desktop/igorcoin-installer.desktop" \
+  "$PROFILE/airootfs/usr/share/applications/igorcoin-installer.desktop"
+install -Dm644 "$ROOT/../desktop/igorcoin-qortal.desktop" \
+  "$PROFILE/airootfs/usr/share/applications/igorcoin-qortal.desktop"
+install -Dm755 "$ROOT/../scripts/set-wallpaper.sh" \
+  "$PROFILE/airootfs/usr/local/bin/igorcoin-set-wallpaper"
+install -d "$PROFILE/airootfs/etc/xdg/autostart"
+cat > "$PROFILE/airootfs/etc/xdg/autostart/igorcoin-wallpaper.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=IgorCoin default wallpaper
+Exec=/usr/local/bin/igorcoin-set-wallpaper
+OnlyShowIn=KDE;
+EOF
+
+# SDDM starts KDE Plasma in the graphical live session.
+ln -sfn /usr/lib/systemd/system/sddm.service \
+  "$PROFILE/airootfs/etc/systemd/system/display-manager.service"
+ln -sfn /usr/lib/systemd/system/NetworkManager.service \
+  "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service"
 
 echo "==> Building branded image using official Archiso releng"
 mkarchiso -v -w "$WORK" -o "$OUT" "$PROFILE"
