@@ -8,23 +8,45 @@ OUT="$ROOT/out"
 PROFILE="$ROOT/profile"
 
 [[ "$(uname -m)" == "x86_64" ]] || { echo "This ISO build requires x86_64." >&2; exit 1; }
+
+# Prevent two builds in the same container from racing over the pacman database.
+if command -v flock >/dev/null 2>&1; then
+  exec 9>/tmp/igorcoin-archiso-build.lock
+  flock -n 9 || { echo "Another IgorCoin ISO build is already running." >&2; exit 1; }
+fi
+
+# The work directory is bind-mounted from the host. Old partial airootfs trees
+# can leave a stale pacman db.lck behind, so start with a clean build workspace.
+rm -rf "$WORK" "$OUT"
 mkdir -p "$WORK" "$OUT"
+
 FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
 [[ -n "$FREE_KB" && "$FREE_KB" -ge 12582912 ]] || {
   echo "At least 12 GiB free space is required for the build." >&2
   exit 1
 }
 
-echo "==> Refreshing Arch keyring and packages"
-pacman -Sy --noconfirm archlinux-keyring
-pacman -Syu --noconfirm
-pacman -S --needed --noconfirm archiso base-devel git curl jq sudo grub \
+# Force non-interactive confirmation for every pacman call made by this build,
+# including pacstrap/mkarchiso package installation.
+PACMAN_WRAPPER_DIR="$(mktemp -d)"
+trap 'rm -rf "$PACMAN_WRAPPER_DIR"' EXIT
+cat > "$PACMAN_WRAPPER_DIR/pacman" <<'PACMAN_WRAPPER'
+#!/usr/bin/env bash
+exec /usr/bin/pacman --noconfirm "$@"
+PACMAN_WRAPPER
+chmod 0755 "$PACMAN_WRAPPER_DIR/pacman"
+export PATH="$PACMAN_WRAPPER_DIR:$PATH"
+
+echo "==> Refreshing Arch keyring and packages (automatic confirmation enabled)"
+pacman -Sy archlinux-keyring
+pacman -Syu
+pacman -S --needed archiso base-devel git curl jq sudo grub \
   squashfs-tools dosfstools mtools xorriso libisoburn e2fsprogs btrfs-progs
 
 echo "==> Recording the latest GRUB version from the official Arch repositories"
 GRUB_VERSION="$(grub-install --version)"
 echo "$GRUB_VERSION"
-printf '%s\\n' "$GRUB_VERSION" > "$OUT/grub-version.txt"
+printf '%s\n' "$GRUB_VERSION" > "$OUT/grub-version.txt"
 
 echo "==> Preparing official Archiso releng profile"
 rm -rf "$PROFILE"
@@ -45,10 +67,13 @@ ISO="$(find "$OUT" -maxdepth 1 -type f -name 'igorcoin-qortal-os-*.iso' -print -
 if [[ -z "$ISO" ]]; then
   ISO="$(find "$OUT" -maxdepth 1 -type f -name '*.iso' -print -quit)"
 fi
-test -n "$ISO"
+[[ -n "$ISO" && -s "$ISO" ]] || { echo "Archiso did not produce a non-empty ISO." >&2; exit 1; }
 if [[ "$ISO" != "$OUT/amd.iso" ]]; then
   mv "$ISO" "$OUT/amd.iso"
 fi
+
 file "$OUT/amd.iso"
+xorriso -indev "$OUT/amd.iso" -pvd_info >/dev/null
 (cd "$OUT" && sha256sum amd.iso > amd.iso.sha256)
-echo "ISO built. This workflow does not yet sign the boot chain for Secure Boot."
+sha256sum --check "$OUT/amd.iso.sha256"
+echo "ISO built and verified. Secure Boot signing is not implemented."
