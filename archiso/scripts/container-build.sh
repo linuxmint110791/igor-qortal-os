@@ -31,7 +31,9 @@ pacman -Syu --noconfirm archiso curl grub
 echo "==> Starting from the current official Archiso releng profile"
 cp -a /usr/share/archiso/configs/releng "$PROFILE"
 
-# Keep upstream releng's full package set and add only curl for the Qortal script.
+# Remove Firefox from upstream releng: this OS ships without a web browser.
+sed -i '/^firefox$/d' "$PROFILE/packages.x86_64"
+# Add IgorCoin desktop and Qortal Hub dependencies.
 cat "$ROOT/packages.x86_64" >> "$PROFILE/packages.x86_64"
 awk 'NF && $1 !~ /^#/ {print $1}' "$PROFILE/packages.x86_64" | sort -u > "$PROFILE/packages.x86_64.tmp"
 mv "$PROFILE/packages.x86_64.tmp" "$PROFILE/packages.x86_64"
@@ -44,6 +46,14 @@ cp "$ROOT/pacman.conf" "$PROFILE/pacman.conf"
 # in the standard Arch live shell as: igorcoin-qortal-install
 install -Dm755 "$ROOT/../scripts/install-qortal.sh" \
   "$PROFILE/airootfs/usr/local/lib/igorcoin/install-qortal.sh"
+
+# Download the official Qortal Hub Linux AppImage and verify its published SHA256.
+QORTAL_HUB_URL="https://github.com/Qortal/Qortal-Hub/releases/download/v3.0.3/Qortal-Hub.AppImage"
+QORTAL_HUB_SHA256="a5affb4c438d5c0934e438b5518b6955653420148cf599f1c690bce6e69394b8"
+install -d "$PROFILE/airootfs/opt/qortal-hub"
+curl -fL --retry 3 "$QORTAL_HUB_URL" -o "$PROFILE/airootfs/opt/qortal-hub/Qortal-Hub.AppImage"
+echo "$QORTAL_HUB_SHA256  $PROFILE/airootfs/opt/qortal-hub/Qortal-Hub.AppImage" | sha256sum --check
+chmod 755 "$PROFILE/airootfs/opt/qortal-hub/Qortal-Hub.AppImage"
 
 # Enable NetworkManager in the live environment so Wi-Fi works after boot.
 install -d "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants"
@@ -68,6 +78,9 @@ install -Dm755 "$ROOT/../scripts/igorcoin-install.sh" \
 install -Dm755 "$ROOT/../scripts/igorcoin-qortal-install.sh" \
   "$PROFILE/airootfs/usr/local/bin/igorcoin-qortal-install"
 
+# Native Qortal Hub desktop launcher (not a browser shortcut).
+install -Dm644 "$ROOT/../desktop/qortal-hub.desktop" "$PROFILE/airootfs/usr/share/applications/qortal-hub.desktop"
+
 # KDE menu launchers and default wallpaper application on first Plasma start.
 install -Dm644 "$ROOT/../desktop/igorcoin-installer.desktop" \
   "$PROFILE/airootfs/usr/share/applications/igorcoin-installer.desktop"
@@ -84,6 +97,8 @@ install -m755 "$ROOT/../desktop/arch-terminal.desktop" \
   "$PROFILE/airootfs/etc/skel/Desktop/Arch-Terminal.desktop"
 install -m755 "$ROOT/../desktop/igorcoin-qortal.desktop" \
   "$PROFILE/airootfs/etc/skel/Desktop/Install-Qortal.desktop"
+install -m755 "$ROOT/../desktop/qortal-hub.desktop" \
+  "$PROFILE/airootfs/etc/skel/Desktop/Qortal-Hub.desktop"
 
 install -Dm755 "$ROOT/../scripts/set-wallpaper.sh" \
   "$PROFILE/airootfs/usr/local/bin/igorcoin-set-wallpaper"
