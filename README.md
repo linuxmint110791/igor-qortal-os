@@ -1,23 +1,25 @@
 # IgorCoin-Qortal OS
 
-**IgorCoin-Qortal OS** is an experimental x86_64 Linux distribution built from the official Arch Linux repositories and the official Archiso `releng` profile.
+**IgorCoin-Qortal OS** is an x86_64 Arch Linux live image built from the current official Arch Linux repositories and the upstream Archiso `releng` profile.
+
+The goal is to keep the system as close to standard Arch Linux as possible. The custom layer is limited to the IgorCoin-Qortal name and the existing Qortal installer script.
 
 ## Download
 
-**[Download the latest rolling IgorCoin-Qortal OS image](https://github.com/linuxmint110791/igor-qortal-os/releases/tag/rolling)**
+**[Latest rolling ISO — GitHub Releases](https://github.com/linuxmint110791/igor-qortal-os/releases/tag/rolling)**
 
-The `rolling` release is refreshed automatically once every day from the current official Arch Linux repositories. Each successful build replaces the previous ISO assets in that rolling release, so this link always points to the latest successful daily image.
+A scheduled build runs every day at 03:17 UTC. It refreshes the official Arch packages, builds a new ISO, verifies its SHA-256 checksum, and updates the `rolling` release only if every build step succeeds. If a build fails, the previous working rolling ISO remains available.
 
-Versioned builds triggered by source changes are published separately. GitHub Actions also retains a downloadable build artifact for 90 days.
+Pushes to `main` trigger a separate versioned build. GitHub Actions also stores temporary build artifacts for 90 days.
 
-If the compressed image is below GitHub's per-file release limit, download `igorcoin-qortal-os.iso.zst` and `igorcoin-qortal-os.iso.sha256`. Decompress and verify:
+Download the compressed ISO and checksum from the rolling release. Decompress and verify:
 
 ```bash
 zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
 sha256sum --check igorcoin-qortal-os.iso.sha256
 ```
 
-If the compressed image is too large, the Release contains numbered `igorcoin-qortal-os.iso.zst.part-*` files. Download every part into one directory, reassemble, decompress, and verify:
+If the compressed image is split into numbered parts, download every part and reassemble before decompressing:
 
 ```bash
 cat igorcoin-qortal-os.iso.zst.part-* > igorcoin-qortal-os.iso.zst
@@ -26,52 +28,54 @@ zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
 sha256sum --check igorcoin-qortal-os.iso.sha256
 ```
 
-Only use the ISO if the checksum reports `OK`. Write the resulting `.iso` file to a USB drive with balenaEtcher, GNOME Disks, or another image writer. Writing the image erases the USB drive.
+Only write the ISO to USB after the checksum reports `OK`. Writing an image erases the selected USB drive.
 
-## Rolling-release model
+## Standard Arch Linux base
 
-- A scheduled GitHub Actions build runs daily at 03:17 UTC.
-- Every build refreshes the Arch package database and upgrades the build environment using `pacman -Syu`.
-- The ISO is rebuilt from the current official Arch Linux repositories, not from a frozen package snapshot.
-- The build validates the ISO and compressed archive, then verifies the SHA-256 checksum.
-- Only a successful scheduled build updates the `rolling` release. If a build fails, the previous working rolling ISO remains available.
-- Pushes to `main` still trigger a separate versioned build; manual runs may specify a release tag.
+- Official Arch Linux repositories and package signatures.
+- Current upstream Archiso `releng` live environment and package set.
+- Standard Arch boot menu: Syslinux for legacy BIOS and systemd-boot for UEFI.
+- Standard Arch live shell and official `archinstall` installer.
+- No custom desktop environment, custom display manager, Calamares installer, DNS override, or custom service stack is added.
+- Only the distribution identity and Qortal installer command are layered on top of upstream Archiso.
 
-Rolling releases can include new upstream packages and occasional breaking changes. They are intended for testing and early adoption, not guaranteed long-term reproducibility. Keep backups and verify the checksum before writing an image to USB.
-
-## System design
-
-- Official Arch Linux package repositories: `core`, `extra`, and `multilib`
-- Official Archiso `releng` profile as the image foundation
-- Branded IgorCoin-Qortal OS live environment
-- Cinnamon is the intended default desktop; KDE Plasma is included as an alternative session. Actual session availability must be confirmed against the built image.
-- Archinstall is included as the guided installation tool
-- Reticulum / RNS and NomadNet integration, with a systemd service
-- Qortal installation is optional. The desktop offers a setup choice, and the upstream universal installer is available from the application menu.
-- The upstream Qortal universal installer is maintained by the Qortal community and is fetched from `https://link.qortal.dev/linux-script` when the user chooses to run it. It is not silently executed during OS installation.
-- The live desktop account is `igorcoin` and has passwordless sudo for installation and system administration. This is convenient for a live test image, not a hardened multi-user setup.
+The live environment is a standard Arch installation environment, not a preconfigured desktop distribution. Use `archinstall` from the live shell to install Arch Linux to disk.
 
 ## Qortal installer
 
-The repository includes `scripts/install-qortal.sh`, a wrapper for the official upstream Qortal universal Linux installer:
+The existing upstream Qortal installer wrapper is preserved in `scripts/install-qortal.sh` and copied unchanged into the live image as:
 
 ```bash
-bash <(curl -fsSL https://link.qortal.dev/linux-script || wget -qO- https://link.qortal.dev/linux-script)
+igorcoin-qortal-install
 ```
 
-The same installer is available in the desktop application menu as **Qortal Universal Linux Installer**. Review upstream script changes before running it; it installs software and may modify the user's Qortal directories.
+It downloads and runs the official Qortal Linux installer from `https://link.qortal.dev/linux-script` when the user explicitly starts it. Qortal is not silently installed during ISO boot or Arch installation.
 
-## Build status and security
+## Rolling-release details
 
-This is an experimental distribution, not yet a certified stable release. Pull requests and pushes to `main` run the custom Archiso build workflow. A successful build and checksum do not replace testing in a UEFI virtual machine and on physical hardware.
+- Daily ISO rebuild from current official Arch repositories.
+- Full package refresh with `pacman -Syu` inside the clean Arch build container.
+- ISO and compressed archive integrity checks.
+- SHA-256 verification before publishing.
+- Failed builds do not replace the previous successful `rolling` release.
 
-Secure Boot signing has not been implemented or certified. The requested Linux kernel 7.3.4 is not pinned in the current profile; the image uses the Arch repository kernel package. Do not assume either feature is present until explicitly implemented and tested.
+The daily job updates the downloadable ISO; it does not remotely update an already installed computer. On an installed Arch system, use the normal full system upgrade command:
 
-The live account has elevated installation privileges. Do not treat the live session as a hardened daily-use installation.
+```bash
+sudo pacman -Syu
+```
 
-## Source and build
+Arch is a rolling-release distribution. Read Arch news before large upgrades and keep backups.
+
+## Security and status
+
+This is an experimental community image, not an official Arch Linux release. The ISO uses upstream Archiso boot components and does not currently provide a signed Secure Boot chain. Secure Boot may need to be disabled to boot it.
+
+A successful build and checksum do not replace testing on a UEFI virtual machine and physical hardware. Always review the build logs and verify the checksum before installation.
+
+## Project links
 
 - Source: https://github.com/linuxmint110791/igor-qortal-os
-- Latest rolling download: https://github.com/linuxmint110791/igor-qortal-os/releases/tag/rolling
+- Latest rolling ISO: https://github.com/linuxmint110791/igor-qortal-os/releases/tag/rolling
 - All releases: https://github.com/linuxmint110791/igor-qortal-os/releases
-- Custom ISO build workflow: https://github.com/linuxmint110791/igor-qortal-os/actions/workflows/build-igorcoin-qortal.yml
+- Build status: https://github.com/linuxmint110791/igor-qortal-os/actions/workflows/build-igorcoin-qortal.yml
