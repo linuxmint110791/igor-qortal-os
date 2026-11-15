@@ -116,6 +116,5 @@ fi
 
 file "$OUT/amd.iso"
 xorriso -indev "$OUT/amd.iso" -pvd_info >/dev/null
-(cd "$OUT" && sha256sum amd.iso > amd.iso.sha256)
-sha256sum --check "$OUT/amd.iso.sha256"
+(cd "$OUT" && sha256sum amd.iso > amd.iso.sha256 && sha256sum --check amd.iso.sha256)
 echo "Branded Archiso image built and checksum verified."
