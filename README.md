@@ -2,7 +2,7 @@
 
 **IgorCoin-Qortal OS** is an x86_64 Arch Linux live image built from the current official Arch Linux repositories and the upstream Archiso `releng` profile.
 
-The goal is to keep the system as close to standard Arch Linux as possible. The custom layer is limited to the IgorCoin-Qortal name and the existing Qortal installer script.
+The goal is a Qortal-centred KDE desktop. No general-purpose web browser (including Brave or Firefox) is installed. Qortal Hub is the primary network interface.
 
 ## Download
 
@@ -49,7 +49,13 @@ The existing upstream Qortal installer wrapper is preserved in `scripts/install-
 igorcoin-qortal-install
 ```
 
-It downloads and runs the official Qortal Linux installer from `https://link.qortal.dev/linux-script` when the user explicitly starts it. Qortal is not silently installed during ISO boot or Arch installation.
+It downloads and runs the official Qortal Linux installer from `https://link.qortal.dev/linux-script` when the user explicitly starts it. The first-time Core installation remains an explicit action; the ISO does not silently install or initialize a wallet.
+
+## Qortal login integration
+
+After the user has installed Qortal Core once and the Core start script exists at `~/qortal/start.sh`, desktop login runs `igorcoin-qortal-session`. It starts the local Core if it is not already running, then opens the native Qortal Hub AppImage. The Core log is written to `~/.local/state/igorcoin-qortal/core.log`.
+
+Qortal Hub is the central interface for the Qortal network. Its local-node features require the local Core to be installed and running. Wallet unlock and account authentication are not bypassed: users must unlock their Qortal account inside Qortal Hub when required. Linux login does not expose or automatically unlock wallet secrets.
 
 ## Rolling-release details
 
