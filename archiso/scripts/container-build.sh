@@ -94,6 +94,13 @@ install -Dm755 "$ROOT/../scripts/igorcoin-qortal-install.sh" \
 # Native Qortal Hub desktop launcher (not a browser shortcut).
 install -Dm644 "$ROOT/../desktop/qortal-hub.desktop" "$PROFILE/airootfs/usr/share/applications/qortal-hub.desktop"
 
+# Start the installed local Qortal Core (if present) and open Qortal Hub
+# automatically when the desktop user logs in.
+install -Dm755 "$ROOT/../scripts/start-qortal-session.sh" \
+  "$PROFILE/airootfs/usr/local/bin/igorcoin-qortal-session"
+install -Dm644 "$ROOT/../desktop/qortal-hub-autostart.desktop" \
+  "$PROFILE/airootfs/etc/xdg/autostart/qortal-hub.desktop"
+
 # KDE menu launchers and default wallpaper application on first Plasma start.
 install -Dm644 "$ROOT/../desktop/igorcoin-installer.desktop" \
   "$PROFILE/airootfs/usr/share/applications/igorcoin-installer.desktop"
