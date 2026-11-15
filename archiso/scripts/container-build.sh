@@ -60,6 +60,19 @@ install -d "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants"
 ln -sfn /usr/lib/systemd/system/NetworkManager.service \
   "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service"
 
+# MediaTek MT7921E / MT7922 (including the user's MT7922 PCI ID 14c3:0616).
+# Follow ArchWiki: disable ASPM for this driver family to avoid latency/recovery issues.
+install -Dm644 "$ROOT/wifi/mt7921e.conf" \
+  "$PROFILE/airootfs/etc/modprobe.d/mt7921e.conf"
+
+# Disable NetworkManager Wi-Fi powersave for more reliable MT7922 connectivity.
+install -Dm644 "$ROOT/wifi/NetworkManager-wifi-powersave.conf" \
+  "$PROFILE/airootfs/etc/NetworkManager/conf.d/10-wifi-powersave.conf"
+
+# Fail the ISO build if the required MediaTek configuration was not staged.
+test -s "$PROFILE/airootfs/etc/modprobe.d/mt7921e.conf"
+test -s "$PROFILE/airootfs/etc/NetworkManager/conf.d/10-wifi-powersave.conf"
+
 # Enable Bluetooth where supported.
 if [[ -f /usr/lib/systemd/system/bluetooth.service ]]; then
   ln -sfn /usr/lib/systemd/system/bluetooth.service \

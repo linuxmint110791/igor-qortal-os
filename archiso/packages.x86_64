@@ -33,3 +33,7 @@ kate
 xdg-user-dirs
 xdg-utils
 fuse2
+
+linux-firmware-mediatek
+wpa_supplicant
+iw
