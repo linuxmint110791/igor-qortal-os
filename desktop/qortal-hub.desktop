@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Qortal Hub
+Comment=Open the native Qortal desktop application
+Exec=/opt/qortal-hub/Qortal-Hub.AppImage
+Icon=network-workgroup
+Terminal=false
+Categories=Network;
