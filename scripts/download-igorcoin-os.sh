@@ -22,15 +22,78 @@ ZST_SUM_URL="$(jq -r '.assets[] | select(.name=="igorcoin-qortal-os.iso.zst.sha2
 curl -fL --retry 3 "$ISO_SUM_URL" -o igorcoin-qortal-os.iso.sha256
 curl -fL --retry 3 "$ZST_SUM_URL" -o igorcoin-qortal-os.iso.zst.sha256
 
-mapfile -t PART_URLS < <(jq -r '.assets[] | select(.name | test("^igorcoin-qortal-os\\.iso\\.zst\\.part-[0-9]+$")) | .browser_download_url' release.json)
+mapfile -t PARTS < <(jq -r '.assets | map(select(.name | test("^igorcoin-qortal-os\\.iso\\.zst\\.part-[0-9]+$"))) | sort_by(.name)[] | [.name, .browser_download_url] | @tsv' release.json)
 SINGLE_URL="$(jq -r '.assets[] | select(.name=="igorcoin-qortal-os.iso.zst") | .browser_download_url' release.json)"
 
 rm -f igorcoin-qortal-os.iso.zst igorcoin-qortal-os.iso.zst.part-*
-if (( ${#PART_URLS[@]} > 0 )); then
-  echo "==> Laadin alla ${#PART_URLS[@]} kokkupakitud osa..."
-  mapfile -t PART_NAMES < <(jq -r '.assets[] | select(.name | test("^igorcoin-qortal-os\\.iso\\.zst\\.part-[0-9]+$")) | .name' release.json | sort)
-  for i in "${!PART_URLS[@]}"; do
-    curl -fL --retry 3 "${PART_URLS[$i]}" -o "${PART_NAMES[$i]}"
+if (( ${#PARTS[@]} > 0 )); then
+  echo "==> Laadin alla ${#PARTS[@]} kokkupakitud osa..."
+  PART_NAMES=()
+  for entry in "${PARTS[@]}"; do
+    name="${entry%%
+elif [[ -n "$SINGLE_URL" && "$SINGLE_URL" != null ]]; then
+  echo "==> Laadin alla ühe kokkupakitud faili..."
+  curl -fL --retry 3 "$SINGLE_URL" -o igorcoin-qortal-os.iso.zst
+else
+  echo "Väljalaskes puudub ISO kokkupakitud fail." >&2
+  exit 1
+fi
+
+echo "==> Kontrollin kokkupakitud faili SHA256 summat..."
+EXPECTED_ZST="$(awk 'NR==1 {print $1}' igorcoin-qortal-os.iso.zst.sha256)"
+ACTUAL_ZST="$(sha256sum igorcoin-qortal-os.iso.zst | awk '{print $1}')"
+[[ "$EXPECTED_ZST" == "$ACTUAL_ZST" ]] || { echo "Kokkupakitud faili kontrollsumma ei klapi!" >&2; exit 1; }
+
+echo "==> Kontrollin Zstandard-faili terviklikkust..."
+zstd -t igorcoin-qortal-os.iso.zst
+
+echo "==> Ühendan ja pakin lahti üheks ISO-failiks..."
+rm -f igor-coin.iso
+zstd -T0 -d igorcoin-qortal-os.iso.zst -o igor-coin.iso
+
+echo "==> Kontrollin lõpliku ISO SHA256 summat..."
+EXPECTED_ISO="$(awk 'NR==1 {print $1}' igorcoin-qortal-os.iso.sha256)"
+ACTUAL_ISO="$(sha256sum igor-coin.iso | awk '{print $1}')"
+[[ "$EXPECTED_ISO" == "$ACTUAL_ISO" ]] || { rm -f igor-coin.iso; echo "ISO kontrollsumma ei klapi; vigane fail eemaldati." >&2; exit 1; }
+
+printf '%s  %s\\n' "$ACTUAL_ISO" "igor-coin.iso" > igor-coin.iso.sha256
+echo
+echo "VALMIS: $BASE/igor-coin.iso"
+ls -lh igor-coin.iso igor-coin.iso.sha256
+\\t'*}"
+    url="${entry#*
+elif [[ -n "$SINGLE_URL" && "$SINGLE_URL" != null ]]; then
+  echo "==> Laadin alla ühe kokkupakitud faili..."
+  curl -fL --retry 3 "$SINGLE_URL" -o igorcoin-qortal-os.iso.zst
+else
+  echo "Väljalaskes puudub ISO kokkupakitud fail." >&2
+  exit 1
+fi
+
+echo "==> Kontrollin kokkupakitud faili SHA256 summat..."
+EXPECTED_ZST="$(awk 'NR==1 {print $1}' igorcoin-qortal-os.iso.zst.sha256)"
+ACTUAL_ZST="$(sha256sum igorcoin-qortal-os.iso.zst | awk '{print $1}')"
+[[ "$EXPECTED_ZST" == "$ACTUAL_ZST" ]] || { echo "Kokkupakitud faili kontrollsumma ei klapi!" >&2; exit 1; }
+
+echo "==> Kontrollin Zstandard-faili terviklikkust..."
+zstd -t igorcoin-qortal-os.iso.zst
+
+echo "==> Ühendan ja pakin lahti üheks ISO-failiks..."
+rm -f igor-coin.iso
+zstd -T0 -d igorcoin-qortal-os.iso.zst -o igor-coin.iso
+
+echo "==> Kontrollin lõpliku ISO SHA256 summat..."
+EXPECTED_ISO="$(awk 'NR==1 {print $1}' igorcoin-qortal-os.iso.sha256)"
+ACTUAL_ISO="$(sha256sum igor-coin.iso | awk '{print $1}')"
+[[ "$EXPECTED_ISO" == "$ACTUAL_ISO" ]] || { rm -f igor-coin.iso; echo "ISO kontrollsumma ei klapi; vigane fail eemaldati." >&2; exit 1; }
+
+printf '%s  %s\\n' "$ACTUAL_ISO" "igor-coin.iso" > igor-coin.iso.sha256
+echo
+echo "VALMIS: $BASE/igor-coin.iso"
+ls -lh igor-coin.iso igor-coin.iso.sha256
+\\t'}"
+    curl -fL --retry 3 "$url" -o "$name"
+    PART_NAMES+=("$name")
   done
   cat "${PART_NAMES[@]}" > igorcoin-qortal-os.iso.zst
 elif [[ -n "$SINGLE_URL" && "$SINGLE_URL" != null ]]; then
