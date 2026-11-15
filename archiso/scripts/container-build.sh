@@ -73,6 +73,18 @@ install -Dm644 "$ROOT/../desktop/igorcoin-installer.desktop" \
   "$PROFILE/airootfs/usr/share/applications/igorcoin-installer.desktop"
 install -Dm644 "$ROOT/../desktop/igorcoin-qortal.desktop" \
   "$PROFILE/airootfs/usr/share/applications/igorcoin-qortal.desktop"
+install -Dm644 "$ROOT/../desktop/arch-terminal.desktop" \
+  "$PROFILE/airootfs/usr/share/applications/arch-terminal.desktop"
+
+# Put clickable installer and terminal icons directly on the live user's desktop.
+install -d "$PROFILE/airootfs/etc/skel/Desktop"
+install -m755 "$ROOT/../desktop/igorcoin-installer.desktop" \
+  "$PROFILE/airootfs/etc/skel/Desktop/Install-IgorCoin-Qortal-OS.desktop"
+install -m755 "$ROOT/../desktop/arch-terminal.desktop" \
+  "$PROFILE/airootfs/etc/skel/Desktop/Arch-Terminal.desktop"
+install -m755 "$ROOT/../desktop/igorcoin-qortal.desktop" \
+  "$PROFILE/airootfs/etc/skel/Desktop/Install-Qortal.desktop"
+
 install -Dm755 "$ROOT/../scripts/set-wallpaper.sh" \
   "$PROFILE/airootfs/usr/local/bin/igorcoin-set-wallpaper"
 install -d "$PROFILE/airootfs/etc/xdg/autostart"
