@@ -3,10 +3,13 @@ name: Build IgorCoin-Qortal OS (Archiso)
 on:
   push:
     branches: [main]
+  schedule:
+    # Daily rolling-release build; Arch packages are refreshed with pacman -Syu.
+    - cron: '17 3 * * *'
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Optional GitHub Release tag (leave empty for a unique build tag)'
+        description: 'Optional GitHub Release tag (leave empty for automatic rolling/build tag)'
         required: false
         type: string
 
@@ -78,19 +81,30 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Publish release download (split only if GitHub's per-file limit requires it)
+      - name: Publish rolling or versioned release
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_TAG: ${{ inputs.release_tag }}
+          EVENT_NAME: ${{ github.event_name }}
         shell: bash
         run: |
           set -Eeuo pipefail
-          TAG="${INPUT_TAG:-v0.1.1-build.${GITHUB_RUN_NUMBER}}"
+
+          if [[ -n "$INPUT_TAG" ]]; then
+            TAG="$INPUT_TAG"
+          elif [[ "$EVENT_NAME" == "schedule" ]]; then
+            TAG="rolling"
+          else
+            TAG="v0.1.1-build.${GITHUB_RUN_NUMBER}"
+          fi
+
+          NOTES="IgorCoin-Qortal OS rolling Arch Linux image.
+          Built from current official Arch repositories. The image is refreshed daily.
+          Verify SHA256 before writing to USB. Secure Boot signing and physical-hardware validation are not certified."
+
           gh release view "$TAG" >/dev/null 2>&1 || \
-            gh release create "$TAG" \
-              --title "IgorCoin-Qortal OS $TAG" \
-              --notes "Experimental Arch Linux-based IgorCoin-Qortal OS. Download the ISO artifact or the compressed release assets. Verify SHA256 before writing to USB. Secure Boot signing and physical-hardware validation are not certified."
+            gh release create "$TAG" --title "IgorCoin-Qortal OS $TAG" --notes "$NOTES"
 
           mkdir -p release-assets
           cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.sha256 release-assets/
@@ -98,7 +112,7 @@ jobs:
           if (( SIZE < 1900000000 )); then
             cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/
             cat > release-assets/README.txt <<'EOF'
-          IgorCoin-Qortal OS 2026
+          IgorCoin-Qortal OS — rolling release
 
           Download igorcoin-qortal-os.iso.zst and igorcoin-qortal-os.iso.sha256.
           Decompress:
@@ -109,26 +123,27 @@ jobs:
           EOF
             ASSETS=(release-assets/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.sha256 release-assets/README.txt)
           else
-            echo "::warning::Compressed ISO exceeds GitHub's per-release-asset limit; splitting the compressed download into parts."
+            echo "::warning::Compressed ISO exceeds GitHub's per-file release limit; splitting into parts."
             split -b 1800M -d -a 2 igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.zst.part-
             cat > release-assets/README.txt <<'EOF'
-          IgorCoin-Qortal OS 2026 — split compressed download
+          IgorCoin-Qortal OS — rolling release, split compressed download
 
           Download every igorcoin-qortal-os.iso.zst.part-* file and the SHA256 file.
-          Join the compressed parts:
+          Join the parts:
             cat igorcoin-qortal-os.iso.zst.part-* > igorcoin-qortal-os.iso.zst
-          Decompress:
+          Test and decompress:
             zstd -t igorcoin-qortal-os.iso.zst
             zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
           Verify:
             sha256sum --check igorcoin-qortal-os.iso.sha256
-          Write the verified .iso file to USB.
           EOF
             ASSETS=(release-assets/igorcoin-qortal-os.iso.zst.part-* release-assets/igorcoin-qortal-os.iso.sha256 release-assets/README.txt)
           fi
 
-          for asset in igorcoin-qortal-os.iso.zst igorcoin-qortal-os.iso.zst.part-00 igorcoin-qortal-os.iso.zst.part-01 igorcoin-qortal-os.iso.sha256 README.txt; do
-            gh release delete-asset "$TAG" "$asset" --yes >/dev/null 2>&1 || true
-          done
+          # Replace every asset in this tag so the rolling release never mixes builds.
+          while IFS= read -r asset; do
+            [[ -n "$asset" ]] && gh release delete-asset "$TAG" "$asset" --yes
+          done < <(gh release view "$TAG" --json assets --jq '.assets[].name')
+
           gh release upload "$TAG" "${ASSETS[@]}" --clobber
-          echo "Published release $TAG"
+          echo "Published $TAG from run $GITHUB_RUN_NUMBER"
