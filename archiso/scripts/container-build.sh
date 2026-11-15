@@ -26,7 +26,7 @@ FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
 
 echo "==> Refreshing official Arch package databases and keyring"
 pacman -Sy --noconfirm archlinux-keyring
-pacman -Syu --noconfirm archiso curl
+pacman -Syu --noconfirm archiso curl grub
 
 echo "==> Starting from the current official Archiso releng profile"
 cp -a /usr/share/archiso/configs/releng "$PROFILE"
