@@ -15,6 +15,19 @@ if command -v flock >/dev/null 2>&1; then
   flock -n 9 || { echo "Another IgorCoin ISO build is already running." >&2; exit 1; }
 fi
 
+# Prefer Arch's global geo mirror; retain the distribution mirrorlist as fallback.
+MIRRORLIST="/etc/pacman.d/mirrorlist"
+if [[ -f "$MIRRORLIST" ]]; then
+  MIRROR_TMP="$(mktemp)"
+  grep -vF 'https://geo.mirror.pkgbuild.com/$repo/os/$arch' "$MIRRORLIST" > "$MIRROR_TMP" || true
+  {
+    printf '%s\n' '# IgorCoin-Qortal OS: global Arch mirror first'
+    printf '%s\n' 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch'
+    cat "$MIRROR_TMP"
+  } > "$MIRRORLIST"
+  rm -f "$MIRROR_TMP"
+fi
+
 # The work directory is bind-mounted from the host. Old partial airootfs trees
 # can leave a stale pacman db.lck behind, so start with a clean build workspace.
 rm -rf "$WORK" "$OUT"
@@ -37,6 +50,7 @@ PACMAN_WRAPPER
 chmod 0755 "$PACMAN_WRAPPER_DIR/pacman"
 export PATH="$PACMAN_WRAPPER_DIR:$PATH"
 
+echo "==> Using global Arch mirror first; configured mirrors remain as fallback"
 echo "==> Refreshing Arch keyring and packages (automatic confirmation enabled)"
 pacman -Sy archlinux-keyring
 pacman -Syu
