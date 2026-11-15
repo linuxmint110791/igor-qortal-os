@@ -62,6 +62,7 @@ jobs:
           sha256sum --check igorcoin-qortal-os.iso.sha256
           zstd -T0 -6 --no-progress igorcoin-qortal-os.iso -o igorcoin-qortal-os.iso.zst
           zstd -t igorcoin-qortal-os.iso.zst
+          sha256sum igorcoin-qortal-os.iso.zst > igorcoin-qortal-os.iso.zst.sha256
           EXPECTED="$(awk '{print $1}' igorcoin-qortal-os.iso.sha256)"
           ACTUAL="$(zstd -dc igorcoin-qortal-os.iso.zst | sha256sum | awk '{print $1}')"
           test "$EXPECTED" = "$ACTUAL"
@@ -76,6 +77,7 @@ jobs:
             igorcoin-qortal-os/2026/igorcoin-qortal-os.iso
             igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.sha256
             igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst
+            igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst.sha256
           compression-level: 0
           if-no-files-found: error
           retention-days: 90
@@ -106,6 +108,7 @@ jobs:
 
           mkdir -p release-assets
           cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.sha256 release-assets/
+          cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst.sha256 release-assets/
           SIZE=$(stat -c%s igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst)
           if (( SIZE < 1900000000 )); then
             cp igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/
@@ -116,7 +119,7 @@ jobs:
           Decompress: zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
           Verify: sha256sum --check igorcoin-qortal-os.iso.sha256
           EOF
-            ASSETS=(release-assets/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.sha256 release-assets/README.txt)
+            ASSETS=(release-assets/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.sha256 release-assets/igorcoin-qortal-os.iso.zst.sha256 release-assets/README.txt)
           else
             split -b 1800M -d -a 2 igorcoin-qortal-os/2026/igorcoin-qortal-os.iso.zst release-assets/igorcoin-qortal-os.iso.zst.part-
             cat > release-assets/README.txt <<'EOF'
@@ -126,7 +129,7 @@ jobs:
           Decompress: zstd -d igorcoin-qortal-os.iso.zst -o igorcoin-qortal-os.iso
           Verify: sha256sum --check igorcoin-qortal-os.iso.sha256
           EOF
-            ASSETS=(release-assets/igorcoin-qortal-os.iso.zst.part-* release-assets/igorcoin-qortal-os.iso.sha256 release-assets/README.txt)
+            ASSETS=(release-assets/igorcoin-qortal-os.iso.zst.part-* release-assets/igorcoin-qortal-os.iso.sha256 release-assets/igorcoin-qortal-os.iso.zst.sha256 release-assets/README.txt)
           fi
 
           while IFS= read -r asset; do
