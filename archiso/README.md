@@ -1,43 +1,57 @@
-# IgorCoin-Qortal OS — Archiso profile
+# IgorCoin-Qortal OS — official Archiso releng profile
 
-This Arch Linux/Archiso implementation is isolated beside the existing Debian project; it does not replace the Debian build.
+This image intentionally follows the upstream Arch Linux live ISO as closely as possible. Only the ISO identity and the existing Qortal installer command are customized.
 
-## Target and versions
-- x86_64 Live ISO; UEFI GRUB boot menu and legacy BIOS Syslinux boot profile.
-- Arch `linux` and `linux-headers`; the build aborts unless the official package version is 7.3.4.x.
-- KDE Plasma from Arch's rolling `plasma` group.
-- Calamares is built from the Arch User Repository (AUR); inspect its PKGBUILD before production use.
-- AMD: amdgpu + Mesa/Vulkan. NVIDIA: nvidia-open-dkms + matching headers. Test DKMS and Secure Boot on actual hardware.
+## What is included
 
-## Build on Linux Mint
+- Current official Archiso `releng` profile and package list.
+- Official Arch Linux package repositories and package signatures.
+- Syslinux legacy BIOS boot and systemd-boot UEFI boot, matching upstream releng.
+- Standard Arch live shell and `archinstall`.
+- One additional package, `curl`, required by the unchanged Qortal installer wrapper.
+- The unchanged `scripts/install-qortal.sh`, available in the live shell as `igorcoin-qortal-install`.
+
+No custom desktop, display manager, Calamares installer, DNS configuration, Reticulum services, or custom GRUB theme is added.
+
+## Build on Linux
+
+Install Docker, then run:
+
 ```bash
 sudo apt update
 sudo apt install -y docker.io
 sudo systemctl enable --now docker
 bash ./archiso/build.sh
 ```
-The script builds inside a privileged Arch container. It does not install Arch packages on Mint. Privileged containers have broad access to the host kernel; use only with trusted source.
 
-Output: `archiso/out/igorcoin-qortal-os-x86_64.iso`.
+The build runs inside an official Arch Linux container and does not install Arch packages onto the host OS.
+
+Output: `archiso/out/amd.iso`.
 
 ## GitHub Actions
-Actions → **Build IgorCoin-Qortal OS (Archiso)** → Run workflow. The ISO and SHA256 file are uploaded as a 90-day artifact. Set `release_tag` to publish a GitHub Release. ISO binaries are not committed.
 
-## QEMU
+The workflow builds on pushes to `main), on a daily schedule, and when manually dispatched. A successful daily build updates the `rolling` GitHub Release. Failed builds leave the previous release assets untouched.
+
+## Boot and installation
+
+Boot the ISO and use the standard Arch live environment. Start the guided installer with:
+
 ```bash
-qemu-system-x86_64 -enable-kvm -m 8192 -smp 4 -cdrom archiso/out/igorcoin-qortal-os-x86_64.iso -boot d
+archinstall
 ```
-Use OVMF for UEFI. QEMU cannot validate physical hybrid graphics, Wi-Fi, Bluetooth, suspend/resume or LoRa devices.
 
-## Installer
-The profile uses Calamares' `unpackfs` module to deploy the Archiso squashfs, then configures machine-id, fstab, initramfs, users, SDDM and GRUB. The squashfs path and module behavior must be verified against the actual Archiso build. This installer is experimental until UEFI/GPT, ext4, Btrfs, account creation and first boot pass in a disposable VM. Btrfs subvolumes must be tested separately.
+This is the upstream Arch installer, not a custom graphical installer.
 
-## Decentralized stack
-Qortal is not bundled into the Live ISO. On first desktop login, the user is offered optional installation of Qortal Core and Qortal Hub; the same option remains in the application menu. The setup fetches upstream GitHub latest releases, so pin versions and verify checksums before stable releases. RNS and NomadNet use an isolated Python venv. Reticulum MeshChat is downloaded as its official Linux AppImage from the upstream GitHub release API and gets a desktop launcher.
+## Qortal
 
-## Security
-- UEFI GRUB boot files are currently unsigned. Secure Boot must be disabled in firmware for this experimental image; no custom Secure Boot key is silently enrolled or embedded. A Microsoft-trusted shim/signed-GRUB chain is a separate release task.
-The live account `liveuser` has passwordless sudo for the live session. Qortal and Reticulum run as separate unprivileged accounts. DNS defaults to Cloudflare with Quad9 fallback. No wallet, seed phrase or private key is embedded.
+Run the optional Qortal setup only when desired:
 
-## Status
-This is committed build configuration, not a claim that the ISO has already been built or hardware-tested. Review AUR build recipes and release assets; inspect Actions logs and test the artifact before calling a release stable.
+```bash
+igorcoin-qortal-install
+```
+
+The wrapper fetches the official Qortal Linux installer at run time. Its repository source is preserved unchanged at `scripts/install-qortal.sh`.
+
+## Testing and security
+
+Test BIOS and UEFI boot in a virtual machine before installing on physical hardware. The current image does not include a certified Secure Boot signing chain. Verify the published SHA-256 checksum before writing the ISO to USB.
