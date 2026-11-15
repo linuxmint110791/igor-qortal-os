@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Optional GitHub Release tag (leave empty to use v0.1.0)'
+        description: 'Optional GitHub Release tag (leave empty for a unique build tag)'
         required: false
         type: string
 
@@ -86,7 +86,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          TAG="${INPUT_TAG:-v0.1.0}"
+          TAG="${INPUT_TAG:-v0.1.1-build.${GITHUB_RUN_NUMBER}}"
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" \
               --title "IgorCoin-Qortal OS $TAG" \
