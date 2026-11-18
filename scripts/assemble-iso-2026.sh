@@ -37,4 +37,10 @@ rm -f "${PARTS[@]}"
 
 echo "==> Verified single ISO created"
 ls -lh "$FINAL" "$DEST/igorcoin-qortal-os.iso.sha256"
-sha256sum --check "$DEST/igorcoin-qortal-os.iso.sha256"
+
+# Run the checksum check from the destination directory so the relative
+# filename stored in the .sha256 file resolves correctly.
+(
+  cd "$DEST"
+  sha256sum --check igorcoin-qortal-os.iso.sha256
+)
