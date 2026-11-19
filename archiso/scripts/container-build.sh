@@ -42,6 +42,112 @@ mv "$PROFILE/packages.x86_64.tmp" "$PROFILE/packages.x86_64"
 cp "$ROOT/profiledef.sh" "$PROFILE/profiledef.sh"
 cp "$ROOT/pacman.conf" "$PROFILE/pacman.conf"
 
+# Integrate Calamares using the upstream Manjaro configuration as the starting
+# point, adapted for the Archiso squashfs layout and IgorCoin-Qortal branding.
+# Manjaro's archived profile uses generated image placeholders and Manjaro-only
+# modules, so those are deliberately replaced rather than copied verbatim.
+CALAMARES_CONFIG="$(mktemp -d)"
+git clone --depth 1 https://github.com/calamares/calamares-manjaro.git "$CALAMARES_CONFIG/manjaro"
+install -d "$PROFILE/airootfs/etc/calamares/modules"
+for module in bootloader.conf initcpio.conf users.conf; do
+  if [[ -s "$CALAMARES_CONFIG/manjaro/conf/$module" ]]; then
+    install -m644 "$CALAMARES_CONFIG/manjaro/conf/$module" \
+      "$PROFILE/airootfs/etc/calamares/modules/$module"
+  fi
+done
+
+# The live image contains one Archiso root squashfs, not Manjaro's generated
+# _root-image_/_desktop-image_ pair.
+cat > "$PROFILE/airootfs/etc/calamares/modules/unpackfs.conf" <<'EOF'
+---
+unpack:
+  - source: "/run/archiso/bootmnt/arch/x86_64/airootfs.sfs"
+    sourcefs: "squashfs"
+    destination: ""
+EOF
+
+# Use Estonia as the initial locale/time-zone selection; users can change it.
+cat > "$PROFILE/airootfs/etc/calamares/modules/locale.conf" <<'EOF'
+---
+region: "Europe"
+zone: "Tallinn"
+localeGenPath: "/etc/locale.gen"
+EOF
+
+# Arch's kernel package is named linux (not Manjaro's generated _kernel_ token).
+cat > "$PROFILE/airootfs/etc/calamares/modules/initcpio.conf" <<'EOF'
+---
+kernel: linux
+EOF
+
+# Keep the installer distro-agnostic: remove Manjaro-only mhwdcfg/postcfg
+# steps and retain the standard Calamares partition/mount/unpack/GRUB flow.
+cat > "$PROFILE/airootfs/etc/calamares/settings.conf" <<'EOF'
+---
+modules-search: [ local ]
+instances: []
+sequence:
+  - show:
+      - welcome
+      - locale
+      - keyboard
+      - partition
+      - users
+      - summary
+  - exec:
+      - partition
+      - mount
+      - unpackfs
+      - machineid
+      - fstab
+      - locale
+      - keyboard
+      - localecfg
+      - initcpiocfg
+      - initcpio
+      - users
+      - displaymanager
+      - hwclock
+      - services
+      - grubcfg
+      - bootloader
+      - umount
+  - show:
+      - finished
+branding: default
+prompt-install: true
+dont-chroot: false
+oem-setup: false
+disable-cancel: false
+EOF
+
+# Manjaro's bootloader configuration already selects GRUB; explicitly ensure
+# the installed system uses the standard Arch GRUB commands and path.
+cat > "$PROFILE/airootfs/etc/calamares/modules/bootloader.conf" <<'EOF'
+---
+efiBootLoader: "grub"
+grubInstall: "grub-install"
+grubMkconfig: "grub-mkconfig"
+grubCfg: "/boot/grub/grub.cfg"
+EOF
+
+# Ensure the live image has a visible GUI installer entry.
+install -Dm644 /dev/stdin \
+  "$PROFILE/airootfs/usr/share/applications/igorcoin-installer.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Install IgorCoin-Qortal OS
+GenericName=System Installer
+Comment=Install IgorCoin-Qortal OS to this computer
+Exec=pkexec /usr/bin/calamares
+Icon=calamares
+Terminal=false
+Categories=System;
+EOF
+
+# Remove the temporary Manjaro configuration checkout after staging.
+rm -rf "$CALAMARES_CONFIG"
+
 # Keep the existing Qortal installer script unchanged and make it available
 # in the standard Arch live shell as: igorcoin-qortal-install
 install -Dm755 "$ROOT/../scripts/install-qortal.sh" \
