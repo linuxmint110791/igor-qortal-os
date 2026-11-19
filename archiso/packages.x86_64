@@ -4,6 +4,18 @@
 # Calamares graphical installer (Manjaro-derived configuration, Arch target).
 grub
 calamares
+polkit
+polkit-kde-agent
+efibootmgr
+dosfstools
+mtools
+e2fsprogs
+btrfs-progs
+xfsprogs
+f2fs-tools
+ntfs-3g
+squashfs-tools
+python-yaml
 archinstall
 curl
 wget
