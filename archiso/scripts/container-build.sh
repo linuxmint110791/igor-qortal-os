@@ -26,7 +26,7 @@ FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
 
 echo "==> Refreshing official Arch package databases and keyring"
 pacman -Sy --noconfirm archlinux-keyring
-pacman -Syu --noconfirm archiso curl grub
+pacman -Syu --noconfirm archiso curl grub calamares polkit polkit-kde-agent python-yaml
 
 echo "==> Starting from the current official Archiso releng profile"
 cp -a /usr/share/archiso/configs/releng "$PROFILE"
@@ -260,6 +260,32 @@ ln -sfn /usr/lib/systemd/system/sddm.service \
   "$PROFILE/airootfs/etc/systemd/system/display-manager.service"
 ln -sfn /usr/lib/systemd/system/NetworkManager.service \
   "$PROFILE/airootfs/etc/systemd/system/multi-user.target.wants/NetworkManager.service"
+
+# Validate the staged Calamares configuration before spending time on the ISO build.
+echo "==> Validating Calamares configuration and runtime"
+test -x /usr/bin/calamares
+test -x /usr/bin/pkexec
+test -d /usr/lib/calamares/modules
+test -s "$PROFILE/airootfs/etc/calamares/settings.conf"
+test -s "$PROFILE/airootfs/etc/calamares/modules/bootloader.conf"
+test -s "$PROFILE/airootfs/etc/calamares/modules/unpackfs.conf"
+test -s "$PROFILE/airootfs/usr/share/applications/igorcoin-installer.desktop"
+python - "$PROFILE/airootfs/etc/calamares" <<'PY'
+import pathlib, sys, yaml
+root = pathlib.Path(sys.argv[1])
+for path in sorted(root.rglob("*.conf")):
+    with path.open(encoding="utf-8") as stream:
+        yaml.safe_load(stream)
+    print(f"Valid YAML: {path.relative_to(root)}")
+settings = yaml.safe_load((root / "settings.conf").read_text(encoding="utf-8"))
+required = {"welcome", "locale", "keyboard", "partition", "users", "summary", "mount", "unpackfs", "machineid", "fstab", "localecfg", "initcpiocfg", "initcpio", "displaymanager", "hwclock", "services", "grubcfg", "bootloader", "umount", "finished"}
+used = {name for phase in settings.get("sequence", []) for items in phase.values() for name in items}
+missing = sorted(required - used)
+if missing:
+    raise SystemExit("Calamares sequence is missing required modules: " + ", ".join(missing))
+if settings.get("branding") != "default":
+    raise SystemExit("Unexpected Calamares branding selection")
+PY
 
 echo "==> Building branded image using official Archiso releng"
 mkarchiso -v -w "$WORK" -o "$OUT" "$PROFILE"
