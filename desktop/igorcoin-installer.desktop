@@ -1,8 +1,9 @@
 [Desktop Entry]
 Type=Application
 Name=Install IgorCoin-Qortal OS
-Comment=Connect to Wi-Fi, then start the official Archinstall installer
-Exec=konsole -e /usr/local/bin/igorcoin-install
-Icon=system-software-install
+GenericName=System Installer
+Comment=Install IgorCoin-Qortal OS with the graphical Calamares installer
+Exec=pkexec /usr/bin/calamares
+Icon=calamares
 Terminal=false
 Categories=System;
