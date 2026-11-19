@@ -1,7 +1,9 @@
 # Official Arch Linux releng base plus a complete KDE live desktop,
 # Wi-Fi/network support, firmware, Bluetooth, and PipeWire audio.
 # GRUB is used for UEFI; Syslinux remains for legacy BIOS.
+# Calamares graphical installer (Manjaro-derived configuration, Arch target).
 grub
+calamares
 archinstall
 curl
 wget
