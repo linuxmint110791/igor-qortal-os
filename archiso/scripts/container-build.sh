@@ -74,6 +74,24 @@ zone: "Tallinn"
 localeGenPath: "/etc/locale.gen"
 EOF
 
+# Require the installer user to choose credentials; do not enable automatic login
+# on the installed system.
+cat > "$PROFILE/airootfs/etc/calamares/modules/users.conf" <<'EOF'
+---
+defaultGroups:
+  - users
+  - lp
+  - video
+  - audio
+  - network
+  - storage
+  - wheel
+sudoersGroup: wheel
+setRootPassword: true
+doReusePassword: true
+doAutologin: false
+EOF
+
 # Arch's kernel package is named linux (not Manjaro's generated _kernel_ token).
 cat > "$PROFILE/airootfs/etc/calamares/modules/initcpio.conf" <<'EOF'
 ---
