@@ -37,9 +37,10 @@ Only write the ISO to USB after the checksum reports `OK`. Writing an image eras
 - No Brave, Firefox, or other general-purpose browser package is included.
 - Qortal Hub is included as a native AppImage and appears in the application menu.
 - NetworkManager, Wi-Fi firmware, PipeWire audio, and Bluetooth support.
-- The standard Arch live installer remains available.
+- Manjaro-derived Calamares graphical installer, adapted for the Archiso squashfs layout and GRUB.
+- A desktop installer shortcut launches Calamares; the installer provides graphical partitioning, locale, keyboard, user setup, and bootloader steps.
 
-This is a Qortal-centred KDE live environment, not a browser-based desktop. The live ISO can be used to test the desktop before installing Arch Linux to disk.
+This is a Qortal-centred KDE live environment, not a browser-based desktop. The live ISO can be used to test the desktop before installing IgorCoin-Qortal OS to disk. The Calamares configuration is adapted from Manjaro's Calamares configuration; Manjaro-specific image placeholders and hardware-detection steps are not copied unchanged.
 
 ## Qortal installer
 
