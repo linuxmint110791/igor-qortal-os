@@ -26,7 +26,7 @@ FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
 
 echo "==> Refreshing official Arch package databases and keyring"
 pacman -Sy --noconfirm archlinux-keyring
-pacman -Syu --noconfirm archiso curl grub calamares polkit polkit-kde-agent python-yaml
+pacman -Syu --noconfirm archiso curl git grub calamares polkit polkit-kde-agent python-yaml
 
 echo "==> Starting from the current official Archiso releng profile"
 cp -a /usr/share/archiso/configs/releng "$PROFILE"
